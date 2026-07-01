@@ -1,0 +1,317 @@
+@import "tailwindcss";
+
+/* ── Custom properties ── */
+:root {
+  --red: #F44352;
+  --red-dark: #CC3845;
+  --black: #0D0D0D;
+  --grey-dark: #1a1a1a;
+  --grey: #2a2a2a;
+  --grey-light: #3a3a3a;
+  --color-text: #f5f5f5;
+  --accent-rgb: 244, 67, 82;
+}
+
+/* ── Light theme ── */
+html.light {
+  --black: #F0F2F5;
+  --grey-dark: #FFFFFF;
+  --grey: #EBEBED;
+  --grey-light: #DDDEE0;
+  --color-text: #111111;
+}
+
+/* ── Base ── */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  background-color: var(--black);
+  color: var(--color-text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--grey-dark); }
+::-webkit-scrollbar-thumb {
+  background: var(--red);
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff5a65;
+  box-shadow: 0 0 8px var(--red);
+}
+
+/* ── Typography ── */
+.font-bebas { font-family: 'Bebas Neue', sans-serif; }
+
+/* ── Cards ── */
+.card {
+  background: var(--grey-dark);
+  border: 1px solid var(--grey);
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: var(--color-text);
+}
+
+html.light .card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+/* ── Red glow button ── */
+.btn-primary {
+  background: var(--red);
+  color: white;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.btn-primary:hover {
+  background: var(--red-dark);
+  box-shadow: 0 0 16px rgba(244, 67, 82, 0.5);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+
+/* ── Form inputs ── */
+.input-dark {
+  background: var(--grey);
+  border: 1px solid var(--grey-light);
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.input-dark:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(244, 67, 82, 0.2);
+}
+.input-dark::placeholder { color: #888; }
+
+/* date/time inputs: rimuove la larghezza minima nativa su iOS/Safari */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  min-width: 0;
+}
+
+/* ── Friend search ── */
+.search-input-box {
+  background: var(--grey);
+  border: 1px solid var(--grey-light);
+}
+.search-dropdown {
+  background: var(--grey-dark);
+  border: 1px solid var(--grey);
+}
+
+/* ── Light mode: text overrides ── */
+/* text-white on plain text elements → dark; use text-[white] on accent-bg elements to bypass */
+html.light .text-white { color: var(--color-text); }
+html.light .btn-primary { color: white; }
+
+/* Gray text: improve contrast on light backgrounds */
+html.light .text-gray-200 { color: #444444; }
+html.light .text-gray-300 { color: #555555; }
+html.light .text-gray-400 { color: #666666; }
+html.light .text-gray-500 { color: #777777; }
+html.light .text-gray-600 { color: #666666; }
+html.light .text-gray-700 { color: #555555; }
+
+/* ── Light mode: hover overrides ── */
+html.light .hover\:text-white:hover { color: var(--color-text); }
+html.light .hover\:text-gray-300:hover { color: #444444; }
+
+/* ── Skeleton loader ── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.skeleton {
+  background: var(--grey);
+  border-radius: 8px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Count-up animation ── */
+@keyframes count-up-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.count-up { animation: count-up-fade 0.5s ease-out forwards; }
+
+/* ── Page transition ── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.page-enter { animation: page-in 0.3s ease-out forwards; }
+
+/* ── Heatmap cells ── */
+.heatmap-0  { background: var(--grey); }
+.heatmap-1  { background: rgba(var(--accent-rgb), 0.25); }
+.heatmap-2  { background: rgba(var(--accent-rgb), 0.5); }
+.heatmap-3  { background: rgba(var(--accent-rgb), 0.75); }
+.heatmap-4  { background: rgba(var(--accent-rgb), 1); }
+
+
+/* ── Badge shine animation ── */
+@keyframes badge-shine {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.badge-shine {
+  background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+  background-size: 200% auto;
+  animation: badge-shine 2.5s linear infinite;
+}
+
+/* ── Save activity button ── */
+.btn-save {
+  background: linear-gradient(135deg, #F44352 0%, #CC3845 100%);
+  box-shadow: 0 4px 24px rgba(244, 67, 82, 0.45);
+}
+.btn-save:disabled {
+  background: var(--grey-light);
+  box-shadow: none;
+}
+
+/* ── Toast notification ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.toast-enter {
+  animation: toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.toast-saved {
+  position: fixed;
+  z-index: 50;
+  bottom: 76px;
+  left: 50%;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #0f2010 0%, #0d1f0e 100%);
+  border: 1px solid #22c55e;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Safe area for iOS notch ── */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ── Layout chrome ── */
+.app-layout {
+  min-height: 100vh;
+  background: var(--black);
+}
+.app-main {
+  padding-top: calc(52px + env(safe-area-inset-top));
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+}
+.topbar {
+  background: var(--black);
+  border-bottom: 1px solid var(--grey-dark);
+  height: calc(52px + env(safe-area-inset-top));
+}
+.topbar-dropdown {
+  background: var(--grey-dark);
+  border: 1px solid var(--grey);
+}
+.navbar {
+  background: var(--black);
+  border-top: 1px solid var(--grey);
+}
+.topbar-logo {
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(244, 67, 82, 0.3);
+}
+
+/* ── Progress bar track ── */
+.progress-track {
+  background: var(--grey);
+}
+
+/* ── Splash Screen ── */
+@keyframes splash-logo-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.88); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes splash-line-expand {
+  from { width: 0; opacity: 0; }
+  to   { width: 72px; opacity: 1; }
+}
+@keyframes splash-tagline-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.splash-logo {
+  animation: splash-logo-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  line-height: 1;
+}
+.splash-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F44352, transparent);
+  animation: splash-line-expand 0.7s ease 0.35s both;
+  margin-top: 8px;
+}
+.splash-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: #444;
+  animation: splash-tagline-in 0.5s ease 0.75s both;
+  margin-top: 20px;
+}
+
+/* Wordmark PISOZONE: sale dalla posizione del testo nel SVG (≈150px sotto centro) verso il centro */
+@keyframes splash-wordmark-rise {
+  from { opacity: 0; transform: translateY(min(152px, calc(70vw * 0.52))); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.splash-wordmark-rise {
+  animation: splash-wordmark-rise 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Emblem (SVG logo) — entrata e uscita */
+@keyframes splash-emblem-enter {
+  from { opacity: 0; transform: scale(0.78); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splash-emblem-leave {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.splash-emblem-in {
+  animation: splash-emblem-enter 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.splash-emblem-out {
+  animation: splash-emblem-leave 0.5s ease forwards;
+}
+
+/* Overlay di uscita finale */
+@keyframes splash-exit-dark {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.splash-exit-overlay {
+  position: absolute;
+  inset: 0;
+  background: #0D0D0D;
+  animation: splash-exit-dark 0.5s ease forwards;
+  z-index: 10;
+}

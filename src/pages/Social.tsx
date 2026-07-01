@@ -1,0 +1,1010 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import { Search, ArrowLeft, Send, Users, Plus, Check, X, Clock, UserPlus, MessageCircle, Edit2, Trash2, Heart } from 'lucide-react'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { it } from 'date-fns/locale'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
+import { useProfile } from '../hooks/useProfile'
+import { useFriends } from '../hooks/useFriends'
+import { useMessages } from '../hooks/useMessages'
+import { useGroups } from '../hooks/useGroups'
+import { useFeed } from '../hooks/useFeed'
+import { getLevelDef } from '../lib/levels'
+import { ACTIVITY_OPTIONS } from '../lib/constants'
+import type { FriendProfile } from '../types'
+import type { Message } from '../hooks/useMessages'
+import type { GroupMessage, GroupMember } from '../hooks/useGroups'
+import type { UserSearchResult } from '../hooks/useFriends'
+
+type Tab = 'feed' | 'friends' | 'chat' | 'groups'
+type ActiveView =
+  | { type: 'dm'; userId: string; username: string; photo: string | null }
+  | { type: 'group'; groupId: string; groupName: string }
+  | { type: 'profile'; userId: string; username: string; photo: string | null; friendshipId?: string; isFriend: boolean; isPendingSent: boolean; isPendingReceived: boolean }
+  | { type: 'create-group' }
+
+// ── Avatar ────────────────────────────────────────────────────────────────────
+function Av({ photo, name, size = 40 }: { photo: string | null; name: string; size?: number }) {
+  const cls = size <= 24 ? 'w-6 h-6 text-[10px]'
+            : size <= 32 ? 'w-8 h-8 text-xs'
+            : size <= 36 ? 'w-9 h-9 text-sm'
+            : 'w-10 h-10 text-base'
+  if (photo) return <img src={photo} alt={name} className={`rounded-full object-cover flex-shrink-0 ${cls}`} />
+  return (
+    <div className={`rounded-full flex items-center justify-center flex-shrink-0 font-bebas text-[white] bg-[#F44352] ${cls}`}>
+      {name[0]?.toUpperCase() ?? '?'}
+    </div>
+  )
+}
+
+// ── Action Sheet (Portal) ─────────────────────────────────────────────────────
+function ActionSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return createPortal(
+    <>
+      <div className="fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[71] rounded-t-2xl overflow-hidden"
+        style={{ background: 'var(--grey-dark)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
+        {children}
+      </div>
+    </>,
+    document.body
+  )
+}
+
+// ── DM Chat View ──────────────────────────────────────────────────────────────
+function DmChatView({
+  userId, username, photo, myId, onBack,
+}: { userId: string; username: string; photo: string | null; myId: string; onBack: () => void }) {
+  const { fetchMessages, sendMessage, markRead, editMessage, deleteMessage } = useMessages()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+  const [selectedMsg, setSelectedMsg] = useState<Message | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchMessages(userId).then(msgs => { setMessages(msgs); markRead(userId) })
+
+    const ch = supabase.channel(`dm-${myId}-${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${myId}` }, (p: any) => {
+        const msg = p.new as Message
+        if (msg.sender_id === userId) { setMessages(prev => [...prev, msg]); markRead(userId) }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (p: any) => {
+        const updated = p.new as Message
+        setMessages(prev => prev.map(m =>
+          m.id === updated.id ? { ...m, content: updated.content, edited_at: updated.edited_at } : m
+        ))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (p: any) => {
+        setMessages(prev => prev.filter(m => m.id !== p.old.id))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, myId])
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    setSending(true)
+    const content = text.trim()
+    setText('')
+    const opt: Message = { id: `tmp-${Date.now()}`, sender_id: myId, receiver_id: userId, content, created_at: new Date().toISOString(), read_at: null }
+    setMessages(prev => [...prev, opt])
+    await sendMessage(userId, content)
+    setSending(false)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editText.trim() || !editingId) return
+    const now = new Date().toISOString()
+    setMessages(prev => prev.map(m =>
+      m.id === editingId ? { ...m, content: editText.trim(), edited_at: now } : m
+    ))
+    setEditingId(null)
+    setEditText('')
+    await editMessage(editingId, editText)
+  }
+
+  const startPress = (msg: Message) => () => {
+    pressTimer.current = setTimeout(() => {
+      if ('vibrate' in navigator) navigator.vibrate(50)
+      setSelectedMsg(msg)
+      pressTimer.current = null
+    }, 500)
+  }
+  const cancelPress = () => {
+    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null }
+  }
+
+  const handleDeleteMsg = (msg: Message) => {
+    setSelectedMsg(null)
+    setMessages(prev => prev.filter(m => m.id !== msg.id))
+    deleteMessage(msg.id)
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
+        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <Av photo={photo} name={username} size={36} />
+        <p className="font-semibold text-white">{username}</p>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500">
+            <MessageCircle size={32} className="opacity-30" />
+            <p className="text-sm">Inizia la conversazione</p>
+          </div>
+        )}
+        {messages.map(msg => {
+          const isMe = msg.sender_id === myId
+          return (
+            <div
+              key={msg.id}
+              className={`flex select-none ${isMe ? 'justify-end' : 'justify-start'}`}
+              onTouchStart={startPress(msg)}
+              onTouchEnd={cancelPress}
+              onTouchMove={cancelPress}
+              onContextMenu={e => { e.preventDefault(); setSelectedMsg(msg) }}
+            >
+              <div
+                className="max-w-[75%] px-3 py-2 rounded-2xl text-sm"
+                style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)' }}
+              >
+                {msg.content}
+                {msg.edited_at && (
+                  <span className="block text-[9px] opacity-55 mt-0.5">modificato</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input — normal or edit mode */}
+      {editingId ? (
+        <div className="border-t border-[var(--grey)]">
+          <div className="flex items-center gap-2 px-4 py-1.5 border-b border-[var(--grey)]" style={{ background: 'rgba(244,67,82,0.07)' }}>
+            <Edit2 size={12} className="text-[#F44352] flex-shrink-0" />
+            <span className="text-xs text-[#F44352]">Modifica messaggio</span>
+            <button type="button" onClick={() => { setEditingId(null); setEditText('') }} aria-label="Annulla modifica" className="ml-auto text-gray-500 hover:text-white">
+              <X size={14} />
+            </button>
+          </div>
+          <div className="px-4 py-3 flex gap-2">
+            <input
+              className="flex-1 input-dark text-sm py-2"
+              aria-label="Modifica messaggio"
+              placeholder="Modifica messaggio..."
+              value={editText}
+              onChange={e => setEditText(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit() } }}
+              autoFocus
+            />
+            <button type="button" onClick={handleSaveEdit} disabled={!editText.trim()} aria-label="Salva" className="btn-primary px-3 py-2 disabled:opacity-40">
+              <Check size={16} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="px-4 py-3 border-t border-[var(--grey)] flex gap-2">
+          <input
+            className="flex-1 input-dark text-sm py-2"
+            placeholder="Scrivi un messaggio..."
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+          />
+          <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label="Invia" className="btn-primary px-3 py-2 disabled:opacity-40">
+            <Send size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Message action sheet */}
+      {selectedMsg && (
+        <ActionSheet onClose={() => setSelectedMsg(null)}>
+          <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
+            <p className="text-xs text-gray-500 mb-1">Messaggio</p>
+            <p className="text-sm text-gray-300 line-clamp-2">{selectedMsg.content}</p>
+          </div>
+          <div className="py-1">
+            {selectedMsg.sender_id === myId && (
+              <button
+                onClick={() => {
+                  setEditingId(selectedMsg.id)
+                  setEditText(selectedMsg.content)
+                  setSelectedMsg(null)
+                }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
+              >
+                <Edit2 size={18} className="text-[#F44352] flex-shrink-0" />
+                <span className="text-white font-medium">Modifica messaggio</span>
+              </button>
+            )}
+            <button
+              onClick={() => handleDeleteMsg(selectedMsg)}
+              className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
+            >
+              <Trash2 size={18} className="text-red-400 flex-shrink-0" />
+              <span className="text-red-400 font-medium">Elimina messaggio</span>
+            </button>
+          </div>
+          <div className="px-4 pt-1 pb-2">
+            <button
+              onClick={() => setSelectedMsg(null)}
+              className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
+              style={{ background: 'var(--grey)' }}
+            >
+              Annulla
+            </button>
+          </div>
+        </ActionSheet>
+      )}
+    </div>
+  )
+}
+
+// ── Group Chat View ───────────────────────────────────────────────────────────
+function GroupChatView({
+  groupId, groupName, myId, myUsername, myPhoto, onBack,
+}: { groupId: string; groupName: string; myId: string; myUsername: string; myPhoto: string | null; onBack: () => void }) {
+  const { fetchGroupMessages, sendGroupMessage, leaveGroup, fetchGroupMembers } = useGroups()
+  const [messages, setMessages] = useState<GroupMessage[]>([])
+  const [members, setMembers] = useState<GroupMember[]>([])
+  const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchGroupMessages(groupId).then(setMessages)
+    fetchGroupMembers(groupId).then(setMembers)
+
+    const ch = supabase.channel(`grp-${groupId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages', filter: `group_id=eq.${groupId}` }, async (p: any) => {
+        const m = p.new
+        if (m.sender_id === myId) return
+        const { data: prof } = await supabase.from('profiles').select('username, photo_url').eq('id', m.sender_id).single()
+        setMessages(prev => [...prev, { ...m, sender_username: prof?.username ?? 'Utente', sender_photo: prof?.photo_url ?? null }])
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId])
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    setSending(true)
+    const content = text.trim()
+    setText('')
+    const opt: GroupMessage = { id: `tmp-${Date.now()}`, group_id: groupId, sender_id: myId, sender_username: myUsername, sender_photo: myPhoto, content, created_at: new Date().toISOString() }
+    setMessages(prev => [...prev, opt])
+    await sendGroupMessage(groupId, content)
+    setSending(false)
+  }
+
+  const myRole = members.find(m => m.id === myId)?.role
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
+        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-white truncate">{groupName}</p>
+          <p className="text-xs text-gray-500">{members.length} membri</p>
+        </div>
+        <button type="button" onClick={() => setShowMembers(v => !v)} aria-label="Mostra membri" className={`p-1 transition-colors ${showMembers ? 'text-[#F44352]' : 'text-gray-400 hover:text-white'}`}>
+          <Users size={18} />
+        </button>
+      </div>
+
+      {showMembers && (
+        <div className="px-4 py-3 border-b border-[var(--grey)] space-y-2">
+          <div className="flex flex-wrap gap-3">
+            {members.map(m => (
+              <div key={m.id} className="flex flex-col items-center gap-1">
+                <div className="relative">
+                  <Av photo={m.photo_url} name={m.username} size={32} />
+                  {m.role === 'admin' && <span className="absolute -top-1 -right-1 text-[8px]">⭐</span>}
+                </div>
+                <span className="text-[10px] text-gray-400 max-w-[48px] truncate text-center">{m.username}</span>
+              </div>
+            ))}
+          </div>
+          {myRole !== 'admin' && (
+            <button onClick={async () => { await leaveGroup(groupId); onBack() }} className="text-xs text-red-400 mt-1">
+              Lascia gruppo
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.map(msg => {
+          const isMe = msg.sender_id === myId
+          return (
+            <div key={msg.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+              {!isMe && <Av photo={msg.sender_photo} name={msg.sender_username} size={32} />}
+              <div className={`max-w-[75%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                {!isMe && <p className="text-[10px] text-gray-500 mb-0.5 ml-1">{msg.sender_username}</p>}
+                <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)' }}>
+                  {msg.content}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="px-4 py-3 border-t border-[var(--grey)] flex gap-2">
+        <input
+          className="flex-1 input-dark text-sm py-2"
+          placeholder="Scrivi un messaggio..."
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+        />
+        <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label="Invia" className="btn-primary px-3 py-2 disabled:opacity-40">
+          <Send size={16} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Friend Profile View ───────────────────────────────────────────────────────
+function FriendProfileView({
+  userId, username, photo, friendshipId, isFriend, isPendingSent, isPendingReceived, onBack,
+  onSendRequest, onAcceptRequest, onRemove,
+}: {
+  userId: string; username: string; photo: string | null
+  friendshipId?: string; isFriend: boolean; isPendingSent: boolean; isPendingReceived: boolean
+  onBack: () => void
+  onSendRequest: (id: string) => Promise<void>
+  onAcceptRequest: (fid: string) => Promise<void>
+  onRemove: (fid: string) => Promise<void>
+}) {
+  const [remoteProfile, setRemoteProfile] = useState<any>(null)
+  const [acting, setActing] = useState(false)
+
+  useEffect(() => {
+    supabase.from('profiles').select('username, name, photo_url, level, sport_preferiti').eq('id', userId).single()
+      .then(({ data }) => setRemoteProfile(data))
+  }, [userId])
+
+  const ld = getLevelDef(remoteProfile?.level ?? 1)
+  const sports = (remoteProfile?.sport_preferiti ?? []).map((s: string) => ACTIVITY_OPTIONS.find(o => o.value === s)).filter(Boolean)
+
+  const handleAction = async () => {
+    setActing(true)
+    if ((isFriend || isPendingSent) && friendshipId) await onRemove(friendshipId)
+    else if (isPendingReceived && friendshipId) await onAcceptRequest(friendshipId)
+    else await onSendRequest(userId)
+    setActing(false)
+    onBack()
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
+        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <p className="font-bebas text-xl text-white tracking-wider">PROFILO</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="card flex flex-col items-center gap-3 py-6">
+          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-[#F44352]">
+            {photo
+              ? <img src={photo} className="w-full h-full object-cover" alt={username} />
+              : <span className="font-bebas text-3xl text-[white]">{username[0]?.toUpperCase()}</span>
+            }
+          </div>
+          <div className="text-center">
+            <p className="font-bold text-white text-lg">@{username}</p>
+            {remoteProfile?.name && <p className="text-sm text-gray-400">{remoteProfile.name}</p>}
+            <p className="text-sm font-semibold mt-1" style={{ color: ld.color }}>
+              {ld.emoji} Lv.{remoteProfile?.level ?? 1} — {ld.title}
+            </p>
+          </div>
+          <button
+            onClick={handleAction}
+            disabled={acting}
+            className="px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+            style={
+              isFriend ? { border: '1px solid #7f1d1d', color: '#f87171' }
+              : isPendingSent ? { background: 'var(--grey)', color: '#9ca3af' }
+              : isPendingReceived ? { background: '#22c55e', color: '#fff' }
+              : { background: '#F44352', color: '#fff' }
+            }
+          >
+            {isFriend ? 'Rimuovi amico' : isPendingSent ? '⏳ In attesa' : isPendingReceived ? '✓ Accetta richiesta' : '+ Aggiungi amico'}
+          </button>
+        </div>
+
+        {sports.length > 0 && (
+          <div className="card">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Sport preferiti</p>
+            <div className="flex gap-4">
+              {sports.map((s: any) => (
+                <div key={s.value} className="flex flex-col items-center gap-1">
+                  <span className="text-2xl">{s.emoji}</span>
+                  <span className="text-[10px] text-gray-400">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Create Group View ─────────────────────────────────────────────────────────
+function CreateGroupView({
+  friends, onBack, onCreate,
+}: { friends: FriendProfile[]; onBack: () => void; onCreate: (id: string, name: string) => void }) {
+  const { createGroup } = useGroups()
+  const [name, setName] = useState('')
+  const [selected, setSelected] = useState<string[]>([])
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+
+  const toggle = (id: string) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
+
+  const handleCreate = async () => {
+    if (!name.trim() || creating) return
+    setCreating(true)
+    setCreateError(null)
+    const gid = await createGroup(name, selected)
+    setCreating(false)
+    if (gid) {
+      onCreate(gid, name.trim())
+    } else {
+      setCreateError('Creazione fallita. Controlla la connessione e riprova.')
+    }
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
+        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <p className="font-bebas text-xl text-white tracking-wider">NUOVO GRUPPO</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div>
+          <label className="block text-xs text-gray-400 mb-1">Nome del gruppo</label>
+          <input className="input-dark" placeholder="Nome gruppo..." value={name} onChange={e => setName(e.target.value)} />
+        </div>
+        <div>
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Aggiungi amici ({selected.length} selezionati)</p>
+          {friends.length === 0 ? (
+            <p className="text-sm text-gray-500">Aggiungi amici prima di creare un gruppo</p>
+          ) : (
+            <div className="space-y-2">
+              {friends.map(f => {
+                const sel = selected.includes(f.user_id)
+                return (
+                  <button
+                    key={f.user_id}
+                    type="button"
+                    onClick={() => toggle(f.user_id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors"
+                    style={{ background: sel ? 'rgba(244,67,82,0.1)' : 'var(--grey)', border: `1px solid ${sel ? '#F44352' : 'transparent'}` }}
+                  >
+                    <Av photo={f.photo_url} name={f.username} size={36} />
+                    <p className="flex-1 text-left font-medium text-white">{f.username}</p>
+                    <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                      style={{ borderColor: sel ? '#F44352' : '#4b5563', background: sel ? '#F44352' : 'transparent' }}
+                    >
+                      {sel && <Check size={12} className="text-white" />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-[var(--grey)]">
+        {createError && <p className="text-xs text-red-400 mb-2 text-center">{createError}</p>}
+        <button type="button" onClick={handleCreate} disabled={!name.trim() || creating} className="btn-primary w-full disabled:opacity-50">
+          {creating ? 'Creazione...' : `Crea gruppo${selected.length > 0 ? ` (${selected.length + 1})` : ''}`}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+export default function SocialPage() {
+  const { user } = useAuth()
+  const { profile } = useProfile()
+  const [tab, setTab] = useState<Tab>('feed')
+  const [activeView, setActiveView] = useState<ActiveView | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedConv, setSelectedConv] = useState<{ userId: string; username: string } | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const convPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const convLongPressed = useRef(false)
+
+  const { friends, pendingReceived, pendingSent, loading: friendsLoading, searchUsers, sendRequest, acceptRequest, rejectOrRemove, refetch: refetchFriends } = useFriends()
+  const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
+  const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
+  const { feed, loading: feedLoading, toggleLike } = useFeed()
+
+  useEffect(() => { fetchConversations() }, [fetchConversations])
+
+  const handleSearch = useCallback((value: string) => {
+    setSearchQuery(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (value.trim().length < 2) { setSearchResults([]); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      const res = await searchUsers(value)
+      setSearchResults(res)
+      setSearching(false)
+    }, 350)
+  }, [searchUsers])
+
+  const friendsMap = new Map(friends.map(f => [f.user_id, f.friendship_id]))
+  const pendingSentMap = new Map(pendingSent.map(f => [f.user_id, f.friendship_id]))
+  const pendingReceivedMap = new Map(pendingReceived.map(f => [f.user_id, f.friendship_id]))
+
+  const openProfile = (userId: string, username: string, photo: string | null) => {
+    setActiveView({
+      type: 'profile', userId, username, photo,
+      friendshipId: friendsMap.get(userId) ?? pendingSentMap.get(userId) ?? pendingReceivedMap.get(userId),
+      isFriend: friendsMap.has(userId),
+      isPendingSent: pendingSentMap.has(userId),
+      isPendingReceived: pendingReceivedMap.has(userId),
+    })
+  }
+
+  // Long press handlers for conversation list
+  const startConvPress = (conv: { userId: string; username: string }) => () => {
+    convPressTimer.current = setTimeout(() => {
+      convLongPressed.current = true
+      if ('vibrate' in navigator) navigator.vibrate(50)
+      setSelectedConv(conv)
+      convPressTimer.current = null
+    }, 500)
+  }
+  const cancelConvPress = () => {
+    if (convPressTimer.current) { clearTimeout(convPressTimer.current); convPressTimer.current = null }
+  }
+
+  const myUsername = profile?.username ?? user?.user_metadata?.username ?? 'Tu'
+  const myPhoto = profile?.photo_url ?? null
+
+  // ── Sub-view overlay
+  if (activeView) {
+    const overlay = (
+      <div
+        className="fixed inset-x-0 z-40 flex flex-col overflow-hidden"
+        style={{ background: 'var(--black)', top: 'calc(52px + env(safe-area-inset-top))', bottom: 'calc(64px + env(safe-area-inset-bottom))' }}
+      >
+        {activeView.type === 'dm' && (
+          <DmChatView userId={activeView.userId} username={activeView.username} photo={activeView.photo} myId={user!.id}
+            onBack={() => { setActiveView(null); fetchConversations() }} />
+        )}
+        {activeView.type === 'group' && (
+          <GroupChatView groupId={activeView.groupId} groupName={activeView.groupName} myId={user!.id} myUsername={myUsername} myPhoto={myPhoto}
+            onBack={() => { setActiveView(null); refetchGroups() }} />
+        )}
+        {activeView.type === 'profile' && (
+          <FriendProfileView
+            userId={activeView.userId} username={activeView.username} photo={activeView.photo}
+            friendshipId={activeView.friendshipId} isFriend={activeView.isFriend}
+            isPendingSent={activeView.isPendingSent} isPendingReceived={activeView.isPendingReceived}
+            onBack={() => setActiveView(null)}
+            onSendRequest={async (id) => { await sendRequest(id); await refetchFriends() }}
+            onAcceptRequest={async (fid) => { await acceptRequest(fid); await refetchFriends() }}
+            onRemove={async (fid) => { await rejectOrRemove(fid); await refetchFriends() }}
+          />
+        )}
+        {activeView.type === 'create-group' && (
+          <CreateGroupView friends={friends} onBack={() => setActiveView(null)}
+            onCreate={(gid, gname) => { setActiveView({ type: 'group', groupId: gid, groupName: gname }); refetchGroups() }} />
+        )}
+      </div>
+    )
+    return overlay
+  }
+
+  const pendingBadge = pendingReceived.length
+  const unreadBadge = conversations.filter(c => c.unread > 0).length
+
+  return (
+    <div className="page-enter pb-24 max-w-lg mx-auto">
+      <div className="px-4 pt-5 pb-1">
+        <span className="font-bebas text-4xl text-white tracking-widest">SOCIAL</span>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex border-b border-[var(--grey)] px-2 mb-4">
+        {([
+          { id: 'feed' as Tab, label: 'Feed', badge: 0 },
+          { id: 'friends' as Tab, label: 'Amici', badge: pendingBadge },
+          { id: 'chat' as Tab, label: 'Chat', badge: unreadBadge },
+          { id: 'groups' as Tab, label: 'Gruppi', badge: 0 },
+        ]).map(({ id, label, badge }) => (
+          <button key={id} onClick={() => setTab(id)}
+            className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors ${tab === id ? 'text-[#F44352] border-b-2 border-[#F44352]' : 'text-gray-500'}`}
+          >
+            {label}
+            {badge > 0 && (
+              <span className="absolute top-1.5 right-2 min-w-[16px] h-4 rounded-full bg-[#F44352] text-[white] text-[9px] flex items-center justify-center px-1">
+                {badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="px-4 space-y-4">
+
+        {/* ── FEED ── */}
+        {tab === 'feed' && (
+          <>
+            {feedLoading ? (
+              <div className="space-y-4">{[1, 2].map(i => <div key={i} className="card animate-pulse h-36" />)}</div>
+            ) : feed.length === 0 ? (
+              <div className="card py-14 text-center">
+                <p className="text-5xl mb-3">🏃</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">FEED VUOTO</p>
+                <p className="text-sm text-gray-500">Aggiungi amici per vedere le loro attività qui</p>
+              </div>
+            ) : (
+              feed.map(a => {
+                const opt = ACTIVITY_OPTIONS.find(o => o.value === a.type)
+                const ld = getLevelDef(a.user_level)
+                const ago = formatDistanceToNow(parseISO(a.date), { addSuffix: true, locale: it })
+                return (
+                  <div key={a.id} className="card space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <button onClick={() => openProfile(a.user_id, a.username, a.user_photo)} className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <Av photo={a.user_photo} name={a.username} size={36} />
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="font-semibold text-white text-sm">{a.username}</p>
+                          <p className="text-[10px]" style={{ color: ld.color }}>{ld.emoji} Lv.{a.user_level} {ld.title}</p>
+                        </div>
+                      </button>
+                      <span className="text-xs text-gray-500 flex-shrink-0">{ago}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--grey)' }}>
+                      <span className="text-3xl">{opt?.emoji ?? '🏃'}</span>
+                      <div className="flex-1">
+                        <p className="font-semibold text-white text-sm">{opt?.label ?? a.type}</p>
+                        <p className="text-xs text-gray-400">
+                          {a.duration_min} min{a.calories ? ` · ${a.calories} kcal` : ''}{a.distance_km ? ` · ${a.distance_km} km` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    {a.notes && <p className="text-sm text-gray-400 italic">"{a.notes}"</p>}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleLike(a.id)}
+                        aria-label={a.liked_by_me ? 'Togli like' : 'Metti like'}
+                        className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.liked_by_me ? 'text-[#F44352]' : 'text-gray-500'}`}
+                      >
+                        <Heart
+                          size={18}
+                          fill={a.liked_by_me ? '#F44352' : 'none'}
+                          stroke={a.liked_by_me ? '#F44352' : '#6b7280'}
+                        />
+                        {a.like_count > 0 && <span className="font-medium">{a.like_count}</span>}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </>
+        )}
+
+        {/* ── AMICI ── */}
+        {tab === 'friends' && (
+          <>
+            {/* Search */}
+            <div className="relative">
+              <div className="search-input-box flex items-center gap-2 rounded-xl px-3 focus-within:border-[#F44352] focus-within:shadow-[0_0_0_2px_rgba(244,67,82,0.2)]">
+                <Search size={16} className="text-gray-500 flex-shrink-0" />
+                <input
+                  className="flex-1 min-w-0 bg-transparent py-[0.625rem] text-sm outline-none placeholder-[#888]"
+                  placeholder="Cerca per username…"
+                  value={searchQuery}
+                  onChange={e => handleSearch(e.target.value)}
+                />
+                {searchQuery && (
+                  <button type="button" onClick={() => { setSearchQuery(''); setSearchResults([]) }} aria-label="Cancella ricerca" className="text-gray-500">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              {(searchResults.length > 0 || searching) && (
+                <div className="search-dropdown absolute z-10 w-full mt-1 rounded-xl overflow-hidden shadow-xl">
+                  {searching && <div className="px-4 py-3 text-sm text-gray-500">Ricerca…</div>}
+                  {searchResults.map(r => {
+                    const isFr = friendsMap.has(r.id)
+                    const sentId = pendingSentMap.get(r.id)
+                    const isRecv = pendingReceivedMap.has(r.id)
+                    const busy = actionLoading === r.id
+                    return (
+                      <div key={r.id} className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)] last:border-0">
+                        <button onClick={() => openProfile(r.id, r.username, r.photo_url ?? null)} className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <Av photo={r.photo_url ?? null} name={r.username} size={36} />
+                          <div className="text-left min-w-0">
+                            <p className="font-medium text-white truncate">{r.username}</p>
+                            {r.name && <p className="text-xs text-gray-500 truncate">{r.name}</p>}
+                          </div>
+                        </button>
+                        {isFr ? (
+                          <span className="text-xs bg-green-400/10 text-green-400 border border-green-400/25 rounded-full px-2.5 py-0.5 flex items-center gap-1 flex-shrink-0">
+                            <Check size={11} /> Amico
+                          </span>
+                        ) : isRecv ? (
+                          <button disabled={busy} className="text-xs bg-[#F44352] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
+                            onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await acceptRequest(fid); await refetchFriends(); setActionLoading(null) } }}>
+                            Accetta
+                          </button>
+                        ) : sentId ? (
+                          <button disabled={busy} className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0"
+                            onClick={async () => { setActionLoading(r.id); await rejectOrRemove(sentId); await refetchFriends(); setActionLoading(null) }}>
+                            <Clock size={12} /> Annulla
+                          </button>
+                        ) : (
+                          <button disabled={busy} aria-label="Aggiungi amico" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
+                            onClick={async () => { setActionLoading(r.id); await sendRequest(r.id); await refetchFriends(); setActionLoading(null) }}>
+                            <UserPlus size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Richieste ricevute */}
+            {pendingReceived.length > 0 && (
+              <div className="card">
+                <p className="text-xs text-[#F44352] font-semibold mb-3 uppercase tracking-wider">Richieste ricevute ({pendingReceived.length})</p>
+                <div className="divide-y divide-[var(--grey)]">
+                  {pendingReceived.map(f => (
+                    <div key={f.friendship_id} className="flex items-center gap-3 py-2.5">
+                      <button onClick={() => openProfile(f.user_id, f.username, f.photo_url)} className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <Av photo={f.photo_url} name={f.username} />
+                        <div className="min-w-0 text-left">
+                          <p className="text-white font-medium truncate">{f.username}</p>
+                          {f.name && <p className="text-xs text-gray-500 truncate">{f.name}</p>}
+                        </div>
+                      </button>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button type="button" onClick={() => acceptRequest(f.friendship_id)} aria-label="Accetta" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80"><Check size={16} /></button>
+                        <button type="button" onClick={() => rejectOrRemove(f.friendship_id)} aria-label="Rifiuta" className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Lista amici */}
+            <div className="card">
+              <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">I tuoi amici ({friends.length})</p>
+              {friendsLoading ? (
+                <div className="space-y-3">{[1, 2].map(i => (
+                  <div key={i} className="flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-full bg-[var(--grey)]" />
+                    <div className="flex-1 h-3 bg-[var(--grey)] rounded w-1/3" />
+                  </div>
+                ))}</div>
+              ) : friends.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-4xl mb-2">🤝</p>
+                  <p className="font-bebas text-xl text-white tracking-wider mb-1">Nessun amico ancora</p>
+                  <p className="text-gray-500 text-sm">Cerca un username per aggiungere amici</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-[var(--grey)]">
+                  {friends.map(f => (
+                    <button key={f.friendship_id} onClick={() => openProfile(f.user_id, f.username, f.photo_url)} className="w-full flex items-center gap-3 py-2.5 text-left">
+                      <Av photo={f.photo_url} name={f.username} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium truncate">{f.username}</p>
+                        {f.name && <p className="text-xs text-gray-500 truncate">{f.name}</p>}
+                      </div>
+                      <MessageCircle size={16} className="text-gray-500 flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Richieste inviate */}
+            {pendingSent.length > 0 && (
+              <div className="card">
+                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">Richieste inviate ({pendingSent.length})</p>
+                <div className="divide-y divide-[var(--grey)]">
+                  {pendingSent.map(f => (
+                    <div key={f.friendship_id} className="flex items-center gap-3 py-2.5">
+                      <Av photo={f.photo_url} name={f.username} />
+                      <p className="flex-1 text-white font-medium truncate">{f.username}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="flex items-center gap-1 text-xs text-gray-500"><Clock size={12} /> In attesa</span>
+                        <button type="button" onClick={() => rejectOrRemove(f.friendship_id)} aria-label="Annulla richiesta" className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── CHAT ── */}
+        {tab === 'chat' && (
+          <>
+            {/* Shortcuts to friends */}
+            {friends.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Scrivi a un amico</p>
+                <div className="flex gap-4 overflow-x-auto pb-1">
+                  {friends.map(f => (
+                    <button key={f.user_id} onClick={() => setActiveView({ type: 'dm', userId: f.user_id, username: f.username, photo: f.photo_url })} className="flex flex-col items-center gap-1 min-w-[52px]">
+                      <Av photo={f.photo_url} name={f.username} />
+                      <span className="text-[10px] text-gray-400 w-12 truncate text-center">{f.username}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {loadingConvs ? (
+              <div className="space-y-2">{[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-3 animate-pulse p-2">
+                  <div className="w-12 h-12 rounded-full bg-[var(--grey)]" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-[var(--grey)] rounded w-1/3" />
+                    <div className="h-2.5 bg-[var(--grey)] rounded w-2/3" />
+                  </div>
+                </div>
+              ))}</div>
+            ) : conversations.length === 0 ? (
+              <div className="card py-12 text-center">
+                <p className="text-5xl mb-3">💬</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN MESSAGGIO</p>
+                <p className="text-sm text-gray-500">Scrivi a un amico per iniziare una chat</p>
+              </div>
+            ) : (
+              <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
+                {conversations.map(c => (
+                  <button
+                    key={c.userId}
+                    onClick={() => {
+                      if (convLongPressed.current) { convLongPressed.current = false; return }
+                      setActiveView({ type: 'dm', userId: c.userId, username: c.username, photo: c.photo })
+                    }}
+                    onTouchStart={startConvPress({ userId: c.userId, username: c.username })}
+                    onTouchEnd={cancelConvPress}
+                    onTouchMove={cancelConvPress}
+                    onContextMenu={e => { e.preventDefault(); setSelectedConv({ userId: c.userId, username: c.username }) }}
+                    className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors select-none"
+                  >
+                    <div className="relative">
+                      <Av photo={c.photo} name={c.username} />
+                      {c.unread > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-[#F44352] text-[white] text-[9px] flex items-center justify-center px-1">
+                          {c.unread}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold truncate ${c.unread > 0 ? 'text-white' : 'text-gray-300'}`}>{c.username}</p>
+                      <p className="text-xs text-gray-500 truncate">{c.lastMessage}</p>
+                    </div>
+                    <span className="text-[10px] text-gray-600 flex-shrink-0">
+                      {formatDistanceToNow(parseISO(c.lastAt), { addSuffix: false, locale: it })}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── GRUPPI ── */}
+        {tab === 'groups' && (
+          <>
+            <button onClick={() => setActiveView({ type: 'create-group' })} className="btn-primary w-full flex items-center justify-center gap-2">
+              <Plus size={18} />
+              Crea nuovo gruppo
+            </button>
+
+            {groupsLoading ? (
+              <div className="space-y-3">{[1, 2].map(i => <div key={i} className="card animate-pulse h-16" />)}</div>
+            ) : groups.length === 0 ? (
+              <div className="card py-12 text-center">
+                <p className="text-5xl mb-3">👥</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN GRUPPO</p>
+                <p className="text-sm text-gray-500">Crea un gruppo con i tuoi amici</p>
+              </div>
+            ) : (
+              <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
+                {groups.map(g => (
+                  <button key={g.id} onClick={() => setActiveView({ type: 'group', groupId: g.id, groupName: g.name })}
+                    className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-[#F44352] flex items-center justify-center flex-shrink-0">
+                      <span className="font-bebas text-lg text-[white]">{g.name[0]?.toUpperCase()}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white truncate">{g.name}</p>
+                      <p className="text-xs text-gray-500">{g.memberCount} {g.memberCount === 1 ? 'membro' : 'membri'} · {g.role === 'admin' ? 'Admin' : 'Membro'}</p>
+                    </div>
+                    <Users size={16} className="text-gray-500 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+      </div>
+
+      {/* Conversation action sheet */}
+      {selectedConv && (
+        <ActionSheet onClose={() => setSelectedConv(null)}>
+          <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
+            <p className="text-sm font-semibold text-white">@{selectedConv.username}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Eliminando la conversazione i messaggi verranno rimossi per entrambi</p>
+          </div>
+          <div className="py-1">
+            <button
+              onClick={async () => {
+                setSelectedConv(null)
+                await deleteConversation(selectedConv.userId)
+                await fetchConversations()
+              }}
+              className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
+            >
+              <Trash2 size={18} className="text-red-400 flex-shrink-0" />
+              <span className="text-red-400 font-medium">Elimina conversazione</span>
+            </button>
+          </div>
+          <div className="px-4 pt-1 pb-2">
+            <button
+              onClick={() => setSelectedConv(null)}
+              className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
+              style={{ background: 'var(--grey)' }}
+            >
+              Annulla
+            </button>
+          </div>
+        </ActionSheet>
+      )}
+    </div>
+  )
+}
