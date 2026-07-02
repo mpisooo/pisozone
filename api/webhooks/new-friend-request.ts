@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { supabaseAdmin, sendToSubscriptions } from '../_lib/push'
+import { supabaseAdmin, sendToSubscriptions } from '../_lib/push.js'
 
 interface FriendshipRecord {
   requester_id: string

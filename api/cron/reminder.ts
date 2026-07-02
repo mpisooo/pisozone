@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { supabaseAdmin, sendToSubscriptions, type PushSubscriptionRow } from '../_lib/push'
+import { supabaseAdmin, sendToSubscriptions, type PushSubscriptionRow } from '../_lib/push.js'
 
 // Calcola l'offset UTC di Europe/Rome nell'istante dato (+01:00 in inverno/CET,
 // +02:00 in estate/CEST) per costruire i limiti esatti della giornata locale.
