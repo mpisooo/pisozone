@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-import { format, parseISO } from 'date-fns'
-import { it } from 'date-fns/locale'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { useAchievements } from '../hooks/useAchievements'
@@ -8,7 +7,7 @@ import { MEDALS, TIER_LABELS, TIER_COLORS, TIER_CREDITS } from '../lib/constants
 import { computeStats } from '../lib/achievementStats'
 import type { MedalTier } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
-import CelebrationOverlay from '../components/CelebrationOverlay'
+import MedalCelebrationOverlay from '../components/MedalCelebrationOverlay'
 
 const TIERS: MedalTier[] = ['bronze', 'silver', 'gold', 'diamond']
 
@@ -21,7 +20,7 @@ export default function MedalsPage() {
     [activities, profile?.weekly_goal]
   )
 
-  const { newlyUnlocked, dismissNewlyUnlocked } = useAchievements(stats)
+  const { claimedKeys, eligibleKeys, claimingKey, claimMedal, newlyUnlocked, dismissNewlyUnlocked } = useAchievements(stats)
 
   if (actsLoading || profileLoading) {
     return (
@@ -32,10 +31,7 @@ export default function MedalsPage() {
     )
   }
 
-  const unlockedCount = MEDALS.filter((m) => {
-    const { current, target } = m.checkProgress(stats)
-    return current >= target
-  }).length
+  const claimedCount = claimedKeys.size
 
   return (
     <div className="page-enter p-4 pb-24 space-y-5 max-w-lg mx-auto">
@@ -46,7 +42,7 @@ export default function MedalsPage() {
           <div className="header-accent" />
         </div>
         <div className="text-right">
-          <p className="font-bebas text-2xl text-[#F44352]">{unlockedCount}/{MEDALS.length}</p>
+          <p className="font-bebas text-2xl text-[#F44352]">{claimedCount}/{MEDALS.length}</p>
           <p className="text-xs text-gray-400">sbloccate</p>
         </div>
       </div>
@@ -56,14 +52,14 @@ export default function MedalsPage() {
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-300">Progresso totale</span>
           <span className="text-sm font-medium text-[#F44352]">
-            {Math.round((unlockedCount / MEDALS.length) * 100)}%
+            {Math.round((claimedCount / MEDALS.length) * 100)}%
           </span>
         </div>
         <div className="h-2 rounded-full overflow-hidden" style={{ background: '#2a2a2a' }}>
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
-              width: `${(unlockedCount / MEDALS.length) * 100}%`,
+              width: `${(claimedCount / MEDALS.length) * 100}%`,
               background: 'linear-gradient(90deg, #F44352, #FF5E63)',
             }}
           />
@@ -84,36 +80,34 @@ export default function MedalsPage() {
             <div className="space-y-2">
               {tierMedals.map((medal) => {
                 const { current, target } = medal.checkProgress(stats)
-                const unlocked = current >= target
+                const claimed = claimedKeys.has(medal.key)
+                const eligible = eligibleKeys.has(medal.key)
+                const isClaiming = claimingKey === medal.key
                 const pct = Math.min((current / target) * 100, 100)
+                const locked = !claimed && !eligible
 
                 return (
                   <div
                     key={medal.key}
                     className={`card relative overflow-hidden transition-all duration-300 ${
-                      unlocked ? 'border-[#F44352]' : 'border-gray-700 opacity-75'
+                      claimed ? 'border-green-500/30' : eligible ? 'border-[#F44352]/50' : 'opacity-75'
                     }`}
-                    style={{ borderColor: unlocked ? undefined : '#2a2a2a' }}
+                    style={{ borderColor: locked ? '#2a2a2a' : undefined }}
                   >
-                    {/* shine on unlocked */}
-                    {unlocked && <div className="absolute inset-0 badge-shine pointer-events-none" />}
+                    {/* shine on claimed */}
+                    {claimed && <div className="absolute inset-0 badge-shine pointer-events-none" />}
 
                     <div className="flex items-start gap-3 relative">
                       <span
-                        className={`text-4xl transition-all duration-300 ${unlocked ? '' : 'grayscale opacity-40'}`}
+                        className={`text-4xl transition-all duration-300 ${locked ? 'grayscale opacity-40' : ''}`}
                       >
                         {medal.icon}
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className={`font-bebas text-xl tracking-wide ${unlocked ? 'text-white' : 'text-gray-400'}`}>
+                          <p className={`font-bebas text-xl tracking-wide ${locked ? 'text-gray-400' : 'text-white'}`}>
                             {medal.name}
                           </p>
-                          {unlocked && (
-                            <span className="text-xs bg-[#F44352] text-[white] px-2 py-0.5 rounded-full font-medium">
-                              ✓ Sbloccata
-                            </span>
-                          )}
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">{medal.description}</p>
 
@@ -128,12 +122,40 @@ export default function MedalsPage() {
                               className="h-full rounded-full transition-all duration-700"
                               style={{
                                 width: `${pct}%`,
-                                background: unlocked
+                                background: claimed
+                                  ? 'linear-gradient(90deg, #F44352, #FF5E63)'
+                                  : eligible
                                   ? 'linear-gradient(90deg, #F44352, #FF5E63)'
                                   : '#3a3a3a',
                               }}
                             />
                           </div>
+                        </div>
+
+                        {/* Action */}
+                        <div className="mt-3">
+                          {claimed ? (
+                            <div className="flex items-center gap-1.5 text-green-400 text-xs font-medium">
+                              <CheckCircle2 size={14} />
+                              <span>Sbloccata</span>
+                            </div>
+                          ) : eligible ? (
+                            <button
+                              type="button"
+                              onClick={() => claimMedal(medal.key)}
+                              disabled={!!claimingKey}
+                              className="btn-primary text-xs px-4 py-1.5 flex items-center gap-1.5"
+                            >
+                              {isClaiming ? (
+                                <>
+                                  <Loader2 size={12} className="animate-spin" />
+                                  <span>Riscatto...</span>
+                                </>
+                              ) : (
+                                <span>Riscatta +{TIER_CREDITS[medal.tier]} 💎</span>
+                              )}
+                            </button>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -145,19 +167,12 @@ export default function MedalsPage() {
         )
       })}
 
-      {newlyUnlocked.length > 0 && (
-        <CelebrationOverlay
-          icon={newlyUnlocked.length === 1 ? newlyUnlocked[0].icon : '🏅'}
-          title={
-            newlyUnlocked.length === 1
-              ? `MEDAGLIA SBLOCCATA!`
-              : `${newlyUnlocked.length} MEDAGLIE SBLOCCATE!`
-          }
-          subtitle={
-            newlyUnlocked.length === 1
-              ? `${newlyUnlocked[0].name} · +${newlyUnlocked[0].credits} 💎`
-              : `+${newlyUnlocked.reduce((s, m) => s + m.credits, 0)} 💎 crediti guadagnati`
-          }
+      {newlyUnlocked && (
+        <MedalCelebrationOverlay
+          icon={newlyUnlocked.icon}
+          name={newlyUnlocked.name}
+          tier={newlyUnlocked.tier}
+          credits={newlyUnlocked.credits}
           onDone={dismissNewlyUnlocked}
         />
       )}
