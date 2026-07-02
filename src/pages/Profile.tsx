@@ -21,6 +21,7 @@ import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
+import NotificationSettingsCard from '../components/NotificationSettingsCard'
 
 type FormValues = {
   name: string
@@ -256,6 +257,9 @@ export default function ProfilePage() {
 
       {/* Email di recupero (necessaria per il reset password) */}
       <RecoveryEmailCard />
+
+      {/* Notifiche push */}
+      <NotificationSettingsCard />
 
       {/* Avatar con cornice */}
       <div className="card flex flex-col items-center gap-3">
