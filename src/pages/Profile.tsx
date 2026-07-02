@@ -20,6 +20,7 @@ import {
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import CelebrationOverlay from '../components/CelebrationOverlay'
+import RecoveryEmailCard from '../components/RecoveryEmailCard'
 
 type FormValues = {
   name: string
@@ -252,6 +253,9 @@ export default function ProfilePage() {
           <span className="text-xs" style={{ color: levelDef.color }}>{levelDef.title}</span>
         </div>
       </div>
+
+      {/* Email di recupero (necessaria per il reset password) */}
+      <RecoveryEmailCard />
 
       {/* Avatar con cornice */}
       <div className="card flex flex-col items-center gap-3">
