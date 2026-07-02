@@ -703,6 +703,7 @@ export default function SocialPage() {
     <div className="page-enter pb-24 max-w-lg mx-auto">
       <div className="px-4 pt-5 pb-1">
         <span className="font-bebas text-4xl text-white tracking-widest">SOCIAL</span>
+        <div className="header-accent" />
       </div>
 
       {/* Tab bar */}
@@ -736,7 +737,12 @@ export default function SocialPage() {
               <div className="space-y-4">{[1, 2].map(i => <div key={i} className="card animate-pulse h-36" />)}</div>
             ) : feed.length === 0 ? (
               <div className="card py-14 text-center">
-                <p className="text-5xl mb-3">🏃</p>
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
+                  style={{ background: 'rgba(251,146,60,0.12)' }}
+                >
+                  🏃
+                </div>
                 <p className="font-bebas text-2xl text-white tracking-wider mb-1">FEED VUOTO</p>
                 <p className="text-sm text-gray-500">Aggiungi amici per vedere le loro attività qui</p>
               </div>
@@ -758,7 +764,12 @@ export default function SocialPage() {
                       <span className="text-xs text-gray-500 flex-shrink-0">{ago}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--grey)' }}>
-                      <span className="text-3xl">{opt?.emoji ?? '🏃'}</span>
+                      <span
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                        style={{ background: 'rgba(244,67,82,0.15)' }}
+                      >
+                        {opt?.emoji ?? '🏃'}
+                      </span>
                       <div className="flex-1">
                         <p className="font-semibold text-white text-sm">{opt?.label ?? a.type}</p>
                         <p className="text-xs text-gray-400">
@@ -801,7 +812,12 @@ export default function SocialPage() {
               ))}</div>
             ) : lbEntries.length <= 1 ? (
               <div className="card py-14 text-center">
-                <p className="text-5xl mb-3">🏆</p>
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
+                  style={{ background: 'rgba(250,204,21,0.12)' }}
+                >
+                  🏆
+                </div>
                 <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN AMICO</p>
                 <p className="text-sm text-gray-500">Aggiungi amici per vedere la classifica settimanale</p>
               </div>
@@ -931,7 +947,12 @@ export default function SocialPage() {
                 ))}</div>
               ) : friends.length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-4xl mb-2">🤝</p>
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center text-4xl mx-auto mb-2"
+                    style={{ background: 'rgba(96,165,250,0.12)' }}
+                  >
+                    🤝
+                  </div>
                   <p className="font-bebas text-xl text-white tracking-wider mb-1">Nessun amico ancora</p>
                   <p className="text-gray-500 text-sm">Cerca un username per aggiungere amici</p>
                 </div>
@@ -1002,7 +1023,12 @@ export default function SocialPage() {
               ))}</div>
             ) : conversations.length === 0 ? (
               <div className="card py-12 text-center">
-                <p className="text-5xl mb-3">💬</p>
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
+                  style={{ background: 'rgba(56,189,248,0.12)' }}
+                >
+                  💬
+                </div>
                 <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN MESSAGGIO</p>
                 <p className="text-sm text-gray-500">Scrivi a un amico per iniziare una chat</p>
               </div>
@@ -1055,7 +1081,12 @@ export default function SocialPage() {
               <div className="space-y-3">{[1, 2].map(i => <div key={i} className="card animate-pulse h-16" />)}</div>
             ) : groups.length === 0 ? (
               <div className="card py-12 text-center">
-                <p className="text-5xl mb-3">👥</p>
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
+                  style={{ background: 'rgba(168,85,247,0.12)' }}
+                >
+                  👥
+                </div>
                 <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN GRUPPO</p>
                 <p className="text-sm text-gray-500">Crea un gruppo con i tuoi amici</p>
               </div>

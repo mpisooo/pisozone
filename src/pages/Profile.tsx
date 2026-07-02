@@ -227,6 +227,7 @@ export default function ProfilePage() {
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
       <div className="pt-2">
         <span className="font-bebas text-4xl text-white tracking-widest">PROFILO</span>
+        <div className="header-accent" />
       </div>
 
       {/* Username badge con livello */}

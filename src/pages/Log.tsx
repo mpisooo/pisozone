@@ -103,8 +103,9 @@ export default function LogPage() {
 
   return (
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 pt-2">
+      <div className="pt-2">
         <span className="font-bebas text-4xl text-white tracking-widest">REGISTRA ATTIVITÀ</span>
+        <div className="header-accent" />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

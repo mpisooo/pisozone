@@ -63,6 +63,7 @@ export default function ChallengesPage() {
         <h1 className="font-bebas text-4xl text-white tracking-wider mt-0.5">
           Sfide di <span className="text-[#F44352]">oggi</span>
         </h1>
+        <div className="header-accent" />
       </div>
 
       {/* Credits balance */}

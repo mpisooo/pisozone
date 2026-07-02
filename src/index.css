@@ -284,6 +284,15 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   background: var(--grey);
 }
 
+/* ── Page header accent line ── */
+.header-accent {
+  height: 3px;
+  width: 44px;
+  border-radius: 2px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--red), rgba(244, 67, 82, 0));
+}
+
 /* ── Splash Screen ── */
 @keyframes splash-logo-in {
   from { opacity: 0; transform: translateY(28px) scale(0.88); }

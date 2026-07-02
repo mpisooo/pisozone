@@ -113,6 +113,7 @@ export default function HomePage() {
           {greeting},{' '}
           <span className="text-[#F44352]">{username}</span>!
         </h1>
+        <div className="header-accent" />
       </div>
 
       {/* Streak + Weekly goal */}
@@ -233,7 +234,12 @@ export default function HomePage() {
             <ChevronRight size={16} className="text-gray-600" />
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{lastOpt.emoji}</span>
+            <span
+              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+              style={{ background: 'rgba(244,67,82,0.12)' }}
+            >
+              {lastOpt.emoji}
+            </span>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-white">{lastOpt.label}</p>
               <p className="text-xs text-gray-400">
@@ -249,7 +255,12 @@ export default function HomePage() {
         </button>
       ) : (
         <div className="card text-center py-10">
-          <p className="text-7xl mb-4">🏋️</p>
+          <div
+            className="w-28 h-28 rounded-full flex items-center justify-center text-7xl mx-auto mb-4"
+            style={{ background: 'rgba(244,67,82,0.1)' }}
+          >
+            🏋️
+          </div>
           <p className="font-bebas text-2xl text-white tracking-wider mb-1">Pronto a sudare?</p>
           <p className="text-gray-500 text-sm mb-5 leading-relaxed">
             Registra la tua prima attività e inizia a costruire la tua streak. Ogni grande atleta ha avuto un giorno zero.
@@ -275,7 +286,12 @@ export default function HomePage() {
             <ChevronRight size={16} className="text-gray-600" />
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{nearestMedal.medal.icon}</span>
+            <span
+              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+              style={{ background: 'rgba(250,204,21,0.12)' }}
+            >
+              {nearestMedal.medal.icon}
+            </span>
             <div className="flex-1 min-w-0">
               <p className="font-bebas text-lg text-white leading-tight">{nearestMedal.medal.name}</p>
               <p className="text-xs text-gray-400 truncate">{nearestMedal.medal.description}</p>
@@ -370,7 +386,12 @@ export default function HomePage() {
             const done = c.check(todayActivities, streak)
             return (
               <div key={c.key} className="flex items-center gap-2.5">
-                <span className={`text-lg ${done ? '' : 'grayscale opacity-40'}`}>{c.icon}</span>
+                <span
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all ${done ? '' : 'grayscale opacity-40'}`}
+                  style={{ background: done ? 'rgba(74,222,128,0.15)' : 'rgba(244,67,82,0.1)' }}
+                >
+                  {c.icon}
+                </span>
                 <span className={`text-xs flex-1 truncate ${done ? 'text-green-400 line-through' : 'text-gray-400'}`}>
                   {c.title}
                 </span>

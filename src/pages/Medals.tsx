@@ -40,8 +40,11 @@ export default function MedalsPage() {
   return (
     <div className="page-enter p-4 pb-24 space-y-5 max-w-lg mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between pt-2">
-        <span className="font-bebas text-4xl text-white tracking-widest">MEDAGLIE</span>
+      <div className="flex items-start justify-between pt-2">
+        <div>
+          <span className="font-bebas text-4xl text-white tracking-widest">MEDAGLIE</span>
+          <div className="header-accent" />
+        </div>
         <div className="text-right">
           <p className="font-bebas text-2xl text-[#F44352]">{unlockedCount}/{MEDALS.length}</p>
           <p className="text-xs text-gray-400">sbloccate</p>

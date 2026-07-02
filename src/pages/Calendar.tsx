@@ -191,7 +191,12 @@ export default function CalendarPage() {
 
           {selectedDayActivities.length === 0 ? (
             <div className="text-center py-4">
-              <p className="text-3xl mb-2">😴</p>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl mx-auto mb-2"
+                style={{ background: 'rgba(148,163,184,0.12)' }}
+              >
+                😴
+              </div>
               <p className="text-sm text-gray-500">Giornata di riposo</p>
               <p className="text-xs text-gray-600 mt-0.5">Nessun allenamento registrato</p>
             </div>

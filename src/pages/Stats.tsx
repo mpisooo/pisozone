@@ -247,9 +247,12 @@ export default function StatsPage() {
 
       {filtered.length === 0 && (
         <div className="card text-center py-10">
-          <p className="text-6xl mb-4">
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center text-6xl mx-auto mb-4"
+            style={{ background: 'rgba(45,212,191,0.12)' }}
+          >
             {activities.length === 0 ? '🚀' : '🔍'}
-          </p>
+          </div>
           <p className="font-bebas text-2xl text-white tracking-wider mb-1">
             {activities.length === 0 ? 'Niente ancora!' : 'Nessun dato qui'}
           </p>
