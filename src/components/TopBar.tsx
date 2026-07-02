@@ -4,23 +4,27 @@ import { User, LogOut, Info } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import { getLevelDef, type ThemeId } from '../lib/levels'
 import CreditsInfoModal from './CreditsInfoModal'
 
 export default function TopBar() {
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
-  const { setTheme } = useTheme()
+  const { syncProfileTheme } = useTheme()
   const navigate = useNavigate()
   const username: string = (user?.user_metadata?.username as string) || 'Atleta'
   const [open, setOpen] = useState(false)
   const [showCreditsInfo, setShowCreditsInfo] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(dropdownRef, open, () => setOpen(false))
 
   // Sync active_theme from DB to ThemeContext (handles cross-device login)
   useEffect(() => {
     if (profile?.active_theme) {
-      setTheme(profile.active_theme as ThemeId)
+      syncProfileTheme(profile.active_theme as ThemeId)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.active_theme])
@@ -85,7 +89,11 @@ export default function TopBar() {
         </button>
 
         {open && (
-          <div className="topbar-dropdown absolute right-0 top-11 w-52 rounded-xl overflow-hidden shadow-xl">
+          <div
+            ref={dropdownRef}
+            aria-label="Menu profilo"
+            className="topbar-dropdown absolute right-0 top-11 w-52 rounded-xl overflow-hidden shadow-xl"
+          >
             {/* Level info in dropdown */}
             {profile && (
               <>

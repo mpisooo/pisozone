@@ -1,13 +1,18 @@
+import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Dumbbell, Target, Award } from 'lucide-react'
 import { CHALLENGE_POOL } from '../lib/challenges'
 import { TIER_CREDITS } from '../lib/constants'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 
 interface Props {
   onClose: () => void
 }
 
 export default function CreditsInfoModal({ onClose }: Props) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, true, onClose)
+
   const challengeCredits = CHALLENGE_POOL.map((c) => c.credits)
   const minChallenge = Math.min(...challengeCredits)
   const maxChallenge = Math.max(...challengeCredits)
@@ -37,6 +42,10 @@ export default function CreditsInfoModal({ onClose }: Props) {
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Come guadagnare crediti"
         className="w-full max-h-[80vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
         style={{ background: 'var(--grey-dark)' }}
         onClick={(e) => e.stopPropagation()}

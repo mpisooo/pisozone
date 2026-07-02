@@ -11,6 +11,7 @@ import { ACTIVITY_OPTIONS } from '../lib/constants'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
 import AnalisiTabs from '../components/AnalisiTabs'
+import SkeletonCard from '../components/SkeletonCard'
 
 function heatLevel(count: number) {
   if (count === 0) return 'heatmap-0'
@@ -83,6 +84,16 @@ export default function CalendarPage() {
   const firstDayOfWeek = days[0].getDay()
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
 
+  if (loading) {
+    return (
+      <div className="page-enter p-4 space-y-4">
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={7} />
+        <SkeletonCard lines={2} />
+      </div>
+    )
+  }
+
   return (
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
       {/* Header */}
@@ -131,7 +142,7 @@ export default function CalendarPage() {
             const acts = actsByDay.get(key) ?? []
             const isToday = isSameDay(day, new Date())
             const isSelected = selectedDay ? isSameDay(day, selectedDay) : false
-            const level = loading ? 'heatmap-0' : heatLevel(acts.length)
+            const level = heatLevel(acts.length)
 
             return (
               <button

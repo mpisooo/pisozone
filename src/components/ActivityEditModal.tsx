@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
 import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
 import { useProfile } from '../hooks/useProfile'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import type { Activity, ActivityType } from '../types'
 
 type FormValues = {
@@ -29,6 +30,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, true, onClose)
 
   const parsed = parseISO(activity.date)
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
@@ -90,6 +93,10 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Modifica attività"
         className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
         style={{ background: '#1a1a1a' }}
         onClick={(e) => e.stopPropagation()}
