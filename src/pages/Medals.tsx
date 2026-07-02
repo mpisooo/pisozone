@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { CheckCircle2 } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { useAchievements } from '../hooks/useAchievements'
@@ -9,6 +8,7 @@ import { MEDALS, TIER_LABELS, TIER_COLORS, TIER_CREDITS } from '../lib/constants
 import { computeStats } from '../lib/achievementStats'
 import type { MedalTier } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
+import CelebrationOverlay from '../components/CelebrationOverlay'
 
 const TIERS: MedalTier[] = ['bronze', 'silver', 'gold', 'diamond']
 
@@ -143,22 +143,20 @@ export default function MedalsPage() {
       })}
 
       {newlyUnlocked.length > 0 && (
-        <div
-          className="toast-enter toast-saved flex items-center gap-3"
-          onClick={dismissNewlyUnlocked}
-        >
-          <CheckCircle2 size={22} className="text-green-400 shrink-0" />
-          <div>
-            <p className="text-white font-semibold text-sm">
-              {newlyUnlocked.length === 1
-                ? `Medaglia sbloccata: ${newlyUnlocked[0].icon} ${newlyUnlocked[0].name}`
-                : `${newlyUnlocked.length} nuove medaglie sbloccate!`}
-            </p>
-            <p className="text-green-400 text-xs">
-              +{newlyUnlocked.reduce((s, m) => s + m.credits, 0)} 💎 crediti guadagnati
-            </p>
-          </div>
-        </div>
+        <CelebrationOverlay
+          icon={newlyUnlocked.length === 1 ? newlyUnlocked[0].icon : '🏅'}
+          title={
+            newlyUnlocked.length === 1
+              ? `MEDAGLIA SBLOCCATA!`
+              : `${newlyUnlocked.length} MEDAGLIE SBLOCCATE!`
+          }
+          subtitle={
+            newlyUnlocked.length === 1
+              ? `${newlyUnlocked[0].name} · +${newlyUnlocked[0].credits} 💎`
+              : `+${newlyUnlocked.reduce((s, m) => s + m.credits, 0)} 💎 crediti guadagnati`
+          }
+          onDone={dismissNewlyUnlocked}
+        />
       )}
     </div>
   )

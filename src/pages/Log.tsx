@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
-import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2 } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
@@ -22,6 +22,7 @@ export default function LogPage() {
   const { addActivity } = useActivities()
   const { profile } = useProfile()
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState(false)
   const [creditsEarned, setCreditsEarned] = useState(0)
   const [saving, setSaving] = useState(false)
   const [showCalInfo, setShowCalInfo] = useState(false)
@@ -65,7 +66,7 @@ export default function LogPage() {
 
     const dateTime = formatISO(new Date(`${values.date}T${values.time}:00`))
 
-    await addActivity({
+    const { data, error } = await addActivity({
       type: values.type,
       date: dateTime,
       duration_min: dur,
@@ -74,11 +75,18 @@ export default function LogPage() {
       notes: values.notes || null,
     })
 
+    setSaving(false)
+
+    if (error) {
+      setSaveError(true)
+      setTimeout(() => setSaveError(false), 3500)
+      return
+    }
+
     // vibrate on mobile
     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100])
 
-    setSaving(false)
-    setCreditsEarned(Math.floor(dur / 10))
+    setCreditsEarned(data?.credits_earned ?? 0)
     setSaved(true)
     reset({
       type: 'corsa',
@@ -136,12 +144,12 @@ export default function LogPage() {
           <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DATA E ORA</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <label className="block text-xs text-gray-400 mb-1">Data</label>
-              <input type="date" {...register('date', { required: true })} className="input-dark w-full" />
+              <label htmlFor="log-date" className="block text-xs text-gray-400 mb-1">Data</label>
+              <input id="log-date" type="date" {...register('date', { required: true })} className="input-dark w-full" />
             </div>
             <div className="min-w-0">
-              <label className="block text-xs text-gray-400 mb-1">Ora</label>
-              <input type="time" {...register('time')} className="input-dark w-full" />
+              <label htmlFor="log-time" className="block text-xs text-gray-400 mb-1">Ora</label>
+              <input id="log-time" type="time" {...register('time')} className="input-dark w-full" />
             </div>
           </div>
         </div>
@@ -151,20 +159,29 @@ export default function LogPage() {
           <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DURATA</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Ore</label>
+              <label htmlFor="log-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
               <input
+                id="log-hours"
                 type="number"
-                {...register('hours', { min: 0, max: 12 })}
+                {...register('hours', {
+                  min: { value: 0, message: 'Non può essere negativa' },
+                  max: { value: 12, message: 'Massimo 12 ore' },
+                })}
                 className="input-dark"
                 min={0}
                 max={12}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Minuti</label>
+              <label htmlFor="log-minutes" className="block text-xs text-gray-400 mb-1">Minuti</label>
               <input
+                id="log-minutes"
                 type="number"
-                {...register('minutes', { min: 0, max: 59 })}
+                {...register('minutes', {
+                  min: { value: 0, message: 'Non possono essere negativi' },
+                  max: { value: 59, message: 'Massimo 59 minuti' },
+                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || 'Inserisci una durata maggiore di zero',
+                })}
                 className="input-dark"
                 min={0}
                 max={59}
@@ -176,7 +193,9 @@ export default function LogPage() {
               Totale: <span className="text-white font-medium">{hours}h {minutes < 10 ? '0' + minutes : minutes}min</span>
             </p>
           )}
-          {errors.minutes && <p className="text-xs text-red-400">Durata non valida</p>}
+          {(errors.hours || errors.minutes) && (
+            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
+          )}
         </div>
 
         {/* Calories & Distance */}
@@ -184,7 +203,7 @@ export default function LogPage() {
           <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DETTAGLI</h2>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-gray-400">
+              <label htmlFor="log-calories" className="text-xs text-gray-400">
                 Calorie bruciate
                 {autoCalories && caloriesInput === '' && (
                   <span className="ml-2 text-gray-500">(auto: ~{autoCalories} kcal)</span>
@@ -224,31 +243,42 @@ export default function LogPage() {
             )}
 
             <input
+              id="log-calories"
               type="number"
-              {...register('calories')}
+              {...register('calories', {
+                min: { value: 0, message: 'Non possono essere negative' },
+                max: { value: 20000, message: 'Valore non realistico' },
+              })}
               className="input-dark"
               placeholder={autoCalories ? `~${autoCalories} (calcolato auto)` : 'es. 350'}
               min={0}
             />
+            {errors.calories && <p className="text-xs text-red-400 mt-1">{errors.calories.message}</p>}
           </div>
 
           {showDist && (
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
+              <label htmlFor="log-distance" className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
               <input
+                id="log-distance"
                 type="number"
                 step="0.01"
-                {...register('distance_km')}
+                {...register('distance_km', {
+                  min: { value: 0, message: 'Non può essere negativa' },
+                  max: { value: 1000, message: 'Valore non realistico' },
+                })}
                 className="input-dark"
                 placeholder="es. 5.4"
                 min={0}
               />
+              {errors.distance_km && <p className="text-xs text-red-400 mt-1">{errors.distance_km.message}</p>}
             </div>
           )}
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Note (opzionale)</label>
+            <label htmlFor="log-notes" className="block text-xs text-gray-400 mb-1">Note (opzionale)</label>
             <textarea
+              id="log-notes"
               {...register('notes')}
               className="input-dark resize-none"
               rows={3}
@@ -284,6 +314,16 @@ export default function LogPage() {
             <p className="text-green-400 text-xs">
               {creditsEarned > 0 ? `+${creditsEarned} 💎 crediti guadagnati` : 'Continua così 💪'}
             </p>
+          </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <AlertTriangle size={22} className="text-[#F44352] shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">Salvataggio non riuscito</p>
+            <p className="text-[#F44352] text-xs">Controlla la connessione e riprova</p>
           </div>
         </div>
       )}

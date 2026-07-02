@@ -55,11 +55,13 @@ function ActionSheet({ onClose, children }: { onClose: () => void; children: Rea
 }
 
 // ── DM Chat View ──────────────────────────────────────────────────────────────
+type ChatMessage = Message & { failed?: boolean }
+
 function DmChatView({
   userId, username, photo, myId, onBack,
 }: { userId: string; username: string; photo: string | null; myId: string; onBack: () => void }) {
   const { fetchMessages, sendMessage, markRead, editMessage, deleteMessage } = useMessages()
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [selectedMsg, setSelectedMsg] = useState<Message | null>(null)
@@ -97,10 +99,18 @@ function DmChatView({
     setSending(true)
     const content = text.trim()
     setText('')
-    const opt: Message = { id: `tmp-${Date.now()}`, sender_id: myId, receiver_id: userId, content, created_at: new Date().toISOString(), read_at: null }
+    const tempId = `tmp-${Date.now()}`
+    const opt: ChatMessage = { id: tempId, sender_id: myId, receiver_id: userId, content, created_at: new Date().toISOString(), read_at: null }
     setMessages(prev => [...prev, opt])
-    await sendMessage(userId, content)
+    const sent = await sendMessage(userId, content)
+    setMessages(prev => prev.map(m => m.id === tempId ? (sent ? { ...sent } : { ...m, failed: true }) : m))
     setSending(false)
+  }
+
+  const handleRetry = async (msg: ChatMessage) => {
+    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, failed: false } : m))
+    const sent = await sendMessage(msg.receiver_id, msg.content)
+    setMessages(prev => prev.map(m => m.id === msg.id ? (sent ? { ...sent } : { ...m, failed: true }) : m))
   }
 
   const handleSaveEdit = async () => {
@@ -153,7 +163,7 @@ function DmChatView({
           return (
             <div
               key={msg.id}
-              className={`flex select-none ${isMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex flex-col select-none ${isMe ? 'items-end' : 'items-start'}`}
               onTouchStart={startPress(msg)}
               onTouchEnd={cancelPress}
               onTouchMove={cancelPress}
@@ -161,13 +171,22 @@ function DmChatView({
             >
               <div
                 className="max-w-[75%] px-3 py-2 rounded-2xl text-sm"
-                style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)' }}
+                style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}
               >
                 {msg.content}
                 {msg.edited_at && (
                   <span className="block text-[9px] opacity-55 mt-0.5">modificato</span>
                 )}
               </div>
+              {msg.failed && (
+                <button
+                  type="button"
+                  onClick={() => handleRetry(msg)}
+                  className="flex items-center gap-1 text-[10px] text-[#F44352] mt-0.5 px-1"
+                >
+                  ⚠ Non inviato · Riprova
+                </button>
+              )}
             </div>
           )
         })}
@@ -263,23 +282,26 @@ function GroupChatView({
   groupId, groupName, myId, myUsername, myPhoto, onBack,
 }: { groupId: string; groupName: string; myId: string; myUsername: string; myPhoto: string | null; onBack: () => void }) {
   const { fetchGroupMessages, sendGroupMessage, leaveGroup, fetchGroupMembers } = useGroups()
-  const [messages, setMessages] = useState<GroupMessage[]>([])
+  const [messages, setMessages] = useState<(GroupMessage & { failed?: boolean })[]>([])
   const [members, setMembers] = useState<GroupMember[]>([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const membersRef = useRef<GroupMember[]>([])
+
+  useEffect(() => { membersRef.current = members }, [members])
 
   useEffect(() => {
     fetchGroupMessages(groupId).then(setMessages)
     fetchGroupMembers(groupId).then(setMembers)
 
     const ch = supabase.channel(`grp-${groupId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages', filter: `group_id=eq.${groupId}` }, async (p: any) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages', filter: `group_id=eq.${groupId}` }, (p: any) => {
         const m = p.new
         if (m.sender_id === myId) return
-        const { data: prof } = await supabase.from('profiles').select('username, photo_url').eq('id', m.sender_id).single()
-        setMessages(prev => [...prev, { ...m, sender_username: prof?.username ?? 'Utente', sender_photo: prof?.photo_url ?? null }])
+        const sender = membersRef.current.find(mem => mem.id === m.sender_id)
+        setMessages(prev => [...prev, { ...m, sender_username: sender?.username ?? 'Utente', sender_photo: sender?.photo_url ?? null }])
       })
       .subscribe()
     return () => { supabase.removeChannel(ch) }
@@ -293,10 +315,24 @@ function GroupChatView({
     setSending(true)
     const content = text.trim()
     setText('')
-    const opt: GroupMessage = { id: `tmp-${Date.now()}`, group_id: groupId, sender_id: myId, sender_username: myUsername, sender_photo: myPhoto, content, created_at: new Date().toISOString() }
+    const tempId = `tmp-${Date.now()}`
+    const opt: GroupMessage & { failed?: boolean } = { id: tempId, group_id: groupId, sender_id: myId, sender_username: myUsername, sender_photo: myPhoto, content, created_at: new Date().toISOString() }
     setMessages(prev => [...prev, opt])
-    await sendGroupMessage(groupId, content)
+    const sent = await sendGroupMessage(groupId, content)
+    setMessages(prev => prev.map(m => m.id === tempId
+      ? (sent ? { ...sent, sender_username: myUsername, sender_photo: myPhoto } : { ...m, failed: true })
+      : m
+    ))
     setSending(false)
+  }
+
+  const handleRetry = async (msg: GroupMessage & { failed?: boolean }) => {
+    setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, failed: false } : m))
+    const sent = await sendGroupMessage(groupId, msg.content)
+    setMessages(prev => prev.map(m => m.id === msg.id
+      ? (sent ? { ...sent, sender_username: myUsername, sender_photo: myPhoto } : { ...m, failed: true })
+      : m
+    ))
   }
 
   const myRole = members.find(m => m.id === myId)?.role
@@ -343,9 +379,18 @@ function GroupChatView({
               {!isMe && <Av photo={msg.sender_photo} name={msg.sender_username} size={32} />}
               <div className={`max-w-[75%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                 {!isMe && <p className="text-[10px] text-gray-500 mb-0.5 ml-1">{msg.sender_username}</p>}
-                <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)' }}>
+                <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}>
                   {msg.content}
                 </div>
+                {msg.failed && (
+                  <button
+                    type="button"
+                    onClick={() => handleRetry(msg)}
+                    className="flex items-center gap-1 text-[10px] text-[#F44352] mt-0.5 px-1"
+                  >
+                    ⚠ Non inviato · Riprova
+                  </button>
+                )}
               </div>
             </div>
           )
@@ -544,6 +589,7 @@ export default function SocialPage() {
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [friendActionError, setFriendActionError] = useState('')
   const [selectedConv, setSelectedConv] = useState<{ userId: string; username: string } | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const convPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -553,6 +599,14 @@ export default function SocialPage() {
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
   const { feed, loading: feedLoading, toggleLike } = useFeed()
+
+  const runFriendAction = async (action: () => Promise<{ error: Error | null } | undefined>) => {
+    const result = await action()
+    if (result?.error) {
+      setFriendActionError('Operazione non riuscita. Riprova.')
+      setTimeout(() => setFriendActionError(''), 3000)
+    }
+  }
 
   useEffect(() => { fetchConversations() }, [fetchConversations])
 
@@ -619,9 +673,9 @@ export default function SocialPage() {
             friendshipId={activeView.friendshipId} isFriend={activeView.isFriend}
             isPendingSent={activeView.isPendingSent} isPendingReceived={activeView.isPendingReceived}
             onBack={() => setActiveView(null)}
-            onSendRequest={async (id) => { await sendRequest(id); await refetchFriends() }}
-            onAcceptRequest={async (fid) => { await acceptRequest(fid); await refetchFriends() }}
-            onRemove={async (fid) => { await rejectOrRemove(fid); await refetchFriends() }}
+            onSendRequest={async (id) => { await runFriendAction(() => sendRequest(id)); await refetchFriends() }}
+            onAcceptRequest={async (fid) => { await runFriendAction(() => acceptRequest(fid)); await refetchFriends() }}
+            onRemove={async (fid) => { await runFriendAction(() => rejectOrRemove(fid)); await refetchFriends() }}
           />
         )}
         {activeView.type === 'create-group' && (
@@ -767,17 +821,17 @@ export default function SocialPage() {
                           </span>
                         ) : isRecv ? (
                           <button disabled={busy} className="text-xs bg-[#F44352] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
-                            onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await acceptRequest(fid); await refetchFriends(); setActionLoading(null) } }}>
+                            onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await runFriendAction(() => acceptRequest(fid)); await refetchFriends(); setActionLoading(null) } }}>
                             Accetta
                           </button>
                         ) : sentId ? (
                           <button disabled={busy} className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0"
-                            onClick={async () => { setActionLoading(r.id); await rejectOrRemove(sentId); await refetchFriends(); setActionLoading(null) }}>
+                            onClick={async () => { setActionLoading(r.id); await runFriendAction(() => rejectOrRemove(sentId)); await refetchFriends(); setActionLoading(null) }}>
                             <Clock size={12} /> Annulla
                           </button>
                         ) : (
                           <button disabled={busy} aria-label="Aggiungi amico" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
-                            onClick={async () => { setActionLoading(r.id); await sendRequest(r.id); await refetchFriends(); setActionLoading(null) }}>
+                            onClick={async () => { setActionLoading(r.id); await runFriendAction(() => sendRequest(r.id)); await refetchFriends(); setActionLoading(null) }}>
                             <UserPlus size={16} />
                           </button>
                         )}
@@ -803,8 +857,8 @@ export default function SocialPage() {
                         </div>
                       </button>
                       <div className="flex gap-2 flex-shrink-0">
-                        <button type="button" onClick={() => acceptRequest(f.friendship_id)} aria-label="Accetta" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80"><Check size={16} /></button>
-                        <button type="button" onClick={() => rejectOrRemove(f.friendship_id)} aria-label="Rifiuta" className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label="Accetta" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80"><Check size={16} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label="Rifiuta" className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
                       </div>
                     </div>
                   ))}
@@ -855,7 +909,7 @@ export default function SocialPage() {
                       <p className="flex-1 text-white font-medium truncate">{f.username}</p>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="flex items-center gap-1 text-xs text-gray-500"><Clock size={12} /> In attesa</span>
-                        <button type="button" onClick={() => rejectOrRemove(f.friendship_id)} aria-label="Annulla richiesta" className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label="Annulla richiesta" className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
                       </div>
                     </div>
                   ))}
@@ -973,6 +1027,13 @@ export default function SocialPage() {
         )}
 
       </div>
+
+      {friendActionError && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <X size={20} className="text-[#F44352] shrink-0" />
+          <p className="text-white text-sm">{friendActionError}</p>
+        </div>
+      )}
 
       {/* Conversation action sheet */}
       {selectedConv && (

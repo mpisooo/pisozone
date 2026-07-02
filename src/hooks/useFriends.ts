@@ -77,19 +77,22 @@ export function useFriends() {
   }
 
   const sendRequest = async (addresseeId: string) => {
-    if (!user) return
-    await supabase.from('friendships').insert({ requester_id: user.id, addressee_id: addresseeId })
+    if (!user) return { error: new Error('Not authenticated') }
+    const { error } = await supabase.from('friendships').insert({ requester_id: user.id, addressee_id: addresseeId })
     await fetchFriends()
+    return { error }
   }
 
   const acceptRequest = async (friendshipId: string) => {
-    await supabase.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId)
+    const { error } = await supabase.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId)
     await fetchFriends()
+    return { error }
   }
 
   const rejectOrRemove = async (friendshipId: string) => {
-    await supabase.from('friendships').delete().eq('id', friendshipId)
+    const { error } = await supabase.from('friendships').delete().eq('id', friendshipId)
     await fetchFriends()
+    return { error }
   }
 
   return {

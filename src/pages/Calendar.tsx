@@ -138,21 +138,30 @@ export default function CalendarPage() {
                 key={key}
                 type="button"
                 onClick={() => setSelectedDay(isSelected ? null : day)}
-                className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 ${level} ${
+                aria-label={`${format(day, 'd MMMM', { locale: it })}, ${acts.length} ${acts.length === 1 ? 'attività' : 'attività registrate'}`}
+                className={`relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 ${level} ${
                   isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-[#0D0D0D]' : ''
                 } ${isToday ? 'ring-2 ring-[#F44352]' : ''}`}
               >
                 {format(day, 'd')}
+                {acts.length > 0 && (
+                  <span className="absolute bottom-0.5 right-1 text-[8px] leading-none opacity-70">
+                    {acts.length}
+                  </span>
+                )}
               </button>
             )
           })}
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 mt-3 justify-end">
-          <span className="text-xs text-gray-500">Intensità:</span>
+        <div className="flex items-center gap-2.5 mt-3 justify-end">
+          <span className="text-xs text-gray-500">Attività/giorno:</span>
           {[0, 1, 2, 3, 4].map((l) => (
-            <div key={l} className={`w-4 h-4 rounded ${heatLevel(l)}`} />
+            <div key={l} className="flex flex-col items-center gap-0.5">
+              <div className={`w-4 h-4 rounded ${heatLevel(l)}`} />
+              <span className="text-[9px] text-gray-500 leading-none">{l === 4 ? '4+' : l}</span>
+            </div>
           ))}
         </div>
       </div>

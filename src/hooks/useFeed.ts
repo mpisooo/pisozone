@@ -85,6 +85,10 @@ export function useFeed() {
   const toggleLike = useCallback(async (activityId: string) => {
     if (!user) return
 
+    const current = feed.find(a => a.id === activityId)
+    if (!current) return
+    const wasLiked = current.liked_by_me
+
     // Ottimistic update immediato
     setFeed(prev => prev.map(a => {
       if (a.id !== activityId) return a
@@ -95,17 +99,20 @@ export function useFeed() {
       }
     }))
 
-    const current = feed.find(a => a.id === activityId)
-    if (!current) return
+    const { error } = wasLiked
+      ? await supabase.from('activity_likes').delete().eq('activity_id', activityId).eq('user_id', user.id)
+      : await supabase.from('activity_likes').insert({ activity_id: activityId, user_id: user.id })
 
-    if (current.liked_by_me) {
-      await supabase.from('activity_likes')
-        .delete()
-        .eq('activity_id', activityId)
-        .eq('user_id', user.id)
-    } else {
-      await supabase.from('activity_likes')
-        .insert({ activity_id: activityId, user_id: user.id })
+    if (error) {
+      // rollback: l'operazione è fallita, ripristina lo stato precedente
+      setFeed(prev => prev.map(a => {
+        if (a.id !== activityId) return a
+        return {
+          ...a,
+          liked_by_me: wasLiked,
+          like_count: wasLiked ? a.like_count + 1 : a.like_count - 1,
+        }
+      }))
     }
   }, [user, feed])
 

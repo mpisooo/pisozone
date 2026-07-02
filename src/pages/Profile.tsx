@@ -19,6 +19,7 @@ import {
 } from '../lib/levels'
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
+import CelebrationOverlay from '../components/CelebrationOverlay'
 
 type FormValues = {
   name: string
@@ -54,8 +55,10 @@ export default function ProfilePage() {
   const [sportPreferiti, setSportPreferiti] = useState<ActivityType[]>([])
   const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [loggingWeight, setLoggingWeight] = useState(false)
+  const [weightLogError, setWeightLogError] = useState('')
   const [shopMsg, setShopMsg] = useState('')
   const [shopWorking, setShopWorking] = useState(false)
+  const [levelUpCelebration, setLevelUpCelebration] = useState<{ emoji: string; level: number; title: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const chartGrid  = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#2a2a2a'
@@ -63,7 +66,7 @@ export default function ProfilePage() {
   const tooltipBg  = theme === 'light' || theme === 'white' ? '#ffffff' : '#1a1a1a'
   const tooltipBdr = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#3a3a3a'
 
-  const { register, handleSubmit, watch, reset } = useForm<FormValues>()
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>()
 
   useEffect(() => {
     if (!loading && profile) {
@@ -118,9 +121,19 @@ export default function ProfilePage() {
 
   const handleLogWeight = async () => {
     if (!weight) return
+    if (weight <= 20 || weight >= 400) {
+      setWeightLogError('Il peso deve essere tra 20 e 400 kg.')
+      setTimeout(() => setWeightLogError(''), 3500)
+      return
+    }
     setLoggingWeight(true)
-    await addWeightLog(weight)
+    setWeightLogError('')
+    const { error } = await addWeightLog(weight)
     setLoggingWeight(false)
+    if (error) {
+      setWeightLogError('Salvataggio non riuscito. Controlla la connessione e riprova.')
+      setTimeout(() => setWeightLogError(''), 3500)
+    }
   }
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +169,8 @@ export default function ProfilePage() {
     setShopWorking(false)
     if (error) { showShopMsg('Errore: ' + error.message); return }
     if (!data.success) { showShopMsg(data.error ?? 'Crediti insufficienti'); return }
-    showShopMsg(`Benvenuto Lv.${data.new_level}! 🎉`)
+    const newLevelDef = getLevelDef(data.new_level)
+    setLevelUpCelebration({ emoji: newLevelDef.emoji, level: data.new_level, title: newLevelDef.title })
     await refetchProfile()
   }
 
@@ -312,12 +326,37 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Altezza (cm)</label>
-              <input type="number" {...register('height_cm')} className="input-dark" placeholder="175" min={100} max={250} />
+              <label htmlFor="profile-height" className="block text-xs text-gray-400 mb-1">Altezza (cm)</label>
+              <input
+                id="profile-height"
+                type="number"
+                {...register('height_cm', {
+                  min: { value: 50, message: 'Valore troppo basso' },
+                  max: { value: 250, message: 'Valore troppo alto' },
+                })}
+                className="input-dark"
+                placeholder="175"
+                min={50}
+                max={250}
+              />
+              {errors.height_cm && <p className="text-xs text-red-400 mt-1">{errors.height_cm.message}</p>}
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Peso (kg)</label>
-              <input type="number" step="0.1" {...register('weight_kg')} className="input-dark" placeholder="75" min={30} max={300} />
+              <label htmlFor="profile-weight" className="block text-xs text-gray-400 mb-1">Peso (kg)</label>
+              <input
+                id="profile-weight"
+                type="number"
+                step="0.1"
+                {...register('weight_kg', {
+                  min: { value: 20, message: 'Valore troppo basso' },
+                  max: { value: 400, message: 'Valore troppo alto' },
+                })}
+                className="input-dark"
+                placeholder="75"
+                min={20}
+                max={400}
+              />
+              {errors.weight_kg && <p className="text-xs text-red-400 mt-1">{errors.weight_kg.message}</p>}
             </div>
           </div>
 
@@ -616,6 +655,12 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {weightLogError && (
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+            {weightLogError}
+          </p>
+        )}
+
         {chartData.length < 2 ? (
           <p className="text-sm text-gray-500 text-center py-4">
             {chartData.length === 0
@@ -663,6 +708,15 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
+
+      {levelUpCelebration && (
+        <CelebrationOverlay
+          icon={levelUpCelebration.emoji}
+          title={`LIVELLO ${levelUpCelebration.level}!`}
+          subtitle={`Nuovo titolo: ${levelUpCelebration.title}`}
+          onDone={() => setLevelUpCelebration(null)}
+        />
+      )}
     </div>
   )
 }

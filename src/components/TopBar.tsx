@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, Info } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
 import { getLevelDef, type ThemeId } from '../lib/levels'
+import CreditsInfoModal from './CreditsInfoModal'
 
 export default function TopBar() {
   const { user, signOut } = useAuth()
@@ -13,6 +14,7 @@ export default function TopBar() {
   const navigate = useNavigate()
   const username: string = (user?.user_metadata?.username as string) || 'Atleta'
   const [open, setOpen] = useState(false)
+  const [showCreditsInfo, setShowCreditsInfo] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Sync active_theme from DB to ThemeContext (handles cross-device login)
@@ -89,12 +91,20 @@ export default function TopBar() {
               <>
                 <div className="px-4 py-3 flex items-center gap-2">
                   <span className="text-xl">{levelDef.emoji}</span>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold" style={{ color: levelDef.color }}>
                       Lv.{currentLevel} — {levelDef.title}
                     </p>
                     <p className="text-[11px] text-gray-500">{profile.credits} 💎 crediti</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => { setOpen(false); setShowCreditsInfo(true) }}
+                    className="p-1 text-gray-500 hover:text-[#F44352] transition-colors"
+                    aria-label="Come guadagnare crediti"
+                  >
+                    <Info size={16} />
+                  </button>
                 </div>
                 <div className="h-px bg-[var(--grey)]" />
               </>
@@ -119,6 +129,8 @@ export default function TopBar() {
           </div>
         )}
       </div>
+
+      {showCreditsInfo && <CreditsInfoModal onClose={() => setShowCreditsInfo(false)} />}
     </header>
   )
 }

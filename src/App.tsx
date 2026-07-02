@@ -1,13 +1,15 @@
 import { useState, Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ProfileProvider } from './context/ProfileContext'
 import { UnreadProvider } from './context/UnreadContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
 import SplashScreen from './components/SplashScreen'
 import PageLoader from './components/PageLoader'
+import ErrorBoundary from './components/ErrorBoundary'
 import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
 
@@ -20,24 +22,28 @@ const SocialPage     = lazy(() => import('./pages/Social'))
 const ChallengesPage = lazy(() => import('./pages/Challenges'))
 
 function AppLayout() {
+  const location = useLocation()
   return (
     <UnreadProvider>
       <div className="app-layout">
         <TopBar />
         <main className="app-main">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/"            element={<HomePage />} />
-              <Route path="/profile"     element={<ProfilePage />} />
-              <Route path="/log"         element={<LogPage />} />
-              <Route path="/calendar"    element={<CalendarPage />} />
-              <Route path="/stats"       element={<StatsPage />} />
-              <Route path="/medals"      element={<MedalsPage />} />
-              <Route path="/social"      element={<SocialPage />} />
-              <Route path="/challenges"  element={<ChallengesPage />} />
-              <Route path="*"            element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+          {/* key sulla route: se una pagina va in errore, navigando altrove il boundary si resetta */}
+          <ErrorBoundary key={location.pathname}>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/"            element={<HomePage />} />
+                <Route path="/profile"     element={<ProfilePage />} />
+                <Route path="/log"         element={<LogPage />} />
+                <Route path="/calendar"    element={<CalendarPage />} />
+                <Route path="/stats"       element={<StatsPage />} />
+                <Route path="/medals"      element={<MedalsPage />} />
+                <Route path="/social"      element={<SocialPage />} />
+                <Route path="/challenges"  element={<ChallengesPage />} />
+                <Route path="*"            element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </main>
         <Navbar />
       </div>
@@ -66,7 +72,9 @@ export default function App() {
               path="/*"
               element={
                 <ProtectedRoute>
-                  <AppLayout />
+                  <ProfileProvider>
+                    <AppLayout />
+                  </ProfileProvider>
                 </ProtectedRoute>
               }
             />

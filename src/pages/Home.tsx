@@ -302,7 +302,7 @@ export default function HomePage() {
         <button
           type="button"
           className="card w-full text-left"
-          onClick={() => navigate('/friends')}
+          onClick={() => navigate('/social')}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -334,7 +334,7 @@ export default function HomePage() {
         <button
           type="button"
           className="card w-full text-left"
-          onClick={() => navigate('/friends')}
+          onClick={() => navigate('/social')}
         >
           <div className="flex items-center gap-3">
             <Users size={22} className="text-gray-700 flex-shrink-0" />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
-import { X, Trash2, Save } from 'lucide-react'
+import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
 import { useProfile } from '../hooks/useProfile'
 import type { Activity, ActivityType } from '../types'
@@ -28,9 +28,10 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const { profile } = useProfile()
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const parsed = parseISO(activity.date)
-  const { register, handleSubmit, watch } = useForm<FormValues>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       type: activity.type,
       date: format(parsed, 'yyyy-MM-dd'),
@@ -48,12 +49,13 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
   const onSubmit = async (v: FormValues) => {
     setSaving(true)
+    setErrorMsg('')
     const dur = Number(v.hours) * 60 + Number(v.minutes)
     const cal =
       v.calories !== '' ? Number(v.calories) :
       profile?.weight_kg && dur > 0 ? calcCalories(v.type, dur, profile.weight_kg) : null
 
-    await updateActivity(activity.id, {
+    const { error } = await updateActivity(activity.id, {
       type: v.type,
       date: formatISO(new Date(`${v.date}T${v.time}:00`)),
       duration_min: dur,
@@ -62,12 +64,22 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       notes: v.notes || null,
     })
     setSaving(false)
+    if (error) {
+      setErrorMsg('Modifica non riuscita. Controlla la connessione e riprova.')
+      return
+    }
     onClose()
   }
 
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
-    await deleteActivity(activity.id)
+    setErrorMsg('')
+    const { error } = await deleteActivity(activity.id)
+    if (error) {
+      setErrorMsg('Eliminazione non riuscita. Controlla la connessione e riprova.')
+      setConfirmDelete(false)
+      return
+    }
     onClose()
   }
 
@@ -117,43 +129,96 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Data</label>
-              <input type="date" {...register('date')} className="input-dark" />
+              <label htmlFor="edit-date" className="block text-xs text-gray-400 mb-1">Data</label>
+              <input id="edit-date" type="date" {...register('date')} className="input-dark" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Ora</label>
-              <input type="time" {...register('time')} className="input-dark" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Ore</label>
-              <input type="number" {...register('hours')} className="input-dark" min={0} max={12} />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Minuti</label>
-              <input type="number" {...register('minutes')} className="input-dark" min={0} max={59} />
+              <label htmlFor="edit-time" className="block text-xs text-gray-400 mb-1">Ora</label>
+              <input id="edit-time" type="time" {...register('time')} className="input-dark" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Calorie</label>
-              <input type="number" {...register('calories')} className="input-dark" placeholder="auto" min={0} />
+              <label htmlFor="edit-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
+              <input
+                id="edit-hours"
+                type="number"
+                {...register('hours', {
+                  min: { value: 0, message: 'Non può essere negativa' },
+                  max: { value: 12, message: 'Massimo 12 ore' },
+                })}
+                className="input-dark"
+                min={0}
+                max={12}
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-minutes" className="block text-xs text-gray-400 mb-1">Minuti</label>
+              <input
+                id="edit-minutes"
+                type="number"
+                {...register('minutes', {
+                  min: { value: 0, message: 'Non possono essere negativi' },
+                  max: { value: 59, message: 'Massimo 59 minuti' },
+                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || 'Inserisci una durata maggiore di zero',
+                })}
+                className="input-dark"
+                min={0}
+                max={59}
+              />
+            </div>
+          </div>
+          {(errors.hours || errors.minutes) && (
+            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="edit-calories" className="block text-xs text-gray-400 mb-1">Calorie</label>
+              <input
+                id="edit-calories"
+                type="number"
+                {...register('calories', {
+                  min: { value: 0, message: 'Non possono essere negative' },
+                  max: { value: 20000, message: 'Valore non realistico' },
+                })}
+                className="input-dark"
+                placeholder="auto"
+                min={0}
+              />
+              {errors.calories && <p className="text-xs text-red-400 mt-1">{errors.calories.message}</p>}
             </div>
             {showDist && (
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
-                <input type="number" step="0.01" {...register('distance_km')} className="input-dark" min={0} />
+                <label htmlFor="edit-distance" className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
+                <input
+                  id="edit-distance"
+                  type="number"
+                  step="0.01"
+                  {...register('distance_km', {
+                    min: { value: 0, message: 'Non può essere negativa' },
+                    max: { value: 1000, message: 'Valore non realistico' },
+                  })}
+                  className="input-dark"
+                  min={0}
+                />
+                {errors.distance_km && <p className="text-xs text-red-400 mt-1">{errors.distance_km.message}</p>}
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Note</label>
-            <textarea {...register('notes')} className="input-dark resize-none" rows={2} />
+            <label htmlFor="edit-notes" className="block text-xs text-gray-400 mb-1">Note</label>
+            <textarea id="edit-notes" {...register('notes')} className="input-dark resize-none" rows={2} />
           </div>
+
+          {errorMsg && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#F44352]" style={{ background: 'rgba(244,67,82,0.12)' }}>
+              <AlertTriangle size={14} className="shrink-0" />
+              {errorMsg}
+            </div>
+          )}
 
           <div className="flex gap-3 pb-2">
             <button
