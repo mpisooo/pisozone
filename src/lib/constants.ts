@@ -202,15 +202,12 @@ export const MEDALS: MedalDefinition[] = [
     checkProgress: (s: AchievementStats) => ({ current: Math.min(s.weeklyGoalMetWeeks, 52), target: 52 }),
   },
   {
-    key: 'olimpionico',
-    name: 'Olimpionico',
-    description: 'Ogni tipo di attività eseguita almeno 10 volte',
+    key: 'instancabile',
+    name: 'Instancabile',
+    description: '250 attività totali registrate',
     tier: 'diamond',
-    icon: '🥇',
-    checkProgress: (s: AchievementStats) => ({
-      current: Math.min(Object.values(s.activityTypeCounts).filter((c) => c >= 10).length, 10),
-      target: 10,
-    }),
+    icon: '🎖️',
+    checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalActivities, 250), target: 250 }),
   },
 ]
 
