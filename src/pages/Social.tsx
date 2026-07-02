@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router-dom'
 import { Search, ArrowLeft, Send, Users, Plus, Check, X, Clock, UserPlus, MessageCircle, Edit2, Trash2, Heart } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
@@ -10,6 +11,7 @@ import { useFriends } from '../hooks/useFriends'
 import { useMessages } from '../hooks/useMessages'
 import { useGroups } from '../hooks/useGroups'
 import { useFeed } from '../hooks/useFeed'
+import { useLeaderboard } from '../hooks/useLeaderboard'
 import { getLevelDef } from '../lib/levels'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import type { FriendProfile } from '../types'
@@ -17,7 +19,7 @@ import type { Message } from '../hooks/useMessages'
 import type { GroupMessage, GroupMember } from '../hooks/useGroups'
 import type { UserSearchResult } from '../hooks/useFriends'
 
-type Tab = 'feed' | 'friends' | 'chat' | 'groups'
+type Tab = 'feed' | 'classifica' | 'friends' | 'chat' | 'groups'
 type ActiveView =
   | { type: 'dm'; userId: string; username: string; photo: string | null }
   | { type: 'group'; groupId: string; groupName: string }
@@ -580,10 +582,16 @@ function CreateGroupView({
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
+const VALID_TABS: Tab[] = ['feed', 'classifica', 'friends', 'chat', 'groups']
+
 export default function SocialPage() {
   const { user } = useAuth()
   const { profile } = useProfile()
-  const [tab, setTab] = useState<Tab>('feed')
+  const location = useLocation()
+  const [tab, setTab] = useState<Tab>(() => {
+    const requested = (location.state as { tab?: Tab } | null)?.tab
+    return requested && VALID_TABS.includes(requested) ? requested : 'feed'
+  })
   const [activeView, setActiveView] = useState<ActiveView | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
@@ -599,6 +607,7 @@ export default function SocialPage() {
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
   const { feed, loading: feedLoading, toggleLike } = useFeed()
+  const { entries: lbEntries, loading: lbLoading } = useLeaderboard()
 
   const runFriendAction = async (action: () => Promise<{ error: Error | null } | undefined>) => {
     const result = await action()
@@ -700,6 +709,7 @@ export default function SocialPage() {
       <div className="flex border-b border-[var(--grey)] px-2 mb-4">
         {([
           { id: 'feed' as Tab, label: 'Feed', badge: 0 },
+          { id: 'classifica' as Tab, label: 'Classifica', badge: 0 },
           { id: 'friends' as Tab, label: 'Amici', badge: pendingBadge },
           { id: 'chat' as Tab, label: 'Chat', badge: unreadBadge },
           { id: 'groups' as Tab, label: 'Gruppi', badge: 0 },
@@ -775,6 +785,49 @@ export default function SocialPage() {
                   </div>
                 )
               })
+            )}
+          </>
+        )}
+
+        {/* ── CLASSIFICA ── */}
+        {tab === 'classifica' && (
+          <>
+            {lbLoading ? (
+              <div className="space-y-3">{[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-3 animate-pulse">
+                  <div className="w-10 h-10 rounded-full bg-[var(--grey)]" />
+                  <div className="flex-1 h-3 bg-[var(--grey)] rounded w-1/3" />
+                </div>
+              ))}</div>
+            ) : lbEntries.length <= 1 ? (
+              <div className="card py-14 text-center">
+                <p className="text-5xl mb-3">🏆</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN AMICO</p>
+                <p className="text-sm text-gray-500">Aggiungi amici per vedere la classifica settimanale</p>
+              </div>
+            ) : (
+              <div className="card">
+                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">Questa settimana</p>
+                <div className="divide-y divide-[var(--grey)]">
+                  {lbEntries.map((entry, i) => (
+                    <div key={entry.user_id} className="flex items-center gap-3 py-2.5">
+                      <span className={`font-bebas text-lg w-6 text-center flex-shrink-0 ${
+                        i === 0 ? 'text-[#F44352]' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-gray-500'
+                      }`}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                      </span>
+                      <Av photo={entry.photo_url} name={entry.username} size={36} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[#F44352]' : 'text-white'}`}>
+                          {entry.username}{entry.isMe ? ' (tu)' : ''}
+                        </p>
+                        <p className="text-xs text-gray-500">{entry.count} {entry.count === 1 ? 'sessione' : 'sessioni'} · {entry.minutes} min</p>
+                      </div>
+                      <p className="text-sm font-semibold text-white flex-shrink-0">{entry.calories} kcal</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </>
         )}
