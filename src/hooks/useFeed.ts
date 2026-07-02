@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import type { ActivityType } from '../types'
 
 export interface FeedActivity {
@@ -22,6 +23,7 @@ export interface FeedActivity {
 
 export function useFeed() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [feed, setFeed] = useState<FeedActivity[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -29,11 +31,13 @@ export function useFeed() {
     if (!user) { setLoading(false); return }
     setLoading(true)
 
-    const { data: friendships } = await supabase
+    const { data: friendships, error: friendshipsError } = await supabase
       .from('friendships')
       .select('requester_id, addressee_id')
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
       .eq('status', 'accepted')
+
+    if (friendshipsError) showError('Errore nel caricamento del feed. Riprova.')
 
     const friendIds = (friendships ?? []).map(f =>
       f.requester_id === user.id ? f.addressee_id : f.requester_id
@@ -41,11 +45,12 @@ export function useFeed() {
 
     const allIds = [user.id, ...friendIds]
 
-    const [{ data: activities }, { data: profiles }] = await Promise.all([
+    const [{ data: activities, error: activitiesError }, { data: profiles }] = await Promise.all([
       supabase.from('activities').select('*').in('user_id', allIds).order('date', { ascending: false }).limit(50),
       supabase.from('profiles').select('id, username, photo_url, level').in('id', allIds),
     ])
 
+    if (activitiesError) showError('Errore nel caricamento del feed. Riprova.')
     if (!activities) { setLoading(false); return }
 
     const activityIds = activities.map(a => a.id)
@@ -78,7 +83,7 @@ export function useFeed() {
       })
     )
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchFeed() }, [fetchFeed])
 

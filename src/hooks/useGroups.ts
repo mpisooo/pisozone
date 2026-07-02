@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 export interface Group {
   id: string
@@ -31,6 +32,7 @@ export interface GroupMessage {
 
 export function useGroups() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -38,10 +40,12 @@ export function useGroups() {
     if (!user) { setLoading(false); return }
     setLoading(true)
 
-    const { data: memberships } = await supabase
+    const { data: memberships, error: membershipsError } = await supabase
       .from('group_members')
       .select('group_id, role')
       .eq('user_id', user.id)
+
+    if (membershipsError) showError('Errore nel caricamento dei gruppi. Riprova.')
 
     if (!memberships || memberships.length === 0) {
       setGroups([])
@@ -52,10 +56,12 @@ export function useGroups() {
     const groupIds = memberships.map(m => m.group_id)
     const roleMap = new Map(memberships.map(m => [m.group_id, m.role as 'admin' | 'member']))
 
-    const [{ data: groupData }, { data: memberCounts }] = await Promise.all([
+    const [{ data: groupData, error: groupsError }, { data: memberCounts }] = await Promise.all([
       supabase.from('groups').select('id, name, photo_url, created_by').in('id', groupIds),
       supabase.from('group_members').select('group_id').in('group_id', groupIds),
     ])
+
+    if (groupsError) showError('Errore nel caricamento dei gruppi. Riprova.')
 
     const countMap = new Map<string, number>()
     for (const m of memberCounts ?? []) {
@@ -70,7 +76,7 @@ export function useGroups() {
       }))
     )
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchGroups() }, [fetchGroups])
 
@@ -109,12 +115,13 @@ export function useGroups() {
   }
 
   const fetchGroupMessages = async (groupId: string): Promise<GroupMessage[]> => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('group_messages')
       .select('id, group_id, sender_id, content, created_at, sender:profiles!sender_id(username, photo_url)')
       .eq('group_id', groupId)
       .order('created_at', { ascending: true })
       .limit(100)
+    if (error) showError('Errore nel caricamento dei messaggi del gruppo. Riprova.')
     return (data ?? []).map((m: any) => ({
       id: m.id,
       group_id: m.group_id,
@@ -138,10 +145,11 @@ export function useGroups() {
   }
 
   const fetchGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('group_members')
       .select('role, user_id, profile:profiles!user_id(id, username, photo_url, level)')
       .eq('group_id', groupId)
+    if (error) showError('Errore nel caricamento dei membri del gruppo. Riprova.')
     return (data ?? []).map((m: any) => ({
       id: m.user_id,
       username: m.profile?.username ?? 'Utente',

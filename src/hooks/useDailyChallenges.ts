@@ -2,11 +2,13 @@ import { useState, useEffect, useMemo } from 'react'
 import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { generateDailyChallenges } from '../lib/challenges'
 import type { Activity, DailyChallengeCompletion, EnrichedChallenge } from '../types'
 
 export function useDailyChallenges(activities: Activity[], streak: number) {
   const { user } = useAuth()
+  const { showError } = useToast()
   const today = format(new Date(), 'yyyy-MM-dd')
 
   const [completions, setCompletions] = useState<DailyChallengeCompletion[]>([])
@@ -30,11 +32,12 @@ export function useDailyChallenges(activities: Activity[], streak: number) {
       .select('*')
       .eq('user_id', user.id)
       .eq('challenge_date', today)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) showError('Errore nel caricamento delle sfide. Riprova.')
         setCompletions((data as DailyChallengeCompletion[]) ?? [])
         setLoading(false)
       })
-  }, [user?.id, today])
+  }, [user?.id, today, showError])
 
   const challenges: EnrichedChallenge[] = useMemo(
     () =>

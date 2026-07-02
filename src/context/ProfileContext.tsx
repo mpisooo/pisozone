@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
+import { useToast } from './ToastContext'
 import type { Profile } from '../types'
 
 interface ProfileCtx {
@@ -17,20 +18,22 @@ const ProfileContext = createContext<ProfileCtx | null>(null)
 // senza dover chiudere/riaprire l'app.
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async () => {
     if (!user) { setLoading(false); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single()
-    setProfile(data as Profile | null)
+    if (error) showError('Errore nel caricamento del profilo. Riprova.')
+    else setProfile(data as Profile | null)
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchProfile() }, [fetchProfile])
 

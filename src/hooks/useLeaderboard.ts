@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { startOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 export interface LeaderboardEntry {
   user_id: string
@@ -15,6 +16,7 @@ export interface LeaderboardEntry {
 
 export function useLeaderboard() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [hasFriends, setHasFriends] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -25,11 +27,13 @@ export function useLeaderboard() {
     const fetch = async () => {
       setLoading(true)
 
-      const { data: friendships } = await supabase
+      const { data: friendships, error: friendshipsError } = await supabase
         .from('friendships')
         .select('requester_id, addressee_id')
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
         .eq('status', 'accepted')
+
+      if (friendshipsError) showError('Errore nel caricamento della classifica. Riprova.')
 
       const friendIds = (friendships ?? []).map(f =>
         f.requester_id === user.id ? f.addressee_id : f.requester_id
@@ -48,6 +52,10 @@ export function useLeaderboard() {
           .in('user_id', userIds)
           .gte('date', weekStart.toISOString()),
       ])
+
+      if (profilesRes.error || activitiesRes.error) {
+        showError('Errore nel caricamento della classifica. Riprova.')
+      }
 
       const profilesMap: Record<string, { username: string; photo_url: string | null }> = {}
       for (const p of profilesRes.data ?? []) profilesMap[p.id] = p
@@ -74,7 +82,7 @@ export function useLeaderboard() {
     }
 
     fetch()
-  }, [user])
+  }, [user, showError])
 
   return { entries, hasFriends, loading }
 }

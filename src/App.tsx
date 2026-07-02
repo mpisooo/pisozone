@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ProfileProvider } from './context/ProfileContext'
+import { ToastProvider } from './context/ToastContext'
 import { UnreadProvider } from './context/UnreadContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import TopBar from './components/TopBar'
@@ -72,9 +73,11 @@ export default function App() {
               path="/*"
               element={
                 <ProtectedRoute>
-                  <ProfileProvider>
-                    <AppLayout />
-                  </ProfileProvider>
+                  <ToastProvider>
+                    <ProfileProvider>
+                      <AppLayout />
+                    </ProfileProvider>
+                  </ToastProvider>
                 </ProtectedRoute>
               }
             />

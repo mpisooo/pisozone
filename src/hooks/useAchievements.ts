@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { MEDALS, TIER_CREDITS } from '../lib/constants'
 import type { Achievement, AchievementStats, MedalTier } from '../types'
 
@@ -17,6 +18,7 @@ export interface NewlyUnlockedMedal {
 // al click su "Riscatta", non appena i criteri sono soddisfatti.
 export function useAchievements(stats: AchievementStats) {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [recorded, setRecorded] = useState<Achievement[] | null>(null)
   const [claimingKey, setClaimingKey] = useState<string | null>(null)
   const [newlyUnlocked, setNewlyUnlocked] = useState<NewlyUnlockedMedal | null>(null)
@@ -27,8 +29,11 @@ export function useAchievements(stats: AchievementStats) {
       .from('achievements')
       .select('*')
       .eq('user_id', user.id)
-      .then(({ data }) => setRecorded((data as Achievement[]) ?? []))
-  }, [user?.id])
+      .then(({ data, error }) => {
+        if (error) showError('Errore nel caricamento delle medaglie. Riprova.')
+        setRecorded((data as Achievement[]) ?? [])
+      })
+  }, [user?.id, showError])
 
   const claimedKeys = useMemo(
     () => new Set((recorded ?? []).map((a) => a.medal_key)),
@@ -60,7 +65,10 @@ export function useAchievements(stats: AchievementStats) {
       .select()
     setClaimingKey(null)
 
-    if (error || !data || data.length === 0) return false
+    if (error || !data || data.length === 0) {
+      showError('Riscatto medaglia non riuscito. Riprova.')
+      return false
+    }
 
     setRecorded((prev) => [...(prev ?? []), ...(data as Achievement[])])
     setNewlyUnlocked({
@@ -71,7 +79,7 @@ export function useAchievements(stats: AchievementStats) {
       credits: TIER_CREDITS[medal.tier],
     })
     return true
-  }, [user, claimingKey, claimedKeys, eligibleKeys])
+  }, [user, claimingKey, claimedKeys, eligibleKeys, showError])
 
   const dismissNewlyUnlocked = useCallback(() => setNewlyUnlocked(null), [])
 

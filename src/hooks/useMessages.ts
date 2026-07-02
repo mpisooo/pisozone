@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 export interface Message {
   id: string
@@ -23,6 +24,7 @@ export interface Conversation {
 
 export function useMessages() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loadingConvs, setLoadingConvs] = useState(false)
 
@@ -30,12 +32,13 @@ export function useMessages() {
     if (!user) return
     setLoadingConvs(true)
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('messages')
       .select('id, sender_id, receiver_id, content, created_at, read_at')
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
+    if (error) showError('Errore nel caricamento delle conversazioni. Riprova.')
     if (!data) { setLoadingConvs(false); return }
 
     const convMap = new Map<string, { lastMessage: string; lastAt: string; unread: number }>()
@@ -69,17 +72,18 @@ export function useMessages() {
     }
     setConversations(convs)
     setLoadingConvs(false)
-  }, [user])
+  }, [user, showError])
 
   const fetchMessages = async (otherUserId: string): Promise<Message[]> => {
     if (!user) return []
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('messages')
       .select('*')
       .or(
         `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
       )
       .order('created_at', { ascending: true })
+    if (error) showError('Errore nel caricamento dei messaggi. Riprova.')
     return (data as Message[]) ?? []
   }
 

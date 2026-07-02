@@ -1,24 +1,27 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import type { Activity } from '../types'
 
 export function useActivities() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchActivities = useCallback(async () => {
     if (!user) { setLoading(false); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('activities')
       .select('*')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
-    if (data) setActivities(data as Activity[])
+    if (error) showError('Errore nel caricamento delle attività. Riprova.')
+    else if (data) setActivities(data as Activity[])
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import type { Friendship, FriendProfile } from '../types'
 
 export interface UserSearchResult {
@@ -12,6 +13,7 @@ export interface UserSearchResult {
 
 export function useFriends() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [friends, setFriends] = useState<FriendProfile[]>([])
   const [pendingReceived, setPendingReceived] = useState<FriendProfile[]>([])
   const [pendingSent, setPendingSent] = useState<FriendProfile[]>([])
@@ -21,10 +23,12 @@ export function useFriends() {
     if (!user) { setLoading(false); return }
     setLoading(true)
 
-    const { data: friendships } = await supabase
+    const { data: friendships, error: friendshipsError } = await supabase
       .from('friendships')
       .select('*')
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+
+    if (friendshipsError) showError('Errore nel caricamento degli amici. Riprova.')
 
     if (!friendships || friendships.length === 0) {
       setFriends([])
@@ -42,10 +46,11 @@ export function useFriends() {
 
     const profilesMap: Record<string, { username: string; name: string | null; photo_url: string | null }> = {}
     if (idsNeeded.size > 0) {
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, username, name, photo_url')
         .in('id', [...idsNeeded])
+      if (profilesError) showError('Errore nel caricamento dei profili amici. Riprova.')
       if (profiles) {
         for (const p of profiles) profilesMap[p.id] = p
       }
@@ -61,7 +66,7 @@ export function useFriends() {
     setPendingReceived(friendships.filter(f => f.status === 'pending' && f.addressee_id === user.id).map(toFriendProfile))
     setPendingSent(friendships.filter(f => f.status === 'pending' && f.requester_id === user.id).map(toFriendProfile))
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchFriends() }, [fetchFriends])
 

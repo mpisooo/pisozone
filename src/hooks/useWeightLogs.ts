@@ -1,25 +1,28 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import type { WeightLog } from '../types'
 
 export function useWeightLogs() {
   const { user } = useAuth()
+  const { showError } = useToast()
   const [logs, setLogs] = useState<WeightLog[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchLogs = useCallback(async () => {
     if (!user) { setLoading(false); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('weight_logs')
       .select('*')
       .eq('user_id', user.id)
       .order('logged_at', { ascending: true })
       .limit(90)
-    if (data) setLogs(data as WeightLog[])
+    if (error) showError('Errore nel caricamento dello storico peso. Riprova.')
+    else if (data) setLogs(data as WeightLog[])
     setLoading(false)
-  }, [user])
+  }, [user, showError])
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
