@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { format, subDays, startOfWeek, parseISO, isAfter } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2 } from 'lucide-react'
@@ -11,15 +11,32 @@ import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { calcStreak, generateDailyChallenges } from '../lib/challenges'
+import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
+import PushNotificationPrompt from '../components/PushNotificationPrompt'
 
 export default function HomePage() {
   const { user } = useAuth()
-  const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile()
+  const { profile, loading: profileLoading, refetch: refetchProfile, updateProfile } = useProfile()
   const { activities, loading: actsLoading } = useActivities()
   const { entries: lbEntries, hasFriends } = useLeaderboard()
   const { frozenDates, freeze, freezing } = useStreakFreeze()
   const navigate = useNavigate()
+  const [showPushPrompt, setShowPushPrompt] = useState(false)
+
+  // Utenti con un account creato prima dell'introduzione delle push non sanno
+  // che esistono: mostra la scelta esplicita una sola volta (push_prompt_seen
+  // in profiles), senza ripresentarla in futuro qualunque sia la risposta.
+  useEffect(() => {
+    if (profileLoading || !profile || profile.push_prompt_seen || !pushSupported()) return
+    let cancelled = false
+    isSubscribed().then((subscribed) => {
+      if (cancelled) return
+      if (subscribed) updateProfile({ push_prompt_seen: true })
+      else setShowPushPrompt(true)
+    })
+    return () => { cancelled = true }
+  }, [profileLoading, profile, updateProfile])
 
   const username: string = (user?.user_metadata?.username as string) || 'Atleta'
 
@@ -414,6 +431,10 @@ export default function HomePage() {
         <Plus size={18} />
         Registra allenamento
       </button>
+
+      {showPushPrompt && user && (
+        <PushNotificationPrompt userId={user.id} onDone={() => setShowPushPrompt(false)} />
+      )}
     </div>
   )
 }

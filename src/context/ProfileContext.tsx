@@ -56,6 +56,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       active_theme: 'dark',
       unlocked_frames: ['none'],
       active_frame: 'none',
+      push_prompt_seen: false,
       ...(profile ?? {}),
       ...updates,
       id: user.id,

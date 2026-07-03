@@ -46,6 +46,7 @@ export interface Profile {
   active_theme: string
   unlocked_frames: string[]
   active_frame: string
+  push_prompt_seen: boolean
 }
 
 export interface ChallengeTemplate {
