@@ -50,6 +50,8 @@ export async function sendToSubscriptions(subs: PushSubscriptionRow[], payload: 
         if (statusCode === 404 || statusCode === 410) {
           // Subscription scaduta/revocata: rimuovila per non ritentare inutilmente.
           await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id)
+        } else {
+          console.error('sendNotification failed', statusCode, (err as { body?: string }).body ?? err)
         }
       }
     }),
