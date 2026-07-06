@@ -1,3 +1,5 @@
+// Va importato per primo: registra i global handler prima di ogni altro codice.
+import './lib/sentry'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'

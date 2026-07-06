@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { supabaseAdmin, sendToSubscriptions, type PushSubscriptionRow } from '../_lib/push.js'
+import { withSentry } from '../_lib/sentry.js'
 
 // Calcola l'offset UTC di Europe/Rome nell'istante dato (+01:00 in inverno/CET,
 // +02:00 in estate/CEST) per costruire i limiti esatti della giornata locale.
@@ -22,7 +23,7 @@ function getRomeTodayRange(now: Date) {
   return { start: `${ymd}T00:00:00${offset}`, end: `${ymd}T23:59:59.999${offset}` }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (process.env.CRON_SECRET && req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
@@ -52,3 +53,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.status(200).json({ notified: toNotify.length })
 }
+
+export default withSentry(handler)

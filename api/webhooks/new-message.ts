@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { supabaseAdmin, sendToSubscriptions } from '../_lib/push.js'
+import { withSentry } from '../_lib/sentry.js'
 
 interface MessageRecord {
   sender_id: string
@@ -7,7 +8,7 @@ interface MessageRecord {
   content: string
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
   if (req.headers['x-webhook-secret'] !== process.env.SUPABASE_WEBHOOK_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' })
@@ -35,3 +36,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.status(200).json({ ok: true })
 }
+
+export default withSentry(handler)

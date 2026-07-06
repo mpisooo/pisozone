@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import * as Sentry from '@sentry/react'
 
 interface AuthCtx {
   user: User | null
@@ -32,6 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Associa gli errori Sentry all'utente loggato (solo id/username, nessun dato sensibile)
+  useEffect(() => {
+    Sentry.setUser(user ? { id: user.id, username: user.user_metadata?.username } : null)
+  }, [user])
 
   const signIn = async (username: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

@@ -1,5 +1,6 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { captureError } from './sentry.js'
 
 // Riusa VITE_SUPABASE_URL (già configurata su Vercel per il build del client):
 // il prefisso VITE_ è solo una convenzione di Vite per l'inclusione nel bundle
@@ -51,7 +52,7 @@ export async function sendToSubscriptions(subs: PushSubscriptionRow[], payload: 
           // Subscription scaduta/revocata: rimuovila per non ritentare inutilmente.
           await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id)
         } else {
-          console.error('sendNotification failed', statusCode, (err as { body?: string }).body ?? err)
+          captureError(err, { statusCode, body: (err as { body?: string }).body })
         }
       }
     }),
