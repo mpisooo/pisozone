@@ -26,10 +26,14 @@ export default defineConfig({
     // 'hidden' genera le map senza referenziarle nei bundle serviti
     sourcemap: uploadSourceMaps ? 'hidden' : false,
   },
-  // Explicitly embed env vars at build time so Vercel picks them up correctly
+  // Explicitly embed env vars at build time so Vercel picks them up correctly.
+  // trim(): un newline incollato per errore nella env var su Vercel finisce
+  // URL-encoded (%0A) nella query string del WebSocket realtime e Supabase
+  // rifiuta l'auth — gli header HTTP invece lo tollerano, quindi il bug
+  // colpisce solo il realtime ed è difficile da notare.
   define: {
-    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL ?? ''),
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY ?? ''),
-    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(process.env.VITE_SENTRY_DSN ?? ''),
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify((process.env.VITE_SUPABASE_URL ?? '').trim()),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify((process.env.VITE_SUPABASE_ANON_KEY ?? '').trim()),
+    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify((process.env.VITE_SENTRY_DSN ?? '').trim()),
   },
 })
