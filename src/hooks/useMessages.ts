@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { isRateLimitError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
@@ -94,7 +95,10 @@ export function useMessages() {
       .insert({ sender_id: user.id, receiver_id: receiverId, content: content.trim() })
       .select()
       .single()
-    if (error) return null
+    if (error) {
+      if (isRateLimitError(error)) showError('Stai inviando messaggi troppo in fretta. Attendi un momento e riprova.')
+      return null
+    }
     return data as Message
   }
 

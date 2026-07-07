@@ -13,6 +13,7 @@ import { useGroups } from '../hooks/useGroups'
 import { useFeed } from '../hooks/useFeed'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { getLevelDef } from '../lib/levels'
+import { isRateLimitError } from '../lib/errors'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
@@ -612,7 +613,11 @@ export default function SocialPage() {
   const runFriendAction = async (action: () => Promise<{ error: Error | null } | undefined>) => {
     const result = await action()
     if (result?.error) {
-      setFriendActionError('Operazione non riuscita. Riprova.')
+      setFriendActionError(
+        isRateLimitError(result.error)
+          ? 'Troppe richieste in poco tempo. Riprova più tardi.'
+          : 'Operazione non riuscita. Riprova.'
+      )
       setTimeout(() => setFriendActionError(''), 3000)
     }
   }

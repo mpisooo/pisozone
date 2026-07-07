@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { isRateLimitError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
@@ -140,7 +141,10 @@ export function useGroups() {
       .insert({ group_id: groupId, sender_id: user.id, content: content.trim() })
       .select('id, group_id, sender_id, content, created_at')
       .single()
-    if (error || !data) return null
+    if (error || !data) {
+      if (isRateLimitError(error)) showError('Stai inviando messaggi troppo in fretta. Attendi un momento e riprova.')
+      return null
+    }
     return { ...data, sender_username: '', sender_photo: null }
   }
 

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
 import { withSentry } from '../_lib/sentry.js'
+import { rateLimited } from '../_lib/rateLimit.js'
 
 // Client admin dedicato: non riusa _lib/push.js per non inizializzare web-push
 // (richiede le VAPID key) in una funzione che non invia notifiche.
@@ -11,6 +12,8 @@ const supabaseAdmin = createClient(
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
+  // Un'eliminazione legittima è un'operazione una tantum: soglia stretta.
+  if (rateLimited(req, res, 10)) return
 
   // L'identità arriva dal JWT di sessione, mai dal body: ognuno può eliminare solo se stesso.
   const authHeader = req.headers.authorization

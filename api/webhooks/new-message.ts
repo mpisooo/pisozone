@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { supabaseAdmin, sendToSubscriptions } from '../_lib/push.js'
 import { withSentry } from '../_lib/sentry.js'
+import { rateLimited } from '../_lib/rateLimit.js'
 
 interface MessageRecord {
   sender_id: string
@@ -10,6 +11,9 @@ interface MessageRecord {
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).end()
+  // Soglia alta: il traffico legittimo arriva dagli IP di Supabase (condivisi
+  // tra tutti gli utenti) e per superarla servirebbero 5 messaggi/secondo.
+  if (rateLimited(req, res, 300)) return
   if (req.headers['x-webhook-secret'] !== process.env.SUPABASE_WEBHOOK_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
