@@ -1,0 +1,39 @@
+# CI: typecheck (client + funzioni /api), test e build a ogni push/PR.
+# Il typecheck delle /api con moduleResolution NodeNext intercetta anche gli
+# import senza estensione .js (ERR_MODULE_NOT_FOUND — già successo il 2 lug 2026).
+# NB: il deploy resta manuale (npx vercel --prod): questa pipeline è il semaforo
+# da controllare prima di deployare.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Typecheck client (src/)
+        run: npm run typecheck
+
+      - name: Typecheck funzioni /api (NodeNext)
+        run: npm run typecheck:api
+
+      - name: Test
+        run: npm test
+
+      # Env var vuote: la build serve solo come smoke check di compilazione,
+      # il bundle deployabile lo produce Vercel con le env reali.
+      - name: Build
+        run: npx vite build
