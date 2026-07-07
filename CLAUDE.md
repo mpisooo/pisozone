@@ -10,15 +10,13 @@ PisoZone: PWA in italiano per il tracciamento dell'attività fisica, con social 
 
 ```bash
 npm run dev                 # dev server Vite (http://localhost:5173)
-npm run build               # build di produzione (tsc non incluso)
-npx tsc --noEmit            # type-check del client (copre SOLO src/)
-
-# Le funzioni /api NON sono coperte dal tsconfig: vanno verificate a parte
-npx tsc --noEmit --ignoreConfig --skipLibCheck --strict --module NodeNext \
-  --moduleResolution NodeNext --target ES2022 --esModuleInterop api/**/*.ts
+npm run build               # tsc + build di produzione
+npm test                    # Vitest (vitest.config.ts dedicata; un file: npx vitest run src/lib/challenges.test.ts)
+npm run typecheck           # type-check del client (copre SOLO src/)
+npm run typecheck:api       # type-check delle funzioni /api in NodeNext (intercetta import senza .js)
 ```
 
-Non esistono test né lint configurati (roadmap punto 5).
+CI in `.github/workflows/ci.yml`: typecheck ×2 + test + build a ogni push/PR — è il semaforo da controllare prima del deploy (che resta manuale). Niente lint configurato. `gh` CLI non installata: stato delle run via `curl https://api.github.com/repos/mpisooo/pisozone/actions/runs?per_page=1`.
 
 ## Deploy — ATTENZIONE
 
