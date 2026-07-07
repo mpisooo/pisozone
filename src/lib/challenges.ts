@@ -110,12 +110,12 @@ export const CHALLENGE_POOL: ChallengeTemplate[] = [
     check: (acts) => acts.some((a) => new Date(a.date).getHours() < 12 && a.duration_min >= 10),
   },
   {
-    key: 'streak_3',
-    title: 'Tre di fila',
-    description: 'Raggiungi uno streak di 3 giorni',
-    icon: '🔥',
+    key: 'dist_3km',
+    title: 'Macinachilometri',
+    description: 'Percorri almeno 3 km in totale oggi',
+    icon: '🛣️',
     credits: 20,
-    check: (_acts, streak) => streak >= 3,
+    check: (acts) => acts.reduce((s, a) => s + (a.distance_km ?? 0), 0) >= 3,
   },
 
   // — Difficili (30–50 crediti) —
@@ -136,20 +136,20 @@ export const CHALLENGE_POOL: ChallengeTemplate[] = [
     check: (acts) => acts.reduce((s, a) => s + a.duration_min, 0) >= 90,
   },
   {
-    key: 'streak_5',
-    title: 'Cinque di fila',
-    description: 'Raggiungi uno streak di 5 giorni',
-    icon: '🔥',
+    key: 'two_types',
+    title: 'Versatile',
+    description: 'Registra 2 attività di tipo diverso oggi',
+    icon: '🎯',
     credits: 30,
-    check: (_acts, streak) => streak >= 5,
+    check: (acts) => new Set(acts.map((a) => a.type)).size >= 2,
   },
   {
-    key: 'streak_7',
-    title: 'Settimana perfetta',
-    description: 'Raggiungi 7 giorni consecutivi',
+    key: 'log_120min',
+    title: 'Due ore piene',
+    description: 'Allenati per almeno 120 minuti oggi',
     icon: '👑',
     credits: 50,
-    check: (_acts, streak) => streak >= 7,
+    check: (acts) => acts.reduce((s, a) => s + a.duration_min, 0) >= 120,
   },
 ]
 
