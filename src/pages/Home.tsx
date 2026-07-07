@@ -125,7 +125,7 @@ export default function HomePage() {
         <p className="text-gray-500 text-sm capitalize">{todayLabel}</p>
         <h1 className="font-bebas text-4xl text-white tracking-wider mt-0.5">
           {greeting},{' '}
-          <span className="text-[#F44352]">{username}</span>!
+          <span className="text-[var(--red)]">{username}</span>!
         </h1>
         <div className="header-accent" />
       </div>
@@ -135,8 +135,8 @@ export default function HomePage() {
         <div className="card flex items-center gap-3">
           <Flame
             size={30}
-            className="text-[#F44352] flex-shrink-0"
-            style={{ filter: streak > 0 ? 'drop-shadow(0 0 8px #F44352)' : 'none' }}
+            className="text-[var(--red)] flex-shrink-0"
+            style={{ filter: streak > 0 ? 'drop-shadow(0 0 8px var(--red))' : 'none' }}
           />
           <div>
             <p className="font-bebas text-4xl text-white leading-none">{streak}</p>
@@ -149,7 +149,7 @@ export default function HomePage() {
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-gray-400">Obiettivo settimana</p>
-            <span className={`text-xs font-semibold ${weekDone ? 'text-green-400' : 'text-[#F44352]'}`}>
+            <span className={`text-xs font-semibold ${weekDone ? 'text-green-400' : 'text-[var(--red)]'}`}>
               {weekActivities.length}/{weeklyGoal}
             </span>
           </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
                 width: `${weekPct}%`,
                 background: weekDone
                   ? 'linear-gradient(90deg,#4ade80,#22c55e)'
-                  : 'linear-gradient(90deg,#F44352,#FF5E63)',
+                  : 'linear-gradient(90deg,var(--red),#FF5E63)',
               }}
             />
           </div>
@@ -210,7 +210,7 @@ export default function HomePage() {
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Zap size={15} className="text-[#F44352]" />
+              <Zap size={15} className="text-[var(--red)]" />
               <span className="text-sm font-medium text-gray-300">Calorie bruciate oggi</span>
             </div>
             <span className="font-bebas text-lg text-white">
@@ -226,7 +226,7 @@ export default function HomePage() {
                 background:
                   todayCalories >= dailyCalGoal
                     ? 'linear-gradient(90deg,#4ade80,#22c55e)'
-                    : 'linear-gradient(90deg,#F44352,#facc15)',
+                    : 'linear-gradient(90deg,var(--red),#facc15)',
               }}
             />
           </div>
@@ -250,7 +250,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <span
               className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-              style={{ background: 'rgba(244,67,82,0.12)' }}
+              style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
             >
               {lastOpt.emoji}
             </span>
@@ -271,7 +271,7 @@ export default function HomePage() {
         <div className="card text-center py-10">
           <div
             className="w-28 h-28 rounded-full flex items-center justify-center text-7xl mx-auto mb-4"
-            style={{ background: 'rgba(244,67,82,0.1)' }}
+            style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
           >
             🏋️
           </div>
@@ -294,7 +294,7 @@ export default function HomePage() {
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Trophy size={14} className="text-[#F44352]" />
+              <Trophy size={14} className="text-[var(--red)]" />
               <span className="text-xs text-gray-400">Medaglia più vicina</span>
             </div>
             <ChevronRight size={16} className="text-gray-600" />
@@ -314,13 +314,13 @@ export default function HomePage() {
                   className="h-full rounded-full"
                   style={{
                     width: `${nearestMedal.pct * 100}%`,
-                    background: 'linear-gradient(90deg,#F44352,#FF5E63)',
+                    background: 'linear-gradient(90deg,var(--red),#FF5E63)',
                     transition: 'width 0.7s',
                   }}
                 />
               </div>
             </div>
-            <span className="font-bebas text-xl text-[#F44352] flex-shrink-0">
+            <span className="font-bebas text-xl text-[var(--red)] flex-shrink-0">
               {Math.round(nearestMedal.pct * 100)}%
             </span>
           </div>
@@ -336,7 +336,7 @@ export default function HomePage() {
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Users size={14} className="text-[#F44352]" />
+              <Users size={14} className="text-[var(--red)]" />
               <span className="text-xs text-gray-400">Classifica settimanale</span>
             </div>
             <ChevronRight size={16} className="text-gray-600" />
@@ -344,11 +344,11 @@ export default function HomePage() {
           <div className="space-y-2">
             {lbEntries.slice(0, 3).map((entry, i) => (
               <div key={entry.user_id} className="flex items-center gap-3">
-                <span className={`font-bebas text-lg w-5 text-center ${i === 0 ? 'text-[#F44352]' : 'text-gray-500'}`}>
+                <span className={`font-bebas text-lg w-5 text-center ${i === 0 ? 'text-[var(--red)]' : 'text-gray-500'}`}>
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[#F44352]' : 'text-white'}`}>
+                  <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
                     {entry.username}{entry.isMe ? ' (tu)' : ''}
                   </p>
                 </div>
@@ -385,7 +385,7 @@ export default function HomePage() {
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target size={14} className="text-[#F44352]" />
+            <Target size={14} className="text-[var(--red)]" />
             <span className="text-xs text-gray-400">Sfide di oggi</span>
           </div>
           <div className="flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function HomePage() {
             <div key={c.key} className="flex items-center gap-2.5">
               <span
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all ${eligible ? '' : 'grayscale opacity-40'}`}
-                style={{ background: eligible ? 'rgba(74,222,128,0.15)' : 'rgba(244,67,82,0.1)' }}
+                style={{ background: eligible ? 'rgba(74,222,128,0.15)' : 'rgba(var(--accent-rgb),0.1)' }}
               >
                 {c.icon}
               </span>

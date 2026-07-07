@@ -15,7 +15,7 @@ const TIER_COLOR: Record<string, string> = {
   '25': 'text-purple-400',
   '30': 'text-yellow-400',
   '35': 'text-orange-400',
-  '50': 'text-[#F44352]',
+  '50': 'text-[var(--red)]',
 }
 
 function creditsColor(n: number): string {
@@ -61,7 +61,7 @@ export default function ChallengesPage() {
       <div className="pt-2">
         <p className="text-gray-500 text-sm capitalize">{todayLabel}</p>
         <h1 className="font-bebas text-4xl text-white tracking-wider mt-0.5">
-          Sfide di <span className="text-[#F44352]">oggi</span>
+          Sfide di <span className="text-[var(--red)]">oggi</span>
         </h1>
         <div className="header-accent" />
       </div>
@@ -79,7 +79,7 @@ export default function ChallengesPage() {
       <div className="card">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-400">Crediti di oggi</span>
-          <span className="text-xs font-semibold text-[#F44352]">
+          <span className="text-xs font-semibold text-[var(--red)]">
             {totalEarned} / {totalEarnable}
           </span>
         </div>
@@ -91,7 +91,7 @@ export default function ChallengesPage() {
               background:
                 allClaimed
                   ? 'linear-gradient(90deg,#4ade80,#22c55e)'
-                  : 'linear-gradient(90deg,#F44352,#facc15)',
+                  : 'linear-gradient(90deg,var(--red),#facc15)',
             }}
           />
         </div>
@@ -109,7 +109,7 @@ export default function ChallengesPage() {
             <div
               key={template.key}
               className={`card transition-all duration-200 ${
-                claimed ? 'border border-green-500/30' : eligible ? 'border border-[#F44352]/30' : ''
+                claimed ? 'border border-green-500/30' : eligible ? 'border border-[var(--red)]/30' : ''
               }`}
             >
               <div className="flex items-start gap-3">

@@ -36,7 +36,7 @@ function Av({ photo, name, size = 40 }: { photo: string | null; name: string; si
             : 'w-10 h-10 text-base'
   if (photo) return <img src={photo} alt={name} className={`rounded-full object-cover flex-shrink-0 ${cls}`} />
   return (
-    <div className={`rounded-full flex items-center justify-center flex-shrink-0 font-bebas text-[white] bg-[#F44352] ${cls}`}>
+    <div className={`rounded-full flex items-center justify-center flex-shrink-0 font-bebas text-[white] bg-[var(--red)] ${cls}`}>
       {name[0]?.toUpperCase() ?? '?'}
     </div>
   )
@@ -182,7 +182,7 @@ function DmChatView({
             >
               <div
                 className="max-w-[75%] px-3 py-2 rounded-2xl text-sm"
-                style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}
+                style={{ background: isMe ? 'var(--red)' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}
               >
                 {msg.content}
                 {msg.edited_at && (
@@ -193,7 +193,7 @@ function DmChatView({
                 <button
                   type="button"
                   onClick={() => handleRetry(msg)}
-                  className="flex items-center gap-1 text-[10px] text-[#F44352] mt-0.5 px-1"
+                  className="flex items-center gap-1 text-[10px] text-[var(--red)] mt-0.5 px-1"
                 >
                   ⚠ Non inviato · Riprova
                 </button>
@@ -207,9 +207,9 @@ function DmChatView({
       {/* Input — normal or edit mode */}
       {editingId ? (
         <div className="border-t border-[var(--grey)]">
-          <div className="flex items-center gap-2 px-4 py-1.5 border-b border-[var(--grey)]" style={{ background: 'rgba(244,67,82,0.07)' }}>
-            <Edit2 size={12} className="text-[#F44352] flex-shrink-0" />
-            <span className="text-xs text-[#F44352]">Modifica messaggio</span>
+          <div className="flex items-center gap-2 px-4 py-1.5 border-b border-[var(--grey)]" style={{ background: 'rgba(var(--accent-rgb),0.07)' }}>
+            <Edit2 size={12} className="text-[var(--red)] flex-shrink-0" />
+            <span className="text-xs text-[var(--red)]">Modifica messaggio</span>
             <button type="button" onClick={() => { setEditingId(null); setEditText('') }} aria-label="Annulla modifica" className="ml-auto text-gray-500 hover:text-white">
               <X size={14} />
             </button>
@@ -261,7 +261,7 @@ function DmChatView({
                 }}
                 className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
               >
-                <Edit2 size={18} className="text-[#F44352] flex-shrink-0" />
+                <Edit2 size={18} className="text-[var(--red)] flex-shrink-0" />
                 <span className="text-white font-medium">Modifica messaggio</span>
               </button>
             )}
@@ -356,7 +356,7 @@ function GroupChatView({
           <p className="font-semibold text-white truncate">{groupName}</p>
           <p className="text-xs text-gray-500">{members.length} membri</p>
         </div>
-        <button type="button" onClick={() => setShowMembers(v => !v)} aria-label="Mostra membri" className={`p-1 transition-colors ${showMembers ? 'text-[#F44352]' : 'text-gray-400 hover:text-white'}`}>
+        <button type="button" onClick={() => setShowMembers(v => !v)} aria-label="Mostra membri" className={`p-1 transition-colors ${showMembers ? 'text-[var(--red)]' : 'text-gray-400 hover:text-white'}`}>
           <Users size={18} />
         </button>
       </div>
@@ -390,14 +390,14 @@ function GroupChatView({
               {!isMe && <Av photo={msg.sender_photo} name={msg.sender_username} size={32} />}
               <div className={`max-w-[75%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                 {!isMe && <p className="text-[10px] text-gray-500 mb-0.5 ml-1">{msg.sender_username}</p>}
-                <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: isMe ? '#F44352' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}>
+                <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: isMe ? 'var(--red)' : 'var(--grey)', color: 'var(--color-text)', opacity: msg.failed ? 0.6 : 1 }}>
                   {msg.content}
                 </div>
                 {msg.failed && (
                   <button
                     type="button"
                     onClick={() => handleRetry(msg)}
-                    className="flex items-center gap-1 text-[10px] text-[#F44352] mt-0.5 px-1"
+                    className="flex items-center gap-1 text-[10px] text-[var(--red)] mt-0.5 px-1"
                   >
                     ⚠ Non inviato · Riprova
                   </button>
@@ -466,7 +466,7 @@ function FriendProfileView({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="card flex flex-col items-center gap-3 py-6">
-          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-[#F44352]">
+          <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-[var(--red)]">
             {photo
               ? <img src={photo} className="w-full h-full object-cover" alt={username} />
               : <span className="font-bebas text-3xl text-[white]">{username[0]?.toUpperCase()}</span>
@@ -487,7 +487,7 @@ function FriendProfileView({
               isFriend ? { border: '1px solid #7f1d1d', color: '#f87171' }
               : isPendingSent ? { background: 'var(--grey)', color: '#9ca3af' }
               : isPendingReceived ? { background: '#22c55e', color: '#fff' }
-              : { background: '#F44352', color: '#fff' }
+              : { background: 'var(--red)', color: '#fff' }
             }
           >
             {isFriend ? 'Rimuovi amico' : isPendingSent ? '⏳ In attesa' : isPendingReceived ? '✓ Accetta richiesta' : '+ Aggiungi amico'}
@@ -563,12 +563,12 @@ function CreateGroupView({
                     type="button"
                     onClick={() => toggle(f.user_id)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors"
-                    style={{ background: sel ? 'rgba(244,67,82,0.1)' : 'var(--grey)', border: `1px solid ${sel ? '#F44352' : 'transparent'}` }}
+                    style={{ background: sel ? 'rgba(var(--accent-rgb),0.1)' : 'var(--grey)', border: `1px solid ${sel ? 'var(--red)' : 'transparent'}` }}
                   >
                     <Av photo={f.photo_url} name={f.username} size={36} />
                     <p className="flex-1 text-left font-medium text-white">{f.username}</p>
                     <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                      style={{ borderColor: sel ? '#F44352' : '#4b5563', background: sel ? '#F44352' : 'transparent' }}
+                      style={{ borderColor: sel ? 'var(--red)' : '#4b5563', background: sel ? 'var(--red)' : 'transparent' }}
                     >
                       {sel && <Check size={12} className="text-white" />}
                     </div>
@@ -729,11 +729,11 @@ export default function SocialPage() {
           { id: 'groups' as Tab, label: 'Gruppi', badge: 0 },
         ]).map(({ id, label, badge }) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors ${tab === id ? 'text-[#F44352] border-b-2 border-[#F44352]' : 'text-gray-500'}`}
+            className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors ${tab === id ? 'text-[var(--red)] border-b-2 border-[var(--red)]' : 'text-gray-500'}`}
           >
             {label}
             {badge > 0 && (
-              <span className="absolute top-1.5 right-2 min-w-[16px] h-4 rounded-full bg-[#F44352] text-[white] text-[9px] flex items-center justify-center px-1">
+              <span className="absolute top-1.5 right-2 min-w-[16px] h-4 rounded-full bg-[var(--red)] text-[white] text-[9px] flex items-center justify-center px-1">
                 {badge}
               </span>
             )}
@@ -779,7 +779,7 @@ export default function SocialPage() {
                     <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--grey)' }}>
                       <span
                         className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-                        style={{ background: 'rgba(244,67,82,0.15)' }}
+                        style={{ background: 'rgba(var(--accent-rgb),0.15)' }}
                       >
                         {opt?.emoji ?? '🏃'}
                       </span>
@@ -796,12 +796,12 @@ export default function SocialPage() {
                         type="button"
                         onClick={() => toggleLike(a.id)}
                         aria-label={a.liked_by_me ? 'Togli like' : 'Metti like'}
-                        className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.liked_by_me ? 'text-[#F44352]' : 'text-gray-500'}`}
+                        className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.liked_by_me ? 'text-[var(--red)]' : 'text-gray-500'}`}
                       >
                         <Heart
                           size={18}
-                          fill={a.liked_by_me ? '#F44352' : 'none'}
-                          stroke={a.liked_by_me ? '#F44352' : '#6b7280'}
+                          fill={a.liked_by_me ? 'var(--red)' : 'none'}
+                          stroke={a.liked_by_me ? 'var(--red)' : '#6b7280'}
                         />
                         {a.like_count > 0 && <span className="font-medium">{a.like_count}</span>}
                       </button>
@@ -841,13 +841,13 @@ export default function SocialPage() {
                   {lbEntries.map((entry, i) => (
                     <div key={entry.user_id} className="flex items-center gap-3 py-2.5">
                       <span className={`font-bebas text-lg w-6 text-center flex-shrink-0 ${
-                        i === 0 ? 'text-[#F44352]' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-gray-500'
+                        i === 0 ? 'text-[var(--red)]' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-gray-500'
                       }`}>
                         {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                       </span>
                       <Av photo={entry.photo_url} name={entry.username} size={36} />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[#F44352]' : 'text-white'}`}>
+                        <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
                           {entry.username}{entry.isMe ? ' (tu)' : ''}
                         </p>
                         <p className="text-xs text-gray-500">{entry.count} {entry.count === 1 ? 'sessione' : 'sessioni'} · {entry.minutes} min</p>
@@ -866,7 +866,7 @@ export default function SocialPage() {
           <>
             {/* Search */}
             <div className="relative">
-              <div className="search-input-box flex items-center gap-2 rounded-xl px-3 focus-within:border-[#F44352] focus-within:shadow-[0_0_0_2px_rgba(244,67,82,0.2)]">
+              <div className="search-input-box flex items-center gap-2 rounded-xl px-3 focus-within:border-[var(--red)] focus-within:shadow-[0_0_0_2px_rgba(var(--accent-rgb),0.2)]">
                 <Search size={16} className="text-gray-500 flex-shrink-0" />
                 <input
                   className="flex-1 min-w-0 bg-transparent py-[0.625rem] text-sm outline-none placeholder-[#888]"
@@ -902,7 +902,7 @@ export default function SocialPage() {
                             <Check size={11} /> Amico
                           </span>
                         ) : isRecv ? (
-                          <button disabled={busy} className="text-xs bg-[#F44352] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
+                          <button disabled={busy} className="text-xs bg-[var(--red)] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
                             onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await runFriendAction(() => acceptRequest(fid)); await refetchFriends(); setActionLoading(null) } }}>
                             Accetta
                           </button>
@@ -912,7 +912,7 @@ export default function SocialPage() {
                             <Clock size={12} /> Annulla
                           </button>
                         ) : (
-                          <button disabled={busy} aria-label="Aggiungi amico" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
+                          <button disabled={busy} aria-label="Aggiungi amico" className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
                             onClick={async () => { setActionLoading(r.id); await runFriendAction(() => sendRequest(r.id)); await refetchFriends(); setActionLoading(null) }}>
                             <UserPlus size={16} />
                           </button>
@@ -927,7 +927,7 @@ export default function SocialPage() {
             {/* Richieste ricevute */}
             {pendingReceived.length > 0 && (
               <div className="card">
-                <p className="text-xs text-[#F44352] font-semibold mb-3 uppercase tracking-wider">Richieste ricevute ({pendingReceived.length})</p>
+                <p className="text-xs text-[var(--red)] font-semibold mb-3 uppercase tracking-wider">Richieste ricevute ({pendingReceived.length})</p>
                 <div className="divide-y divide-[var(--grey)]">
                   {pendingReceived.map(f => (
                     <div key={f.friendship_id} className="flex items-center gap-3 py-2.5">
@@ -939,7 +939,7 @@ export default function SocialPage() {
                         </div>
                       </button>
                       <div className="flex gap-2 flex-shrink-0">
-                        <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label="Accetta" className="p-1.5 rounded-full bg-[#F44352] text-[white] hover:opacity-80"><Check size={16} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label="Accetta" className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80"><Check size={16} /></button>
                         <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label="Rifiuta" className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
                       </div>
                     </div>
@@ -1063,7 +1063,7 @@ export default function SocialPage() {
                     <div className="relative">
                       <Av photo={c.photo} name={c.username} />
                       {c.unread > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-[#F44352] text-[white] text-[9px] flex items-center justify-center px-1">
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-[var(--red)] text-[white] text-[9px] flex items-center justify-center px-1">
                           {c.unread}
                         </span>
                       )}
@@ -1108,7 +1108,7 @@ export default function SocialPage() {
                 {groups.map(g => (
                   <button key={g.id} onClick={() => setActiveView({ type: 'group', groupId: g.id, groupName: g.name })}
                     className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-[#F44352] flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[var(--red)] flex items-center justify-center flex-shrink-0">
                       <span className="font-bebas text-lg text-[white]">{g.name[0]?.toUpperCase()}</span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1127,7 +1127,7 @@ export default function SocialPage() {
 
       {friendActionError && (
         <div className="toast-enter toast-error flex items-center gap-3">
-          <X size={20} className="text-[#F44352] shrink-0" />
+          <X size={20} className="text-[var(--red)] shrink-0" />
           <p className="text-white text-sm">{friendActionError}</p>
         </div>
       )}

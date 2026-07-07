@@ -17,7 +17,7 @@ export default function AnalisiTabs() {
           className={({ isActive }) =>
             `flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               isActive
-                ? 'bg-[#F44352] text-[white] shadow-md'
+                ? 'bg-[var(--red)] text-[white] shadow-md'
                 : 'text-gray-500 hover:text-gray-300'
             }`
           }

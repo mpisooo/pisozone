@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#0D0D0D' }}>
-        <p className="font-bebas text-5xl text-[#F44352] tracking-widest animate-pulse">PISOZONE</p>
+        <p className="font-bebas text-5xl text-[var(--red)] tracking-widest animate-pulse">PISOZONE</p>
       </div>
     )
   }

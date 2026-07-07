@@ -48,8 +48,8 @@ export default function NotificationSettingsCard() {
   return (
     <div className="card space-y-3">
       <div className="flex items-center gap-2">
-        <Bell size={16} className="text-[#F44352]" />
-        <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">NOTIFICHE</h2>
+        <Bell size={16} className="text-[var(--red)]" />
+        <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">NOTIFICHE</h2>
       </div>
 
       {!supported ? (

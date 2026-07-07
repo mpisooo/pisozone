@@ -41,6 +41,8 @@ function calcBMI(weight: number, height: number) {
 }
 
 function bmiCategory(bmi: number): { label: string; color: string } {
+  // Colori semantici della scala BMI (blu/verde/giallo/rosso): NON seguono il
+  // tema — "Obeso" deve restare rosso anche con accento verde/blu/viola.
   if (bmi < 18.5) return { label: 'Sottopeso', color: '#60a5fa' }
   if (bmi < 25)   return { label: 'Normale',   color: '#4ade80' }
   if (bmi < 30)   return { label: 'Sovrappeso', color: '#facc15' }
@@ -312,7 +314,7 @@ export default function ProfilePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Dati personali */}
         <div className="card space-y-4">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DATI PERSONALI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATI PERSONALI</h2>
 
           <div>
             <label className="block text-xs text-gray-400 mb-1">Nome (opzionale)</label>
@@ -329,10 +331,10 @@ export default function ProfilePage() {
                   onClick={() => setGender(prev => prev === g ? null : g)}
                   className={`py-2.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
                     gender === g
-                      ? 'border-[#F44352] text-white bg-[#F44352]/15'
+                      ? 'border-[var(--red)] text-white bg-[var(--red)]/15'
                       : 'border-transparent text-gray-400 hover:border-gray-600'
                   }`}
-                  style={{ background: gender === g ? 'rgba(244,67,82,0.15)' : 'var(--grey)' }}
+                  style={{ background: gender === g ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
                   {g === 'male' ? '♂ Maschio' : '♀ Femmina'}
                 </button>
@@ -347,7 +349,7 @@ export default function ProfilePage() {
             <label className="block text-xs text-gray-400 mb-1">
               Data di nascita
               {age !== null && age >= 0 && (
-                <span className="ml-2 text-[#F44352]">{age} anni</span>
+                <span className="ml-2 text-[var(--red)]">{age} anni</span>
               )}
             </label>
             <input type="date" {...register('birth_date')} className="input-dark w-full" />
@@ -414,7 +416,7 @@ export default function ProfilePage() {
                 <div className="h-full flex-[4]"   style={{ background: '#60a5fa' }} />
                 <div className="h-full flex-[6.5]" style={{ background: '#4ade80' }} />
                 <div className="h-full flex-[5]"   style={{ background: '#facc15' }} />
-                <div className="h-full flex-[10]"  style={{ background: '#F44352' }} />
+                <div className="h-full flex-[10]"  style={{ background: 'var(--red)' }} />
               </div>
               <div
                 className="absolute top-0 bottom-0 w-1 rounded bg-white shadow-lg"
@@ -430,7 +432,7 @@ export default function ProfilePage() {
         {/* Sport preferiti */}
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">SPORT PREFERITI</h2>
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">SPORT PREFERITI</h2>
             <span className="text-xs text-gray-500">{sportPreferiti.length}/3 selezionati</span>
           </div>
           <p className="text-xs text-gray-500">Scegli fino a 3 attività che pratichi di più</p>
@@ -446,12 +448,12 @@ export default function ProfilePage() {
                   disabled={isDisabled}
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 ${
                     isSelected
-                      ? 'border-[#F44352] scale-105'
+                      ? 'border-[var(--red)] scale-105'
                       : isDisabled
                       ? 'border-transparent opacity-30 cursor-not-allowed'
                       : 'border-transparent hover:border-gray-600'
                   }`}
-                  style={{ background: isSelected ? 'rgba(244,67,82,0.15)' : 'var(--grey)' }}
+                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
                   <span className="text-2xl">{opt.emoji}</span>
                   <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
@@ -464,7 +466,7 @@ export default function ProfilePage() {
               {sportPreferiti.map((s) => {
                 const opt = ACTIVITY_OPTIONS.find((o) => o.value === s)
                 return (
-                  <span key={s} className="text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[#F44352]">
+                  <span key={s} className="text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[var(--red)]">
                     {opt?.emoji} {opt?.label}
                   </span>
                 )
@@ -668,15 +670,15 @@ export default function ProfilePage() {
       <div className="card space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Scale size={16} className="text-[#F44352]" />
-            <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">STORICO PESO</h2>
+            <Scale size={16} className="text-[var(--red)]" />
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">STORICO PESO</h2>
           </div>
           {weight && (
             <button
               type="button"
               onClick={handleLogWeight}
               disabled={loggingWeight}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] transition-all active:scale-95 disabled:opacity-50 bg-[#F44352]"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] transition-all active:scale-95 disabled:opacity-50 bg-[var(--red)]"
             >
               <TrendingUp size={13} />
               {loggingWeight ? '...' : `Salva ${weight} kg`}
@@ -685,7 +687,7 @@ export default function ProfilePage() {
         </div>
 
         {weightLogError && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
             {weightLogError}
           </p>
         )}
@@ -716,16 +718,16 @@ export default function ProfilePage() {
               <Tooltip
                 contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: chartTick }}
-                itemStyle={{ color: '#F44352' }}
+                itemStyle={{ color: 'var(--red)' }}
                 formatter={(v) => [`${v} kg`, 'Peso']}
               />
               <Line
                 type="monotone"
                 dataKey="peso"
-                stroke="#F44352"
+                stroke="var(--red)"
                 strokeWidth={2}
-                dot={{ fill: '#F44352', r: 3, strokeWidth: 0 }}
-                activeDot={{ r: 5, fill: '#F44352' }}
+                dot={{ fill: 'var(--red)', r: 3, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: 'var(--red)' }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -741,19 +743,19 @@ export default function ProfilePage() {
       {/* Privacy e dati (GDPR: portabilità + cancellazione) */}
       <div className="card space-y-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck size={16} className="text-[#F44352]" />
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">PRIVACY E DATI</h2>
+          <ShieldCheck size={16} className="text-[var(--red)]" />
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">PRIVACY E DATI</h2>
         </div>
         <p className="text-xs text-gray-500 leading-relaxed">
           I tuoi dati ti appartengono: puoi scaricarne una copia completa in formato JSON o
           eliminare definitivamente l'account con tutto ciò che contiene.
         </p>
         <div className="flex gap-4 text-xs">
-          <Link to="/privacy" className="text-[#F44352] underline">Privacy Policy</Link>
-          <Link to="/termini" className="text-[#F44352] underline">Termini di Servizio</Link>
+          <Link to="/privacy" className="text-[var(--red)] underline">Privacy Policy</Link>
+          <Link to="/termini" className="text-[var(--red)] underline">Termini di Servizio</Link>
         </div>
         {exportError && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
             {exportError}
           </p>
         )}
@@ -771,7 +773,7 @@ export default function ProfilePage() {
           type="button"
           onClick={() => setShowDeleteModal(true)}
           className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95"
-          style={{ border: '1px solid rgba(244,67,82,0.5)', color: '#F44352', background: 'rgba(244,67,82,0.08)' }}
+          style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
         >
           <Trash2 size={15} />
           Elimina account

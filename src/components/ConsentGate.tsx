@@ -48,7 +48,7 @@ export default function ConsentGate() {
         style={{ background: 'var(--grey-dark)', border: '1px solid var(--grey)' }}
       >
         <div className="flex items-center gap-2">
-          <ShieldCheck size={18} className="text-[#F44352]" />
+          <ShieldCheck size={18} className="text-[var(--red)]" />
           <h2 className="font-bebas text-2xl text-white tracking-wider leading-none">UN ATTIMO!</h2>
         </div>
 
@@ -60,8 +60,8 @@ export default function ConsentGate() {
 
         {/* target=_blank: le pagine si aprono a parte, il blocco resta attivo */}
         <div className="flex gap-4 text-sm">
-          <a href="/privacy" target="_blank" rel="noopener" className="text-[#F44352] underline">Privacy Policy</a>
-          <a href="/termini" target="_blank" rel="noopener" className="text-[#F44352] underline">Termini di Servizio</a>
+          <a href="/privacy" target="_blank" rel="noopener" className="text-[var(--red)] underline">Privacy Policy</a>
+          <a href="/termini" target="_blank" rel="noopener" className="text-[var(--red)] underline">Termini di Servizio</a>
         </div>
 
         <label className="flex items-start gap-2.5 cursor-pointer">
@@ -69,7 +69,7 @@ export default function ConsentGate() {
             type="checkbox"
             checked={checked}
             onChange={(e) => setChecked(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-[#F44352]"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--red)]"
           />
           <span className="text-xs text-gray-400 leading-relaxed">
             Ho letto e accetto la Privacy Policy e i Termini di Servizio
@@ -77,7 +77,7 @@ export default function ConsentGate() {
         </label>
 
         {error && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
             {error}
           </p>
         )}

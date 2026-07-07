@@ -46,7 +46,7 @@ export default function TopBar() {
   return (
     <header className="topbar fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 safe-top">
       <span
-        className="topbar-logo font-bebas text-3xl text-[#F44352] tracking-widest select-none cursor-pointer"
+        className="topbar-logo font-bebas text-3xl text-[var(--red)] tracking-widest select-none cursor-pointer"
         onClick={() => navigate('/')}
       >
         PISOZONE
@@ -79,7 +79,7 @@ export default function TopBar() {
               Lv.{currentLevel}
             </span>
           )}
-          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-[#F44352] flex-shrink-0" style={{ border: '2px solid #F44352' }}>
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-[var(--red)] flex-shrink-0" style={{ border: '2px solid var(--red)' }}>
             {profile?.photo_url ? (
               <img src={profile.photo_url} alt={username} className="w-full h-full object-cover" />
             ) : (
@@ -108,7 +108,7 @@ export default function TopBar() {
                   <button
                     type="button"
                     onClick={() => { setOpen(false); setShowCreditsInfo(true) }}
-                    className="p-1 text-gray-500 hover:text-[#F44352] transition-colors"
+                    className="p-1 text-gray-500 hover:text-[var(--red)] transition-colors"
                     aria-label="Come guadagnare crediti"
                   >
                     <Info size={16} />
@@ -128,7 +128,7 @@ export default function TopBar() {
             <div className="h-px bg-[var(--grey)]" />
             <button
               type="button"
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#F44352] hover:bg-[var(--grey)] transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[var(--red)] hover:bg-[var(--grey)] transition-colors"
               onClick={() => { setOpen(false); signOut() }}
             >
               <LogOut size={16} />

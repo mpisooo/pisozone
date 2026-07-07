@@ -33,7 +33,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex items-center justify-center p-6" style={{ minHeight: '60vh' }}>
           <div className="card max-w-sm w-full text-center space-y-3">
-            <AlertTriangle size={32} className="mx-auto text-[#F44352]" />
+            <AlertTriangle size={32} className="mx-auto text-[var(--red)]" />
             <p className="font-bebas text-2xl text-white tracking-widest">QUALCOSA È ANDATO STORTO</p>
             <p className="text-sm text-gray-400">
               Si è verificato un errore imprevisto. Ricarica la pagina per riprovare.

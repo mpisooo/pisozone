@@ -19,17 +19,17 @@ export default function CreditsInfoModal({ onClose }: Props) {
 
   const ways = [
     {
-      icon: <Dumbbell size={20} className="text-[#F44352]" />,
+      icon: <Dumbbell size={20} className="text-[var(--red)]" />,
       title: 'Registra attività',
       description: '1 💎 ogni 10 minuti di attività, fino a un massimo di 10 💎 al giorno.',
     },
     {
-      icon: <Target size={20} className="text-[#F44352]" />,
+      icon: <Target size={20} className="text-[var(--red)]" />,
       title: 'Sfide giornaliere',
       description: `Da ${minChallenge} a ${maxChallenge} 💎 a sfida completata, fino a 3 sfide al giorno.`,
     },
     {
-      icon: <Award size={20} className="text-[#F44352]" />,
+      icon: <Award size={20} className="text-[var(--red)]" />,
       title: 'Medaglie sbloccate',
       description: `Bonus una tantum allo sblocco: 🥉 ${TIER_CREDITS.bronze} · 🥈 ${TIER_CREDITS.silver} · 🥇 ${TIER_CREDITS.gold} · 💎 ${TIER_CREDITS.diamond}`,
     },

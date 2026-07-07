@@ -70,7 +70,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="font-bebas text-2xl text-[#F44352] tracking-wider">ELIMINA ACCOUNT</span>
+          <span className="font-bebas text-2xl text-[var(--red)] tracking-wider">ELIMINA ACCOUNT</span>
           <button type="button" onClick={onClose} aria-label="Chiudi" className="p-1 text-gray-500 hover:text-white">
             <X size={20} />
           </button>
@@ -78,11 +78,11 @@ export default function DeleteAccountModal({ onClose }: Props) {
 
         <div
           className="flex items-start gap-2.5 rounded-lg p-3 text-sm leading-relaxed"
-          style={{ background: 'rgba(244,67,82,0.1)', border: '1px solid rgba(244,67,82,0.35)' }}
+          style={{ background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.35)' }}
         >
-          <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[#F44352]" />
+          <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[var(--red)]" />
           <p className="text-gray-300">
-            Questa azione è <strong className="text-[#F44352]">definitiva e irreversibile</strong>: verranno
+            Questa azione è <strong className="text-[var(--red)]">definitiva e irreversibile</strong>: verranno
             eliminati profilo, attività, statistiche, medaglie, crediti, messaggi, amicizie e foto.
             Nessun dato potrà essere recuperato.
           </p>
@@ -107,7 +107,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
         </div>
 
         {error && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
             {error}
           </p>
         )}
@@ -125,7 +125,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
             type="button"
             onClick={handleDelete}
             disabled={!confirmed || deleting}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-[white] transition-all active:scale-95 disabled:opacity-40 bg-[#F44352]"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-[white] transition-all active:scale-95 disabled:opacity-40 bg-[var(--red)]"
           >
             <Trash2 size={15} />
             {deleting ? 'Eliminazione…' : 'Elimina per sempre'}

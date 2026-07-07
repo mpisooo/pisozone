@@ -23,7 +23,20 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'all',    label: 'Sempre'   },
 ]
 
-const PIE_COLORS = ['#F44352', '#ff6b6b', '#ffa5a5', '#CC3845', '#ffcdd2', '#ff3b4a', '#9b1c26', '#e57373', '#ff8a80', '#b71c1c']
+// Sfumature derivate dall'accento del tema attivo (rosso, blu, verde o viola):
+// la torta resta monocromatica e coerente qualunque tema sia attivo.
+const PIE_COLORS = [
+  'var(--red)',
+  'color-mix(in srgb, var(--red) 75%, white)',
+  'color-mix(in srgb, var(--red) 55%, white)',
+  'var(--red-dark)',
+  'color-mix(in srgb, var(--red) 35%, white)',
+  'color-mix(in srgb, var(--red) 75%, black)',
+  'color-mix(in srgb, var(--red) 55%, black)',
+  'color-mix(in srgb, var(--red) 45%, white)',
+  'color-mix(in srgb, var(--red) 25%, white)',
+  'color-mix(in srgb, var(--red) 40%, black)',
+]
 
 function filterByPeriod(activities: Activity[], period: Period): Activity[] {
   const now = new Date()
@@ -47,7 +60,7 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
     <div className="card text-center count-up">
       <p className="text-xs text-gray-400 mb-1">{label}</p>
       <p className="font-bebas text-3xl text-white">{value}</p>
-      {sub && <p className="text-xs text-[#F44352]">{sub}</p>}
+      {sub && <p className="text-xs text-[var(--red)]">{sub}</p>}
     </div>
   )
 }
@@ -138,7 +151,7 @@ export default function StatsPage() {
             onClick={() => setPeriod(value)}
             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
               period === value
-                ? 'bg-[#F44352] text-[white] shadow-lg'
+                ? 'bg-[var(--red)] text-[white] shadow-lg'
                 : 'bg-[var(--grey)] text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -164,7 +177,7 @@ export default function StatsPage() {
           <div>
             <p className="text-xs text-gray-400">Attività più frequente</p>
             <p className="font-bebas text-2xl text-white">{topOpt.label}</p>
-            <p className="text-xs text-[#F44352]">{topActivity[1]} sessioni</p>
+            <p className="text-xs text-[var(--red)]">{topActivity[1]} sessioni</p>
           </div>
         </div>
       )}
@@ -172,7 +185,7 @@ export default function StatsPage() {
       {/* Bar chart */}
       {barData.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider mb-3">SESSIONI PER GIORNO</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">SESSIONI PER GIORNO</h2>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
@@ -181,9 +194,9 @@ export default function StatsPage() {
               <Tooltip
                 contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8 }}
                 labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: '#F44352' }}
+                itemStyle={{ color: 'var(--red)' }}
               />
-              <Bar dataKey="count" fill="#F44352" radius={[4, 4, 0, 0]} name="Sessioni" />
+              <Bar dataKey="count" fill="var(--red)" radius={[4, 4, 0, 0]} name="Sessioni" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -192,7 +205,7 @@ export default function StatsPage() {
       {/* Pie chart */}
       {pieData.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider mb-3">DISTRIBUZIONE ATTIVITÀ</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">DISTRIBUZIONE ATTIVITÀ</h2>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
@@ -221,7 +234,7 @@ export default function StatsPage() {
       {/* Records */}
       {(longestSession || mostCalories) && (
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">RECORD PERSONALI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">RECORD PERSONALI</h2>
           {longestSession && (
             <div className="flex items-center justify-between">
               <div>

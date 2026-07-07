@@ -43,7 +43,7 @@ html, body, #root {
   transition: background 0.3s;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff5a65;
+  background: color-mix(in srgb, var(--red) 75%, white);
   box-shadow: 0 0 8px var(--red);
 }
 
@@ -77,7 +77,7 @@ html.light .card {
 }
 .btn-primary:hover {
   background: var(--red-dark);
-  box-shadow: 0 0 16px rgba(244, 67, 82, 0.5);
+  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.5);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
@@ -97,7 +97,7 @@ html.light .card {
 }
 .input-dark:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 2px rgba(244, 67, 82, 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
 }
 .input-dark::placeholder { color: #888; }
 
@@ -270,8 +270,8 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 
 /* ── Save activity button ── */
 .btn-save {
-  background: linear-gradient(135deg, #F44352 0%, #CC3845 100%);
-  box-shadow: 0 4px 24px rgba(244, 67, 82, 0.45);
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+  box-shadow: 0 4px 24px rgba(var(--accent-rgb), 0.45);
 }
 .btn-save:disabled {
   background: var(--grey-light);
@@ -305,7 +305,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   left: 50%;
   white-space: nowrap;
   background: linear-gradient(135deg, #200f10 0%, #1f0d0e 100%);
-  border: 1px solid #F44352;
+  border: 1px solid var(--red);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -340,7 +340,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 }
 .topbar-logo {
   line-height: 1;
-  text-shadow: 0 0 20px rgba(244, 67, 82, 0.3);
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
 }
 
 /* ── Progress bar track ── */
@@ -354,7 +354,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   width: 44px;
   border-radius: 2px;
   margin-top: 8px;
-  background: linear-gradient(90deg, var(--red), rgba(244, 67, 82, 0));
+  background: linear-gradient(90deg, var(--red), rgba(var(--accent-rgb), 0));
 }
 
 /* ── Splash Screen ── */

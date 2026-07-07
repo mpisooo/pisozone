@@ -122,9 +122,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                 <label
                   key={opt.value}
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-150 ${
-                    isSelected ? 'border-[#F44352]' : 'border-transparent'
+                    isSelected ? 'border-[var(--red)]' : 'border-transparent'
                   }`}
-                  style={{ background: isSelected ? 'rgba(244,67,82,0.15)' : '#2a2a2a' }}
+                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : '#2a2a2a' }}
                 >
                   <input type="radio" value={opt.value} {...register('type')} className="sr-only" />
                   <span className="text-2xl">{opt.emoji}</span>
@@ -221,7 +221,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           </div>
 
           {errorMsg && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#F44352]" style={{ background: 'rgba(244,67,82,0.12)' }}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--red)]" style={{ background: 'rgba(var(--accent-rgb),0.12)' }}>
               <AlertTriangle size={14} className="shrink-0" />
               {errorMsg}
             </div>
@@ -244,7 +244,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                   ? 'text-white'
                   : 'text-red-400 hover:bg-red-900/20'
               }`}
-              style={confirmDelete ? { background: '#F44352' } : { border: '1px solid #7f1d1d' }}
+              style={confirmDelete ? { background: 'var(--red)' } : { border: '1px solid #7f1d1d' }}
             >
               <Trash2 size={16} />
               {confirmDelete ? 'Conferma?' : 'Elimina'}

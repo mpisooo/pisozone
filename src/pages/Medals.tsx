@@ -42,7 +42,7 @@ export default function MedalsPage() {
           <div className="header-accent" />
         </div>
         <div className="text-right">
-          <p className="font-bebas text-2xl text-[#F44352]">{claimedCount}/{MEDALS.length}</p>
+          <p className="font-bebas text-2xl text-[var(--red)]">{claimedCount}/{MEDALS.length}</p>
           <p className="text-xs text-gray-400">sbloccate</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function MedalsPage() {
       <div className="card">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-300">Progresso totale</span>
-          <span className="text-sm font-medium text-[#F44352]">
+          <span className="text-sm font-medium text-[var(--red)]">
             {Math.round((claimedCount / MEDALS.length) * 100)}%
           </span>
         </div>
@@ -60,7 +60,7 @@ export default function MedalsPage() {
             className="h-full rounded-full transition-all duration-700"
             style={{
               width: `${(claimedCount / MEDALS.length) * 100}%`,
-              background: 'linear-gradient(90deg, #F44352, #FF5E63)',
+              background: 'linear-gradient(90deg, var(--red), #FF5E63)',
             }}
           />
         </div>
@@ -90,7 +90,7 @@ export default function MedalsPage() {
                   <div
                     key={medal.key}
                     className={`card relative overflow-hidden transition-all duration-300 ${
-                      claimed ? 'border-green-500/30' : eligible ? 'border-[#F44352]/50' : 'opacity-75'
+                      claimed ? 'border-green-500/30' : eligible ? 'border-[var(--red)]/50' : 'opacity-75'
                     }`}
                     style={{ borderColor: locked ? '#2a2a2a' : undefined }}
                   >
@@ -123,9 +123,9 @@ export default function MedalsPage() {
                               style={{
                                 width: `${pct}%`,
                                 background: claimed
-                                  ? 'linear-gradient(90deg, #F44352, #FF5E63)'
+                                  ? 'linear-gradient(90deg, var(--red), #FF5E63)'
                                   : eligible
-                                  ? 'linear-gradient(90deg, #F44352, #FF5E63)'
+                                  ? 'linear-gradient(90deg, var(--red), #FF5E63)'
                                   : '#3a3a3a',
                               }}
                             />

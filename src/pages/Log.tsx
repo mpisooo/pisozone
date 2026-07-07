@@ -112,7 +112,7 @@ export default function LogPage() {
 
         {/* Activity type grid */}
         <div className="card">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider mb-3">TIPO DI ATTIVITÀ</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">TIPO DI ATTIVITÀ</h2>
           <div className="grid grid-cols-5 gap-2">
             {ACTIVITY_OPTIONS.map((opt) => {
               const isSelected = selectedType === opt.value
@@ -121,10 +121,10 @@ export default function LogPage() {
                   key={opt.value}
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-200 ${
                     isSelected
-                      ? 'border-[#F44352] bg-[#F44352]/10'
+                      ? 'border-[var(--red)] bg-[var(--red)]/10'
                       : 'border-transparent hover:border-gray-600'
                   }`}
-                  style={{ background: isSelected ? 'rgba(244,67,82,0.1)' : 'var(--grey)' }}
+                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.1)' : 'var(--grey)' }}
                 >
                   <input
                     type="radio"
@@ -142,7 +142,7 @@ export default function LogPage() {
 
         {/* Date & Time */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DATA E ORA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATA E ORA</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
               <label htmlFor="log-date" className="block text-xs text-gray-400 mb-1">Data</label>
@@ -157,7 +157,7 @@ export default function LogPage() {
 
         {/* Duration */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DURATA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DURATA</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="log-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
@@ -201,7 +201,7 @@ export default function LogPage() {
 
         {/* Calories & Distance */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">DETTAGLI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DETTAGLI</h2>
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="log-calories" className="text-xs text-gray-400">
@@ -213,7 +213,7 @@ export default function LogPage() {
               <button
                 type="button"
                 onClick={() => setShowCalInfo(v => !v)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#F44352] transition-colors"
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-[var(--red)] transition-colors"
                 aria-label="Come vengono calcolate le calorie"
               >
                 <Info size={13} />
@@ -224,7 +224,7 @@ export default function LogPage() {
 
             {showCalInfo && (
               <div className="rounded-lg p-3 mb-2 text-xs space-y-2 bg-[var(--grey)] border border-[var(--grey-light)]">
-                <p className="font-semibold text-[#F44352]">Stima basata sul MET</p>
+                <p className="font-semibold text-[var(--red)]">Stima basata sul MET</p>
                 <p className="text-gray-400 leading-relaxed">
                   Il calcolo usa la formula standard dell&apos;equivalente metabolico (MET):
                 </p>
@@ -321,10 +321,10 @@ export default function LogPage() {
 
       {saveError && (
         <div className="toast-enter toast-error flex items-center gap-3">
-          <AlertTriangle size={22} className="text-[#F44352] shrink-0" />
+          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
             <p className="text-white font-semibold text-sm">Salvataggio non riuscito</p>
-            <p className="text-[#F44352] text-xs">Controlla la connessione e riprova</p>
+            <p className="text-[var(--red)] text-xs">Controlla la connessione e riprova</p>
           </div>
         </div>
       )}

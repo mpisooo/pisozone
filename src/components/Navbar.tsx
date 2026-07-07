@@ -36,17 +36,17 @@ export default function Navbar() {
               <Link
                 to={to}
                 className={`flex flex-col items-center justify-center h-full gap-0.5 text-xs transition-colors duration-200 ${
-                  isActive ? 'text-[#F44352]' : 'text-gray-500 hover:text-gray-300'
+                  isActive ? 'text-[var(--red)]' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
                 <div className="relative">
                   <Icon
                     size={22}
                     strokeWidth={isActive ? 2.5 : 1.8}
-                    style={isActive ? { filter: 'drop-shadow(0 0 6px #F44352)' } : {}}
+                    style={isActive ? { filter: 'drop-shadow(0 0 6px var(--red))' } : {}}
                   />
                   {isSocial && totalUnread > 0 && (
-                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 rounded-full bg-[#F44352] text-[white] text-[9px] font-bold flex items-center justify-center px-1 leading-none">
+                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 rounded-full bg-[var(--red)] text-[white] text-[9px] font-bold flex items-center justify-center px-1 leading-none">
                       {totalUnread > 99 ? '99+' : totalUnread}
                     </span>
                   )}

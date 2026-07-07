@@ -56,9 +56,9 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
         <div className="flex flex-col items-center text-center gap-3 pt-1">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(244,67,82,0.15)' }}
+            style={{ background: 'rgba(var(--accent-rgb),0.15)' }}
           >
-            <Bell size={26} className="text-[#F44352]" />
+            <Bell size={26} className="text-[var(--red)]" />
           </div>
           <h2 className="font-bebas text-2xl text-white tracking-wider">ATTIVA LE NOTIFICHE</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
@@ -69,7 +69,7 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
 
         {error ? (
           <>
-            <p className="text-xs text-[#F44352] text-center px-1">{error}</p>
+            <p className="text-xs text-[var(--red)] text-center px-1">{error}</p>
             <p className="text-xs text-gray-500 text-center">
               Potrai riprovare quando vuoi da Profilo → Notifiche.
             </p>

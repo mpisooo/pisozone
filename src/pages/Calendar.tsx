@@ -142,7 +142,7 @@ export default function CalendarPage() {
                 aria-label={`${format(day, 'd MMMM', { locale: it })}, ${acts.length} ${acts.length === 1 ? 'attività' : 'attività registrate'}`}
                 className={`relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 ${level} ${
                   isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-[#0D0D0D]' : ''
-                } ${isToday ? 'ring-2 ring-[#F44352]' : ''}`}
+                } ${isToday ? 'ring-2 ring-[var(--red)]' : ''}`}
               >
                 {format(day, 'd')}
                 {acts.length > 0 && (
@@ -170,9 +170,9 @@ export default function CalendarPage() {
       {/* Streak info */}
       {streak > 0 && (
         <div className="card flex items-center gap-3">
-          <Flame size={28} className="text-[#F44352]" />
+          <Flame size={28} className="text-[var(--red)]" />
           <div>
-            <p className="font-bebas text-2xl text-[#F44352]">{streak} GIORNI CONSECUTIVI</p>
+            <p className="font-bebas text-2xl text-[var(--red)]">{streak} GIORNI CONSECUTIVI</p>
             <p className="text-xs text-gray-400">Continua così, non fermarti!</p>
           </div>
         </div>
