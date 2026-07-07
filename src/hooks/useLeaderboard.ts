@@ -14,7 +14,10 @@ export interface LeaderboardEntry {
   isMe: boolean
 }
 
-export function useLeaderboard() {
+// scope 'friends': aggrega client-side le attività visibili via RLS (io + amici).
+// scope 'global': RPC get_global_leaderboard (v26) — solo aggregati settimanali,
+// mai attività grezze di sconosciuti.
+export function useLeaderboard(scope: 'friends' | 'global' = 'friends') {
   const { user } = useAuth()
   const { showError } = useToast()
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
@@ -23,6 +26,33 @@ export function useLeaderboard() {
 
   useEffect(() => {
     if (!user) return
+
+    const fetchGlobal = async () => {
+      setLoading(true)
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+      const { data, error } = await supabase.rpc('get_global_leaderboard', {
+        p_start: weekStart.toISOString(),
+      })
+      if (error) {
+        showError('Classifica globale non disponibile. Riprova.')
+        setEntries([])
+      } else {
+        setEntries(
+          (data ?? []).map((r: { user_id: string; username: string; photo_url: string | null; calories: number; minutes: number; count: number }) => ({
+            user_id: r.user_id,
+            username: r.username,
+            photo_url: r.photo_url,
+            calories: Number(r.calories),
+            minutes: Number(r.minutes),
+            count: Number(r.count),
+            isMe: r.user_id === user.id,
+          })),
+        )
+      }
+      setLoading(false)
+    }
+
+    if (scope === 'global') { fetchGlobal(); return }
 
     const fetch = async () => {
       setLoading(true)
@@ -82,7 +112,7 @@ export function useLeaderboard() {
     }
 
     fetch()
-  }, [user, showError])
+  }, [user, showError, scope])
 
   return { entries, hasFriends, loading }
 }

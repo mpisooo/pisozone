@@ -50,9 +50,13 @@ export default function PrivacyPage() {
         <p>
           Alcuni dati sono visibili agli altri utenti solo nell'ambito delle funzioni social: il tuo
           username, la foto profilo, il livello e la cornice sono visibili a chi ti cerca; le tue
-          attività e i traguardi compaiono nel feed dei tuoi amici; i messaggi sono visibili solo a
-          chi li riceve. Peso, data di nascita, genere, altezza e storico pesate non sono mai
-          visibili ad altri utenti.
+          attività, i traguardi e i relativi commenti compaiono nel feed dei tuoi amici; i messaggi
+          sono visibili solo a chi li riceve. Se compari nella classifica globale settimanale, gli
+          altri utenti vedono username, foto e i tuoi totali aggregati della settimana (sessioni,
+          minuti, calorie) — mai le singole attività. Peso, data di nascita, genere, altezza e
+          storico pesate non sono mai visibili ad altri utenti. Puoi bloccare un utente in
+          qualsiasi momento dal suo profilo: non potrà più scriverti, inviarti richieste né vedere
+          le tue attività.
         </p>
       </LegalSection>
 

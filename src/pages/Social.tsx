@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import { Search, ArrowLeft, Send, Users, Plus, Check, X, Clock, UserPlus, MessageCircle, Edit2, Trash2, Heart } from 'lucide-react'
+import { Search, ArrowLeft, Send, Users, Plus, Check, X, Clock, UserPlus, MessageCircle, Edit2, Trash2, Heart, Ban, Flag } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { supabase } from '../lib/supabase'
@@ -12,6 +12,8 @@ import { useMessages } from '../hooks/useMessages'
 import { useGroups } from '../hooks/useGroups'
 import { useFeed } from '../hooks/useFeed'
 import { useLeaderboard } from '../hooks/useLeaderboard'
+import { useComments, type ActivityComment } from '../hooks/useComments'
+import { useBlocks } from '../hooks/useBlocks'
 import { getLevelDef } from '../lib/levels'
 import { isRateLimitError } from '../lib/errors'
 import { useFocusTrap } from '../hooks/useFocusTrap'
@@ -428,7 +430,7 @@ function GroupChatView({
 // ── Friend Profile View ───────────────────────────────────────────────────────
 function FriendProfileView({
   userId, username, photo, friendshipId, isFriend, isPendingSent, isPendingReceived, onBack,
-  onSendRequest, onAcceptRequest, onRemove,
+  onSendRequest, onAcceptRequest, onRemove, onBlock, onReport,
 }: {
   userId: string; username: string; photo: string | null
   friendshipId?: string; isFriend: boolean; isPendingSent: boolean; isPendingReceived: boolean
@@ -436,9 +438,35 @@ function FriendProfileView({
   onSendRequest: (id: string) => Promise<void>
   onAcceptRequest: (fid: string) => Promise<void>
   onRemove: (fid: string) => Promise<void>
+  onBlock: (id: string) => Promise<{ error: Error | null }>
+  onReport: (id: string, reason: string) => Promise<{ error: Error | null }>
 }) {
   const [remoteProfile, setRemoteProfile] = useState<any>(null)
   const [acting, setActing] = useState(false)
+  const [showReportSheet, setShowReportSheet] = useState(false)
+  const [confirmBlock, setConfirmBlock] = useState(false)
+  const [modMsg, setModMsg] = useState('')
+
+  const handleBlock = async () => {
+    if (!confirmBlock) { setConfirmBlock(true); return }
+    setActing(true)
+    const { error } = await onBlock(userId)
+    setActing(false)
+    if (error) {
+      setModMsg('Blocco non riuscito. Riprova.')
+      setConfirmBlock(false)
+      setTimeout(() => setModMsg(''), 3000)
+      return
+    }
+    onBack()
+  }
+
+  const handleReport = async (reason: string) => {
+    setShowReportSheet(false)
+    const { error } = await onReport(userId, reason)
+    setModMsg(error ? 'Segnalazione non inviata. Riprova.' : 'Segnalazione inviata, grazie. La esamineremo al più presto.')
+    setTimeout(() => setModMsg(''), 3500)
+  }
 
   useEffect(() => {
     supabase.from('profiles').select('username, name, photo_url, level, sport_preferiti').eq('id', userId).single()
@@ -507,6 +535,154 @@ function FriendProfileView({
             </div>
           </div>
         )}
+
+        {/* Moderazione: segnala / blocca */}
+        <div className="card space-y-2.5">
+          {modMsg && (
+            <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'var(--grey)', color: 'var(--color-text)' }}>
+              {modMsg}
+            </p>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowReportSheet(true)}
+              disabled={acting}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
+              style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+            >
+              <Flag size={13} /> Segnala
+            </button>
+            <button
+              type="button"
+              onClick={handleBlock}
+              disabled={acting}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
+              style={{
+                border: '1px solid rgba(var(--accent-rgb),0.5)',
+                color: 'var(--red)',
+                background: confirmBlock ? 'rgba(var(--accent-rgb),0.15)' : 'transparent',
+              }}
+            >
+              <Ban size={13} /> {confirmBlock ? 'Confermi il blocco?' : 'Blocca'}
+            </button>
+          </div>
+          <p className="text-[10px] text-gray-600 leading-relaxed">
+            Bloccando @{username} l'amicizia viene rimossa e non potrà più scriverti,
+            mandarti richieste né vedere le tue attività.
+          </p>
+        </div>
+      </div>
+
+      {showReportSheet && (
+        <ActionSheet onClose={() => setShowReportSheet(false)} label="Segnala utente">
+          <div className="px-4 pt-4 pb-2 border-b border-[var(--grey)]">
+            <p className="text-sm font-semibold text-white">Perché vuoi segnalare @{username}?</p>
+            <p className="text-xs text-gray-500 mt-0.5">La segnalazione è anonima e verrà esaminata.</p>
+          </div>
+          {['Spam', 'Contenuti inappropriati', 'Comportamento offensivo', 'Profilo falso'].map(r => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => handleReport(r)}
+              className="w-full text-left px-4 py-3.5 text-sm text-gray-300 active:bg-[var(--grey)]"
+            >
+              {r}
+            </button>
+          ))}
+        </ActionSheet>
+      )}
+    </div>
+  )
+}
+
+// ── Commenti di un'attività del feed ─────────────────────────────────────────
+function FeedComments({
+  activityId, ownerId, myId, onCountChange,
+}: { activityId: string; ownerId: string; myId: string; onCountChange: (id: string, n: number) => void }) {
+  const { fetchComments, addComment, deleteComment } = useComments()
+  const [comments, setComments] = useState<ActivityComment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [text, setText] = useState('')
+  const [sending, setSending] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchComments(activityId).then(c => {
+      if (cancelled) return
+      setComments(c)
+      setLoading(false)
+      onCountChange(activityId, c.length)
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityId])
+
+  const handleSend = async () => {
+    if (!text.trim() || sending) return
+    setSending(true)
+    const added = await addComment(activityId, text)
+    setSending(false)
+    if (added) {
+      setComments(prev => { onCountChange(activityId, prev.length + 1); return [...prev, added] })
+      setText('')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (await deleteComment(id)) {
+      setComments(prev => { onCountChange(activityId, prev.length - 1); return prev.filter(c => c.id !== id) })
+    }
+  }
+
+  return (
+    <div className="space-y-2.5 pt-2 border-t border-[var(--grey)]">
+      {loading ? (
+        <p className="text-xs text-gray-500">Carico i commenti…</p>
+      ) : comments.length === 0 ? (
+        <p className="text-xs text-gray-500">Nessun commento — scrivi il primo!</p>
+      ) : (
+        comments.map(c => (
+          <div key={c.id} className="flex items-start gap-2">
+            <Av photo={c.user_photo} name={c.username} size={26} />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs">
+                <span className="font-semibold text-white">{c.username}</span>{' '}
+                <span className="text-gray-500">{formatDistanceToNow(parseISO(c.created_at), { addSuffix: true, locale: it })}</span>
+              </p>
+              <p className="text-sm text-gray-300 break-words">{c.content}</p>
+            </div>
+            {(c.user_id === myId || ownerId === myId) && (
+              <button
+                type="button"
+                onClick={() => handleDelete(c.id)}
+                aria-label="Elimina commento"
+                className="p-1 text-gray-600 hover:text-[var(--red)] flex-shrink-0"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
+        ))
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleSend() }}
+          maxLength={500}
+          placeholder="Scrivi un commento…"
+          className="input-dark flex-1 text-sm"
+        />
+        <button
+          type="button"
+          onClick={handleSend}
+          disabled={!text.trim() || sending}
+          aria-label="Invia commento"
+          className="p-2.5 rounded-lg bg-[var(--red)] text-[white] disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+        >
+          <Send size={15} />
+        </button>
       </div>
     </div>
   )
@@ -616,7 +792,25 @@ export default function SocialPage() {
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
   const { feed, loading: feedLoading, toggleLike } = useFeed()
-  const { entries: lbEntries, loading: lbLoading } = useLeaderboard()
+  const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
+  const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
+  const { blockedIds, blockUser, reportUser } = useBlocks()
+  const { fetchCommentCounts } = useComments()
+  const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map())
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
+
+  // Conteggi commenti per i badge del feed (i dettagli si caricano all'apertura)
+  useEffect(() => {
+    if (!feed.length) return
+    let cancelled = false
+    fetchCommentCounts(feed.map(a => a.id)).then(c => { if (!cancelled) setCommentCounts(c) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feed])
+
+  const updateCommentCount = useCallback((id: string, n: number) => {
+    setCommentCounts(prev => new Map(prev).set(id, n))
+  }, [])
 
   const runFriendAction = async (action: () => Promise<{ error: Error | null } | undefined>) => {
     const result = await action()
@@ -639,10 +833,11 @@ export default function SocialPage() {
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
       const res = await searchUsers(value)
-      setSearchResults(res)
+      // Gli utenti che hai bloccato non compaiono nella ricerca
+      setSearchResults(res.filter(r => !blockedIds.includes(r.id)))
       setSearching(false)
     }, 350)
-  }, [searchUsers])
+  }, [searchUsers, blockedIds])
 
   const friendsMap = new Map(friends.map(f => [f.user_id, f.friendship_id]))
   const pendingSentMap = new Map(pendingSent.map(f => [f.user_id, f.friendship_id]))
@@ -698,6 +893,8 @@ export default function SocialPage() {
             onSendRequest={async (id) => { await runFriendAction(() => sendRequest(id)); await refetchFriends() }}
             onAcceptRequest={async (fid) => { await runFriendAction(() => acceptRequest(fid)); await refetchFriends() }}
             onRemove={async (fid) => { await runFriendAction(() => rejectOrRemove(fid)); await refetchFriends() }}
+            onBlock={async (id) => { const r = await blockUser(id); await refetchFriends(); return r }}
+            onReport={reportUser}
           />
         )}
         {activeView.type === 'create-group' && (
@@ -791,7 +988,7 @@ export default function SocialPage() {
                       </div>
                     </div>
                     {a.notes && <p className="text-sm text-gray-400 italic">"{a.notes}"</p>}
-                    <div className="flex items-center gap-1.5 pt-1">
+                    <div className="flex items-center gap-4 pt-1">
                       <button
                         type="button"
                         onClick={() => toggleLike(a.id)}
@@ -805,7 +1002,25 @@ export default function SocialPage() {
                         />
                         {a.like_count > 0 && <span className="font-medium">{a.like_count}</span>}
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setOpenCommentsId(prev => prev === a.id ? null : a.id)}
+                        aria-label={openCommentsId === a.id ? 'Chiudi commenti' : 'Mostra commenti'}
+                        aria-expanded={openCommentsId === a.id}
+                        className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${openCommentsId === a.id ? 'text-[var(--red)]' : 'text-gray-500'}`}
+                      >
+                        <MessageCircle size={18} />
+                        {(commentCounts.get(a.id) ?? 0) > 0 && <span className="font-medium">{commentCounts.get(a.id)}</span>}
+                      </button>
                     </div>
+                    {openCommentsId === a.id && user && (
+                      <FeedComments
+                        activityId={a.id}
+                        ownerId={a.user_id}
+                        myId={user.id}
+                        onCountChange={updateCommentCount}
+                      />
+                    )}
                   </div>
                 )
               })
@@ -816,6 +1031,20 @@ export default function SocialPage() {
         {/* ── CLASSIFICA ── */}
         {tab === 'classifica' && (
           <>
+            {/* Toggle Amici / Globale */}
+            <div className="flex rounded-xl overflow-hidden border border-[var(--grey)]">
+              {([['friends', 'Amici'], ['global', 'Globale']] as const).map(([scope, label]) => (
+                <button
+                  key={scope}
+                  type="button"
+                  onClick={() => setLbScope(scope)}
+                  className={`flex-1 py-2 text-xs font-semibold transition-all ${lbScope === scope ? 'text-[white]' : 'text-gray-500'}`}
+                  style={{ background: lbScope === scope ? 'var(--red)' : 'var(--grey-dark)' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             {lbLoading ? (
               <div className="space-y-3">{[1, 2, 3].map(i => (
                 <div key={i} className="flex items-center gap-3 animate-pulse">
@@ -823,7 +1052,7 @@ export default function SocialPage() {
                   <div className="flex-1 h-3 bg-[var(--grey)] rounded w-1/3" />
                 </div>
               ))}</div>
-            ) : lbEntries.length <= 1 ? (
+            ) : (lbScope === 'friends' ? lbEntries.length <= 1 : lbEntries.length === 0) ? (
               <div className="card py-14 text-center">
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
@@ -831,8 +1060,14 @@ export default function SocialPage() {
                 >
                   🏆
                 </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN AMICO</p>
-                <p className="text-sm text-gray-500">Aggiungi amici per vedere la classifica settimanale</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">
+                  {lbScope === 'friends' ? 'NESSUN AMICO' : 'ANCORA NESSUNO'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {lbScope === 'friends'
+                    ? 'Aggiungi amici per vedere la classifica settimanale'
+                    : 'Nessuna attività registrata questa settimana'}
+                </p>
               </div>
             ) : (
               <div className="card">
