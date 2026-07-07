@@ -14,7 +14,9 @@ export default function CelebrationOverlay({ icon, title, subtitle, onDone, auto
   useEffect(() => {
     if ('vibrate' in navigator) navigator.vibrate([80, 40, 80, 40, 200])
     const t = setTimeout(onDone, autoDismissMs)
-    return () => clearTimeout(t)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onDone() }
+    document.addEventListener('keydown', onKey)
+    return () => { clearTimeout(t); document.removeEventListener('keydown', onKey) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -34,6 +36,8 @@ export default function CelebrationOverlay({ icon, title, subtitle, onDone, auto
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className="fixed inset-0 z-[9999] flex items-center justify-center celebration-backdrop"
       style={{ background: 'rgba(0,0,0,0.8)' }}
       onClick={onDone}

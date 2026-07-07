@@ -14,6 +14,7 @@ import { useFeed } from '../hooks/useFeed'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { getLevelDef } from '../lib/levels'
 import { isRateLimitError } from '../lib/errors'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
@@ -42,11 +43,18 @@ function Av({ photo, name, size = 40 }: { photo: string | null; name: string; si
 }
 
 // ── Action Sheet (Portal) ─────────────────────────────────────────────────────
-function ActionSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+// Stesso pattern di accessibilità di ActivityEditModal: focus trap, Esc, dialog
+function ActionSheet({ onClose, label = 'Azioni', children }: { onClose: () => void; label?: string; children: React.ReactNode }) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, true, onClose)
   return createPortal(
     <>
       <div className="fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
         className="fixed bottom-0 left-0 right-0 z-[71] rounded-t-2xl overflow-hidden"
         style={{ background: 'var(--grey-dark)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
       >
@@ -238,7 +246,7 @@ function DmChatView({
 
       {/* Message action sheet */}
       {selectedMsg && (
-        <ActionSheet onClose={() => setSelectedMsg(null)}>
+        <ActionSheet onClose={() => setSelectedMsg(null)} label="Azioni sul messaggio">
           <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
             <p className="text-xs text-gray-500 mb-1">Messaggio</p>
             <p className="text-sm text-gray-300 line-clamp-2">{selectedMsg.content}</p>
@@ -1126,7 +1134,7 @@ export default function SocialPage() {
 
       {/* Conversation action sheet */}
       {selectedConv && (
-        <ActionSheet onClose={() => setSelectedConv(null)}>
+        <ActionSheet onClose={() => setSelectedConv(null)} label="Azioni sulla conversazione">
           <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
             <p className="text-sm font-semibold text-white">@{selectedConv.username}</p>
             <p className="text-xs text-gray-500 mt-0.5">Eliminando la conversazione i messaggi verranno rimossi per entrambi</p>

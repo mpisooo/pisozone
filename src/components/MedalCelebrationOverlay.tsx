@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Coins } from 'lucide-react'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import { TIER_LABELS } from '../lib/constants'
 import type { MedalTier } from '../types'
 
@@ -20,6 +21,8 @@ const TIER_GLOW: Record<MedalTier, { c1: string; c2: string; darkText: boolean }
 
 export default function MedalCelebrationOverlay({ icon, name, tier, credits, onDone }: Props) {
   const glow = TIER_GLOW[tier]
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, true, onDone)
 
   useEffect(() => {
     if ('vibrate' in navigator) navigator.vibrate([80, 40, 80, 40, 200])
@@ -41,6 +44,10 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
 
   return (
     <div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Medaglia sbloccata: ${name}`}
       className="fixed inset-0 z-[9999] flex items-center justify-center medal-celebration-backdrop"
       onClick={onDone}
     >
