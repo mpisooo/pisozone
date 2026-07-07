@@ -8,9 +8,10 @@ import { useProfile } from '../hooks/useProfile'
 import { useActivities } from '../hooks/useActivities'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
+import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
-import { calcStreak, generateDailyChallenges } from '../lib/challenges'
+import { calcStreak } from '../lib/challenges'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
@@ -88,13 +89,9 @@ export default function HomePage() {
   const lastActivity = activities[0] ?? null
   const lastOpt = lastActivity ? ACTIVITY_OPTIONS.find((o) => o.value === lastActivity.type) : null
 
-  const todayChallenges = useMemo(
-    () => (user ? generateDailyChallenges(user.id, todayPrefix) : []),
-    [user?.id, todayPrefix],
-  )
-  const completedChallenges = todayChallenges.filter((c) =>
-    c.check(todayActivities, streak),
-  ).length
+  // Stessa fonte della pagina Sfide (hook condiviso): eligibility + riscatti dal DB
+  const { challenges: todayChallenges } = useDailyChallenges(activities, streak)
+  const completedChallenges = todayChallenges.filter((c) => c.eligible).length
 
   const stats = useMemo(() => computeStats(activities, weeklyGoal), [activities, weeklyGoal])
   const nearestMedal = useMemo(() => {
@@ -399,26 +396,25 @@ export default function HomePage() {
           </div>
         </div>
         <div className="space-y-2">
-          {todayChallenges.map((c) => {
-            const done = c.check(todayActivities, streak)
-            return (
-              <div key={c.key} className="flex items-center gap-2.5">
-                <span
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all ${done ? '' : 'grayscale opacity-40'}`}
-                  style={{ background: done ? 'rgba(74,222,128,0.15)' : 'rgba(244,67,82,0.1)' }}
-                >
-                  {c.icon}
-                </span>
-                <span className={`text-xs flex-1 truncate ${done ? 'text-green-400 line-through' : 'text-gray-400'}`}>
-                  {c.title}
-                </span>
-                {done
-                  ? <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
+          {todayChallenges.map(({ template: c, eligible, claimed }) => (
+            <div key={c.key} className="flex items-center gap-2.5">
+              <span
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 transition-all ${eligible ? '' : 'grayscale opacity-40'}`}
+                style={{ background: eligible ? 'rgba(74,222,128,0.15)' : 'rgba(244,67,82,0.1)' }}
+              >
+                {c.icon}
+              </span>
+              <span className={`text-xs flex-1 truncate ${eligible ? 'text-green-400 line-through' : 'text-gray-400'}`}>
+                {c.title}
+              </span>
+              {claimed
+                ? <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
+                : eligible
+                  ? <span className="text-xs font-semibold text-yellow-400 flex-shrink-0">Riscatta +{c.credits} 💰</span>
                   : <span className="text-xs text-yellow-500 flex-shrink-0">+{c.credits} 💰</span>
-                }
-              </div>
-            )
-          })}
+              }
+            </div>
+          ))}
         </div>
       </button>
 

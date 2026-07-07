@@ -1,13 +1,15 @@
 import { useState, useMemo, useRef } from 'react'
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, format,
-  isSameDay, parseISO, differenceInCalendarDays, startOfDay,
+  isSameDay, parseISO,
   addMonths, subMonths,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Flame, X, Pencil } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
+import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
+import { calcStreak } from '../lib/challenges'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
 import AnalisiTabs from '../components/AnalisiTabs'
@@ -21,22 +23,9 @@ function heatLevel(count: number) {
   return 'heatmap-4'
 }
 
-function calcStreak(activities: Activity[]) {
-  const days = new Set(activities.map((a) => startOfDay(parseISO(a.date)).toISOString()))
-  const sorted = [...days].sort().reverse()
-  if (!sorted.length) return 0
-  let streak = 0
-  let prev = startOfDay(new Date()).toISOString()
-  for (const d of sorted) {
-    const diff = differenceInCalendarDays(parseISO(prev), parseISO(d))
-    if (diff <= 1) { streak++; prev = d }
-    else break
-  }
-  return streak
-}
-
 export default function CalendarPage() {
   const { activities, loading, updateActivity, deleteActivity } = useActivities()
+  const { frozenDates } = useStreakFreeze()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
@@ -75,7 +64,8 @@ export default function CalendarPage() {
     return map
   }, [activities])
 
-  const streak = useMemo(() => calcStreak(activities), [activities])
+  // Stessa fonte di Home/Challenges: gli streak-freeze contano come giorni attivi
+  const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
 
   const selectedDayActivities = selectedDay
     ? (actsByDay.get(format(selectedDay, 'yyyy-MM-dd')) ?? [])
