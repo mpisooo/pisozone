@@ -30,6 +30,8 @@ html, body, #root {
   color: var(--color-text);
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* pan-x pan-y: consente lo scroll ma blocca pinch-zoom e double-tap zoom */
+  touch-action: pan-x pan-y;
 }
 
 /* ── Custom scrollbar ── */
