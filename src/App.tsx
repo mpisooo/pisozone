@@ -7,6 +7,7 @@ import { ToastProvider } from './context/ToastContext'
 import { UnreadProvider } from './context/UnreadContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import ConsentGate from './components/ConsentGate'
+import OnboardingTour from './components/OnboardingTour'
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
 import SplashScreen from './components/SplashScreen'
@@ -52,6 +53,8 @@ function AppLayout() {
         <Navbar />
         {/* Blocca gli utenti pre-esistenti finché non accettano Privacy/Termini */}
         <ConsentGate />
+        {/* Tour di benvenuto al primo accesso (solo nuovi account, v25) */}
+        <OnboardingTour />
       </div>
     </UnreadProvider>
   )

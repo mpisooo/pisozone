@@ -51,6 +51,9 @@ export interface Profile {
   // ancora creata (consent gate disattivato), null = utente pre-esistente che
   // deve ancora accettare le condizioni.
   terms_accepted_at?: string | null
+  // Opzionale: esiste solo dopo la migrazione v25. false = nuovo utente che
+  // non ha ancora visto il tour di benvenuto; undefined = colonna assente.
+  onboarding_seen?: boolean
 }
 
 export interface ChallengeTemplate {
