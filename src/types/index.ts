@@ -47,6 +47,10 @@ export interface Profile {
   unlocked_frames: string[]
   active_frame: string
   push_prompt_seen: boolean
+  // Opzionale: esiste solo dopo la migrazione v21. undefined = colonna non
+  // ancora creata (consent gate disattivato), null = utente pre-esistente che
+  // deve ancora accettare le condizioni.
+  terms_accepted_at?: string | null
 }
 
 export interface ChallengeTemplate {

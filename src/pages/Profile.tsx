@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { differenceInYears, parseISO, format } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight } from 'lucide-react'
+import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2 } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -11,6 +12,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useWeightLogs } from '../hooks/useWeightLogs'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
+import { buildUserDataExport, downloadAsJson } from '../lib/dataExport'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   LEVEL_DEFINITIONS, THEME_DEFINITIONS,
@@ -22,6 +24,7 @@ import SkeletonCard from '../components/SkeletonCard'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
+import DeleteAccountModal from '../components/DeleteAccountModal'
 
 type FormValues = {
   name: string
@@ -61,6 +64,9 @@ export default function ProfilePage() {
   const [shopMsg, setShopMsg] = useState('')
   const [shopWorking, setShopWorking] = useState(false)
   const [levelUpCelebration, setLevelUpCelebration] = useState<{ emoji: string; level: number; title: string } | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const chartGrid  = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#2a2a2a'
@@ -162,6 +168,20 @@ export default function ProfilePage() {
   const showShopMsg = (msg: string) => {
     setShopMsg(msg)
     setTimeout(() => setShopMsg(''), 3000)
+  }
+
+  const handleExportData = async () => {
+    if (!user || exporting) return
+    setExporting(true)
+    setExportError('')
+    try {
+      const data = await buildUserDataExport(user)
+      downloadAsJson(data, `pisozone-dati-${format(new Date(), 'yyyy-MM-dd')}.json`)
+    } catch {
+      setExportError('Esportazione non riuscita. Controlla la connessione e riprova.')
+      setTimeout(() => setExportError(''), 3500)
+    }
+    setExporting(false)
   }
 
   const handleLevelUp = async () => {
@@ -717,6 +737,48 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
+
+      {/* Privacy e dati (GDPR: portabilità + cancellazione) */}
+      <div className="card space-y-3">
+        <div className="flex items-center gap-2">
+          <ShieldCheck size={16} className="text-[#F44352]" />
+          <h2 className="font-bebas text-xl text-[#F44352] tracking-wider">PRIVACY E DATI</h2>
+        </div>
+        <p className="text-xs text-gray-500 leading-relaxed">
+          I tuoi dati ti appartengono: puoi scaricarne una copia completa in formato JSON o
+          eliminare definitivamente l'account con tutto ciò che contiene.
+        </p>
+        <div className="flex gap-4 text-xs">
+          <Link to="/privacy" className="text-[#F44352] underline">Privacy Policy</Link>
+          <Link to="/termini" className="text-[#F44352] underline">Termini di Servizio</Link>
+        </div>
+        {exportError && (
+          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(244,67,82,0.12)', color: '#F44352' }}>
+            {exportError}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={handleExportData}
+          disabled={exporting}
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50"
+          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+        >
+          <Download size={15} />
+          {exporting ? 'Preparazione del file…' : 'Esporta i miei dati (JSON)'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowDeleteModal(true)}
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95"
+          style={{ border: '1px solid rgba(244,67,82,0.5)', color: '#F44352', background: 'rgba(244,67,82,0.08)' }}
+        >
+          <Trash2 size={15} />
+          Elimina account
+        </button>
+      </div>
+
+      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
 
       {levelUpCelebration && (
         <CelebrationOverlay

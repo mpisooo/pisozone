@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase, supabaseReady } from '../lib/supabase'
 
 type LoginForm = { username: string; password: string }
-type RegisterForm = { username: string; password: string; confirmPassword: string }
+type RegisterForm = { username: string; password: string; confirmPassword: string; accept: boolean }
 type Tab = 'login' | 'register' | 'recover'
 
 export default function AuthPage() {
@@ -51,6 +51,10 @@ export default function AuthPage() {
     }
     if (v.password.length < 6) {
       setError('La password deve essere di almeno 6 caratteri')
+      return
+    }
+    if (!v.accept) {
+      setError('Per creare un account devi accettare la Privacy Policy e i Termini di Servizio')
       return
     }
     if (!supabaseReady) { setError('Configurazione server mancante — contatta l\'amministratore'); return }
@@ -226,6 +230,24 @@ export default function AuthPage() {
                 autoComplete="new-password"
               />
             </div>
+            {/* target=_blank per non perdere i dati del form aprendo le pagine legali */}
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                {...registerForm.register('accept')}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#F44352]"
+              />
+              <span className="text-xs text-gray-400 leading-relaxed">
+                Ho letto e accetto la{' '}
+                <a href="/privacy" target="_blank" rel="noopener" className="text-[#F44352] underline">
+                  Privacy Policy
+                </a>{' '}
+                e i{' '}
+                <a href="/termini" target="_blank" rel="noopener" className="text-[#F44352] underline">
+                  Termini di Servizio
+                </a>
+              </span>
+            </label>
             <button type="submit" className="btn-primary w-full mt-2" disabled={submitting}>
               {submitting ? 'Creazione account...' : 'Crea account'}
             </button>

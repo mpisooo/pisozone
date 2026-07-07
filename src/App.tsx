@@ -6,6 +6,7 @@ import { ProfileProvider } from './context/ProfileContext'
 import { ToastProvider } from './context/ToastContext'
 import { UnreadProvider } from './context/UnreadContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ConsentGate from './components/ConsentGate'
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
 import SplashScreen from './components/SplashScreen'
@@ -15,6 +16,8 @@ import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
 
 const ProfilePage    = lazy(() => import('./pages/Profile'))
+const PrivacyPage    = lazy(() => import('./pages/Privacy'))
+const TermsPage      = lazy(() => import('./pages/Terms'))
 const LogPage        = lazy(() => import('./pages/Log'))
 const CalendarPage   = lazy(() => import('./pages/Calendar'))
 const StatsPage      = lazy(() => import('./pages/Stats'))
@@ -47,6 +50,8 @@ function AppLayout() {
           </ErrorBoundary>
         </main>
         <Navbar />
+        {/* Blocca gli utenti pre-esistenti finché non accettano Privacy/Termini */}
+        <ConsentGate />
       </div>
     </UnreadProvider>
   )
@@ -69,6 +74,9 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            {/* Pagine legali pubbliche: consultabili anche prima della registrazione */}
+            <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>} />
+            <Route path="/termini" element={<Suspense fallback={<PageLoader />}><TermsPage /></Suspense>} />
             <Route
               path="/*"
               element={
