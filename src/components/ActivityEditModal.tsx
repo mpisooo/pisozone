@@ -119,35 +119,36 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     onClose()
   }
 
+  // Schermata fissa a tutto schermo (come Registra), non più bottom sheet:
+  // l'header con la X resta sempre visibile mentre il contenuto scorre, e lo
+  // sfondo opaco copre il calendario sottostante.
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
-      onClick={onClose}
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modifica attività"
+      className="fixed inset-0 z-50 flex flex-col page-enter"
+      style={{ background: 'var(--black)' }}
     >
       <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Modifica attività"
-        className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
-        style={{ background: '#1a1a1a' }}
-        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-between px-4 pb-3 border-b border-[var(--grey)]"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)' }}
       >
-        {/* Handle bar */}
-        <div className="flex justify-center -mb-2">
-          <div className="w-10 h-1 rounded-full" style={{ background: '#3a3a3a' }} />
-        </div>
+        <span className="font-bebas text-2xl text-white tracking-wider">MODIFICA ATTIVITÀ</span>
+        <button type="button" onClick={onClose} aria-label="Chiudi" className="p-2 -mr-2 text-gray-400 hover:text-white">
+          <X size={22} />
+        </button>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <span className="font-bebas text-2xl text-white tracking-wider">MODIFICA ATTIVITÀ</span>
-          <button type="button" onClick={onClose} aria-label="Chiudi" className="p-1 text-gray-500 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Activity type grid */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+      >
+        {/* Activity type grid */}
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">TIPO DI ATTIVITÀ</h2>
           <div className="grid grid-cols-5 gap-2">
             {ACTIVITY_OPTIONS.map((opt) => {
               const isSelected = selectedType === opt.value
@@ -157,7 +158,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-150 ${
                     isSelected ? 'border-[var(--red)]' : 'border-transparent'
                   }`}
-                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : '#2a2a2a' }}
+                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
                   <input type="radio" value={opt.value} {...register('type')} className="sr-only" />
                   <span className="text-2xl">{opt.emoji}</span>
@@ -166,18 +167,24 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               )
             })}
           </div>
+        </div>
 
+        <div className="card space-y-3">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATA E ORA</h2>
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="min-w-0">
               <label htmlFor="edit-date" className="block text-xs text-gray-400 mb-1">Data</label>
-              <input id="edit-date" type="date" {...register('date')} className="input-dark" />
+              <input id="edit-date" type="date" {...register('date')} className="input-dark w-full" />
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="edit-time" className="block text-xs text-gray-400 mb-1">Ora</label>
-              <input id="edit-time" type="time" {...register('time')} className="input-dark" />
+              <input id="edit-time" type="time" {...register('time')} className="input-dark w-full" />
             </div>
           </div>
+        </div>
 
+        <div className="card space-y-3">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DURATA</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="edit-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
@@ -212,7 +219,10 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           {(errors.hours || errors.minutes) && (
             <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
           )}
+        </div>
 
+        <div className="card space-y-3">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DETTAGLI</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="edit-calories" className="block text-xs text-gray-400 mb-1">Calorie</label>
@@ -262,39 +272,39 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               inputId="edit-photo"
             />
           </div>
+        </div>
 
-          {errorMsg && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--red)]" style={{ background: 'rgba(var(--accent-rgb),0.12)' }}>
-              <AlertTriangle size={14} className="shrink-0" />
-              {errorMsg}
-            </div>
-          )}
-
-          <div className="flex gap-3 pb-2">
-            <button
-              type="submit"
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
-              disabled={saving}
-            >
-              <Save size={16} />
-              {saving ? 'Salvataggio...' : 'Salva modifiche'}
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                confirmDelete
-                  ? 'text-white'
-                  : 'text-red-400 hover:bg-red-900/20'
-              }`}
-              style={confirmDelete ? { background: 'var(--red)' } : { border: '1px solid #7f1d1d' }}
-            >
-              <Trash2 size={16} />
-              {confirmDelete ? 'Conferma?' : 'Elimina'}
-            </button>
+        {errorMsg && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--red)]" style={{ background: 'rgba(var(--accent-rgb),0.12)' }}>
+            <AlertTriangle size={14} className="shrink-0" />
+            {errorMsg}
           </div>
-        </form>
-      </div>
+        )}
+
+        <div className="flex gap-3 pb-2">
+          <button
+            type="submit"
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+            disabled={saving}
+          >
+            <Save size={16} />
+            {saving ? 'Salvataggio...' : 'Salva modifiche'}
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
+              confirmDelete
+                ? 'text-white'
+                : 'text-red-400 hover:bg-red-900/20'
+            }`}
+            style={confirmDelete ? { background: 'var(--red)' } : { border: '1px solid #7f1d1d' }}
+          >
+            <Trash2 size={16} />
+            {confirmDelete ? 'Conferma?' : 'Elimina'}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

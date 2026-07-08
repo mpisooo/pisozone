@@ -21,12 +21,13 @@ export default function PhotoLightbox({
       style={{ background: 'rgba(0,0,0,0.92)' }}
       onClick={onClose}
     >
+      {/* La X sta sotto la status bar dell'iPhone (safe area), mai sovrapposta a orologio/batteria */}
       <button
         type="button"
         onClick={onClose}
         aria-label="Chiudi"
-        className="absolute top-4 right-4 p-2 rounded-full text-gray-300 hover:text-white"
-        style={{ background: 'rgba(255,255,255,0.08)' }}
+        className="absolute right-4 p-2.5 rounded-full text-gray-300 hover:text-white"
+        style={{ background: 'rgba(255,255,255,0.12)', top: 'calc(env(safe-area-inset-top) + 12px)' }}
       >
         <X size={22} />
       </button>
