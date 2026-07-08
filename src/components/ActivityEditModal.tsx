@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
 import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
+import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import PhotoPickerField from './PhotoPickerField'
 import type { Activity, ActivityType } from '../types'
 
 type FormValues = {
@@ -30,8 +32,19 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  // Foto: nuovo file selezionato e/o rimozione di quella esistente.
+  // La X toglie sempre la foto mostrata: per ripristinare basta chiudere senza salvare.
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoRemoved, setPhotoRemoved] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
+
+  const newPhotoPreview = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : null),
+    [photoFile]
+  )
+  useEffect(() => () => { if (newPhotoPreview) URL.revokeObjectURL(newPhotoPreview) }, [newPhotoPreview])
+  const photoPreview = newPhotoPreview ?? (photoRemoved ? null : activity.photo_url ?? null)
 
   const parsed = parseISO(activity.date)
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
@@ -58,6 +71,24 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       v.calories !== '' ? Number(v.calories) :
       profile?.weight_kg && dur > 0 ? calcCalories(v.type, dur, profile.weight_kg) : null
 
+    // Upload prima dell'update (serve l'URL); se fallisce si interrompe qui e
+    // nessuna modifica viene applicata a metà. La rimozione del file, invece,
+    // avviene DOPO l'update riuscito: al peggio resta un orfano nello Storage,
+    // mai un photo_url che punta a un file cancellato.
+    const photoUpdates: { photo_url?: string | null } = {}
+    const wantsRemoval = !photoFile && photoRemoved && !!activity.photo_url
+    if (photoFile) {
+      const { url, error: photoError } = await uploadActivityPhoto(activity.user_id, activity.id, photoFile)
+      if (photoError || !url) {
+        setSaving(false)
+        setErrorMsg('Caricamento della foto non riuscito. Controlla la connessione e riprova.')
+        return
+      }
+      photoUpdates.photo_url = url
+    } else if (wantsRemoval) {
+      photoUpdates.photo_url = null
+    }
+
     const { error } = await updateActivity(activity.id, {
       type: v.type,
       date: formatISO(new Date(`${v.date}T${v.time}:00`)),
@@ -65,12 +96,14 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       calories: cal,
       distance_km: v.distance_km !== '' ? Number(v.distance_km) : null,
       notes: v.notes || null,
+      ...photoUpdates,
     })
     setSaving(false)
     if (error) {
       setErrorMsg('Modifica non riuscita. Controlla la connessione e riprova.')
       return
     }
+    if (wantsRemoval) removeActivityPhoto(activity.user_id, activity.id)
     onClose()
   }
 
@@ -218,6 +251,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           <div>
             <label htmlFor="edit-notes" className="block text-xs text-gray-400 mb-1">Note</label>
             <textarea id="edit-notes" {...register('notes')} className="input-dark resize-none" rows={2} />
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Foto</p>
+            <PhotoPickerField
+              previewUrl={photoPreview}
+              onSelect={(f) => { setPhotoFile(f); setPhotoRemoved(false) }}
+              onClear={() => { setPhotoFile(null); setPhotoRemoved(true) }}
+              inputId="edit-photo"
+            />
           </div>
 
           {errorMsg && (

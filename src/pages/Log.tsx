@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
 import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
+import { uploadActivityPhoto } from '../lib/activityPhotos'
+import PhotoPickerField from '../components/PhotoPickerField'
 import type { ActivityType } from '../types'
 
 type FormValues = {
@@ -19,13 +21,21 @@ type FormValues = {
 }
 
 export default function LogPage() {
-  const { addActivity } = useActivities()
+  const { addActivity, updateActivity } = useActivities()
   const { profile } = useProfile()
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState(false)
+  const [photoWarning, setPhotoWarning] = useState(false)
   const [creditsEarned, setCreditsEarned] = useState(0)
   const [saving, setSaving] = useState(false)
   const [showCalInfo, setShowCalInfo] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+
+  const photoPreview = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : null),
+    [photoFile]
+  )
+  useEffect(() => () => { if (photoPreview) URL.revokeObjectURL(photoPreview) }, [photoPreview])
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
@@ -75,19 +85,39 @@ export default function LogPage() {
       notes: values.notes || null,
     })
 
-    setSaving(false)
-
     if (error) {
+      setSaving(false)
       setSaveError(true)
       setTimeout(() => setSaveError(false), 3500)
       return
     }
 
+    // La foto viaggia dopo l'insert (serve l'id per il path stabile). Se
+    // fallisce, l'attività resta salvata: si avvisa e si può riprovare dalla
+    // modifica — tollera anche bucket/colonna assenti pre-migrazione v27.
+    let photoOk = true
+    if (photoFile && data) {
+      const { url, error: photoError } = await uploadActivityPhoto(data.user_id, data.id, photoFile)
+      if (photoError || !url) {
+        photoOk = false
+      } else {
+        const { error: linkError } = await updateActivity(data.id, { photo_url: url })
+        if (linkError) photoOk = false
+      }
+    }
+
+    setSaving(false)
+    setPhotoFile(null)
+
     // vibrate on mobile
     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100])
 
     setCreditsEarned(data?.credits_earned ?? 0)
-    setSaved(true)
+    if (photoOk) setSaved(true)
+    else {
+      setPhotoWarning(true)
+      setTimeout(() => setPhotoWarning(false), 4000)
+    }
     reset({
       type: 'corsa',
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -286,6 +316,17 @@ export default function LogPage() {
               placeholder="Come ti sei sentito? Dettagli dell'allenamento..."
             />
           </div>
+
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Foto (opzionale)</p>
+            <PhotoPickerField
+              previewUrl={photoPreview}
+              onSelect={setPhotoFile}
+              onClear={() => setPhotoFile(null)}
+              inputId="log-photo"
+            />
+            <p className="text-[10px] text-gray-600 mt-1">Sarà visibile ai tuoi amici nel feed.</p>
+          </div>
         </div>
 
         <button
@@ -325,6 +366,16 @@ export default function LogPage() {
           <div>
             <p className="text-white font-semibold text-sm">Salvataggio non riuscito</p>
             <p className="text-[var(--red)] text-xs">Controlla la connessione e riprova</p>
+          </div>
+        </div>
+      )}
+
+      {photoWarning && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">Attività salvata, ma foto non caricata</p>
+            <p className="text-[var(--red)] text-xs">Riprova dal calendario, modificando l'attività</p>
           </div>
         </div>
       )}

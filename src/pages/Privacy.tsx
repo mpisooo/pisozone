@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Account</strong> — username e password (conservata in forma cifrata); email di recupero, solo se decidi di aggiungerla.</li>
           <li><strong>Profilo</strong> — nome, data di nascita, genere, altezza, peso e storico delle pesate, foto profilo, obiettivi e sport preferiti. Sono tutti campi facoltativi.</li>
-          <li><strong>Attività sportive</strong> — tipo di sport, data, durata, calorie, distanza ed eventuali note.</li>
+          <li><strong>Attività sportive</strong> — tipo di sport, data, durata, calorie, distanza ed eventuali note e foto che decidi di allegare.</li>
           <li><strong>Funzioni social</strong> — amicizie, richieste di amicizia, messaggi privati e di gruppo, "mi piace" alle attività degli amici.</li>
           <li><strong>Gamification</strong> — crediti, livello, medaglie, sfide completate, streak.</li>
           <li><strong>Notifiche push</strong> — se le attivi, l'identificativo tecnico (endpoint) fornito dal tuo browser per recapitarle.</li>
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
       <LegalSection title="4. DOVE SONO CONSERVATI">
         <p>PisoZone si appoggia a tre fornitori tecnici, che agiscono da responsabili del trattamento:</p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><strong>Supabase</strong> — database e archiviazione delle foto profilo (<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#F44352] underline">privacy policy</a>)</li>
+          <li><strong>Supabase</strong> — database e archiviazione delle foto (profilo e attività) (<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-[#F44352] underline">privacy policy</a>)</li>
           <li><strong>Vercel</strong> — hosting dell'applicazione (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#F44352] underline">privacy policy</a>)</li>
           <li><strong>Sentry</strong> — monitoraggio errori, con dati ospitati nell'Unione Europea (<a href="https://sentry.io/privacy/" target="_blank" rel="noopener noreferrer" className="text-[#F44352] underline">privacy policy</a>)</li>
         </ul>
@@ -50,7 +50,8 @@ export default function PrivacyPage() {
         <p>
           Alcuni dati sono visibili agli altri utenti solo nell'ambito delle funzioni social: il tuo
           username, la foto profilo, il livello e la cornice sono visibili a chi ti cerca; le tue
-          attività, i traguardi e i relativi commenti compaiono nel feed dei tuoi amici; i messaggi
+          attività (incluse le foto che vi alleghi), i traguardi e i relativi commenti compaiono
+          nel feed dei tuoi amici; i messaggi
           sono visibili solo a chi li riceve. Se compari nella classifica globale settimanale, gli
           altri utenti vedono username, foto e i tuoi totali aggregati della settimana (sessioni,
           minuti, calorie) — mai le singole attività. Peso, data di nascita, genere, altezza e

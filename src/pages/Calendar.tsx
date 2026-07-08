@@ -220,6 +220,14 @@ export default function CalendarPage() {
                       {a.distance_km ? ` · ${a.distance_km} km` : ''}
                     </p>
                     {a.notes && <p className="text-xs text-gray-500 mt-1 truncate">{a.notes}</p>}
+                    {a.photo_url && (
+                      <img
+                        src={a.photo_url}
+                        alt=""
+                        loading="lazy"
+                        className="w-full max-h-32 object-cover rounded-lg mt-2"
+                      />
+                    )}
                   </div>
                   <Pencil size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />
                 </button>

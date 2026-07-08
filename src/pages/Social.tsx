@@ -19,6 +19,7 @@ import { isRateLimitError } from '../lib/errors'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
+import PhotoLightbox from '../components/PhotoLightbox'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
 import type { GroupMessage, GroupMember } from '../hooks/useGroups'
@@ -799,6 +800,7 @@ export default function SocialPage() {
   const { fetchCommentCounts } = useComments()
   const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map())
   const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
+  const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; alt: string } | null>(null)
 
   // Conteggi commenti per i badge del feed (i dettagli si caricano all'apertura)
   useEffect(() => {
@@ -988,6 +990,21 @@ export default function SocialPage() {
                         </p>
                       </div>
                     </div>
+                    {a.photo_url && (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxPhoto({ url: a.photo_url!, alt: `Foto dell'attività di ${a.username}` })}
+                        aria-label="Apri la foto a schermo intero"
+                        className="block w-full"
+                      >
+                        <img
+                          src={a.photo_url}
+                          alt={`Foto dell'attività di ${a.username}`}
+                          loading="lazy"
+                          className="w-full max-h-80 object-cover rounded-xl"
+                        />
+                      </button>
+                    )}
                     {a.notes && <p className="text-sm text-gray-400 italic">"{a.notes}"</p>}
                     <div className="flex items-center gap-4 pt-1">
                       <button
@@ -1380,6 +1397,15 @@ export default function SocialPage() {
             </button>
           </div>
         </ActionSheet>
+      )}
+
+      {/* Foto del feed a schermo intero */}
+      {lightboxPhoto && (
+        <PhotoLightbox
+          url={lightboxPhoto.url}
+          alt={lightboxPhoto.alt}
+          onClose={() => setLightboxPhoto(null)}
+        />
       )}
     </div>
   )

@@ -14,6 +14,8 @@ export interface FeedActivity {
   distance_km: number | null
   notes: string | null
   created_at: string
+  // Opzionale finché la migrazione v27 non è eseguita (colonna assente)
+  photo_url?: string | null
   username: string
   user_photo: string | null
   user_level: number

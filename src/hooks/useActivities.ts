@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { removeActivityPhoto } from '../lib/activityPhotos'
 import type { Activity } from '../types'
 
 export function useActivities() {
@@ -53,8 +54,13 @@ export function useActivities() {
   }
 
   const deleteActivity = async (id: string) => {
+    const target = activities.find((a) => a.id === id)
     const { error } = await supabase.from('activities').delete().eq('id', id)
-    if (!error) setActivities((prev) => prev.filter((a) => a.id !== id))
+    if (!error) {
+      setActivities((prev) => prev.filter((a) => a.id !== id))
+      // La riga nel DB cade, il file nello Storage no: pulizia best effort
+      if (target?.photo_url && user) removeActivityPhoto(user.id, id)
+    }
     return { error }
   }
 

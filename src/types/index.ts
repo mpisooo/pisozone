@@ -26,6 +26,9 @@ export interface Activity {
   notes: string | null
   created_at: string
   credits_earned: number
+  // Opzionale: esiste solo dopo la migrazione v27. URL pubblico della foto
+  // allegata nel bucket "activity-photos"; undefined = colonna non ancora creata.
+  photo_url?: string | null
 }
 
 export interface Profile {

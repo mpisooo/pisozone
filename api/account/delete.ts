@@ -24,10 +24,19 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   const user = userData?.user
   if (authError || !user) return res.status(401).json({ error: 'Invalid token' })
 
-  // La foto profilo nello Storage non cade in cascata con l'utente: va rimossa a parte.
-  const { data: files } = await supabaseAdmin.storage.from('avatars').list(user.id)
-  if (files?.length) {
-    await supabaseAdmin.storage.from('avatars').remove(files.map((f) => `${user.id}/${f.name}`))
+  // I file nello Storage (foto profilo e foto delle attività) non cadono in
+  // cascata con l'utente: vanno rimossi a parte. list() è paginato (100 per
+  // default), quindi si svuota la cartella a lotti; il tetto di iterazioni
+  // evita loop infiniti se una remove fallisce silenziosamente.
+  for (const bucket of ['avatars', 'activity-photos']) {
+    for (let batch = 0; batch < 20; batch++) {
+      const { data: files } = await supabaseAdmin.storage.from(bucket).list(user.id)
+      if (!files?.length) break
+      const { error: removeError } = await supabaseAdmin.storage
+        .from(bucket)
+        .remove(files.map((f) => `${user.id}/${f.name}`))
+      if (removeError) break
+    }
   }
 
   // Tutte le tabelle hanno FK ON DELETE CASCADE da auth.users (dirette o via profiles):
