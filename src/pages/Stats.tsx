@@ -1,14 +1,21 @@
 import { useState, useMemo } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, Legend, AreaChart, Area, LineChart, Line, ReferenceLine,
 } from 'recharts'
 import { startOfDay, startOfWeek, startOfMonth, startOfYear, parseISO, format, isAfter, isEqual } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
+import { useWeightLogs } from '../hooks/useWeightLogs'
+import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
+import {
+  buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
+  buildWeightTrainingSeries, activitiesToCsv,
+} from '../lib/stats'
+import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
@@ -21,6 +28,15 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'month',  label: 'Mese'     },
   { value: 'year',   label: 'Anno'     },
   { value: 'all',    label: 'Sempre'   },
+]
+
+type Metric = 'minutes' | 'sessions' | 'calories' | 'km'
+
+const METRICS: { value: Metric; label: string; unit: string }[] = [
+  { value: 'minutes',  label: 'Minuti',   unit: ' min'  },
+  { value: 'sessions', label: 'Sessioni', unit: ''      },
+  { value: 'calories', label: 'Calorie',  unit: ' kcal' },
+  { value: 'km',       label: 'Km',       unit: ' km'   },
 ]
 
 // Sfumature derivate dall'accento del tema attivo (rosso, blu, verde o viola):
@@ -65,11 +81,18 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   )
 }
 
+function fmtMinutes(min: number): string {
+  return min >= 60 ? `${Math.floor(min / 60)}h ${min % 60}min` : `${min}min`
+}
+
 export default function StatsPage() {
   const { activities, loading } = useActivities()
+  const { logs: weightLogs } = useWeightLogs()
+  const { profile } = useProfile()
   const navigate = useNavigate()
   const { theme } = useTheme()
   const [period, setPeriod] = useState<Period>('week')
+  const [metric, setMetric] = useState<Metric>('minutes')
 
   const chartGrid   = theme === 'dark' ? '#2a2a2a' : '#E0E0E0'
   const chartTick   = theme === 'dark' ? '#9ca3af' : '#777777'
@@ -77,6 +100,7 @@ export default function StatsPage() {
   const tooltipBdr  = theme === 'dark' ? '#2a2a2a' : '#E0E0E0'
   const tooltipText = theme === 'dark' ? '#f5f5f5' : '#111111'
   const legendColor = theme === 'dark' ? '#9ca3af' : '#555555'
+  const tooltipStyle = { background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8 }
 
   const filtered = useMemo(() => filterByPeriod(activities, period), [activities, period])
 
@@ -95,19 +119,34 @@ export default function StatsPage() {
   const topActivity = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]
   const topOpt = topActivity ? ACTIVITY_OPTIONS.find((o) => o.value === topActivity[0]) : null
 
-  // Bar chart: sessions per day/week grouped
-  const barData = useMemo(() => {
-    if (period === 'today' || period === 'all') return []
-    const map = new Map<string, number>()
-    for (const a of filtered) {
-      const d = parseISO(a.date)
-      const key = period === 'year'
-        ? format(d, 'MMM', { locale: it })
-        : format(d, 'EEE', { locale: it })
-      map.set(key, (map.get(key) ?? 0) + 1)
-    }
-    return [...map.entries()].map(([name, count]) => ({ name, count }))
-  }, [filtered, period])
+  // Andamento nel tempo (bucket giornalieri o mensili a seconda del periodo)
+  const trendData = useMemo(
+    () => period === 'today' ? [] : buildTrendSeries(filtered, period),
+    [filtered, period]
+  )
+  const availableMetrics = useMemo(() => METRICS.filter(({ value }) => {
+    if (value === 'calories') return totalCal > 0
+    if (value === 'km') return totalKm > 0
+    return true
+  }), [totalCal, totalKm])
+  const effectiveMetric = availableMetrics.some((m) => m.value === metric) ? metric : 'minutes'
+  const metricInfo = METRICS.find((m) => m.value === effectiveMetric)!
+
+  // Abitudini: distribuzione delle sessioni sul giorno della settimana
+  const weekdayData = useMemo(() => buildWeekdayDistribution(filtered), [filtered])
+
+  // Obiettivo vs reale sulle ultime 8 settimane (usa tutte le attività:
+  // la finestra è fissa, indipendente dal filtro periodo)
+  const weeklyGoal = profile?.weekly_goal ?? 3
+  const goalData = useMemo(() => buildWeeklyGoalSeries(activities, weeklyGoal), [activities, weeklyGoal])
+  const weeksMet = goalData.filter((w) => w.met).length
+
+  // Peso e allenamento sulle ultime 12 settimane
+  const weightData = useMemo(
+    () => buildWeightTrainingSeries(activities, weightLogs),
+    [activities, weightLogs]
+  )
+  const weightPoints = weightData.filter((w) => w.weightKg != null).length
 
   // Pie chart data
   const pieData = useMemo(() =>
@@ -123,6 +162,24 @@ export default function StatsPage() {
   // Records
   const longestSession = filtered.reduce((best, a) => a.duration_min > (best?.duration_min ?? 0) ? a : best, null as Activity | null)
   const mostCalories = filtered.reduce((best, a) => (a.calories ?? 0) > (best?.calories ?? 0) ? a : best, null as Activity | null)
+  const longestDistance = filtered.reduce((best, a) => (a.distance_km ?? 0) > (best?.distance_km ?? 0) ? a : best, null as Activity | null)
+  const busiestDay = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const a of filtered) {
+      const key = format(parseISO(a.date), 'yyyy-MM-dd')
+      map.set(key, (map.get(key) ?? 0) + a.duration_min)
+    }
+    let best: { date: string; minutes: number } | null = null
+    for (const [date, minutes] of map) {
+      if (!best || minutes > best.minutes) best = { date, minutes }
+    }
+    return best
+  }, [filtered])
+
+  function handleExportCsv() {
+    const filename = `pisozone-attivita-${period}-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    downloadAsCsv(activitiesToCsv(filtered), filename)
+  }
 
   if (loading) return (
     <div className="page-enter p-4 space-y-4">
@@ -182,21 +239,107 @@ export default function StatsPage() {
         </div>
       )}
 
-      {/* Bar chart */}
-      {barData.length > 0 && (
+      {/* Andamento nel tempo */}
+      {trendData.length > 1 && filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">SESSIONI PER GIORNO</h2>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
-              <XAxis dataKey="name" tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} />
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-2">ANDAMENTO</h2>
+          <div className="flex gap-1.5 mb-3 overflow-x-auto">
+            {availableMetrics.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setMetric(value)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                  effectiveMetric === value
+                    ? 'bg-[var(--red)] text-[white]'
+                    : 'bg-[var(--grey)] text-gray-400'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={trendData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={20} />
+              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={effectiveMetric === 'km'} />
               <Tooltip
-                contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8 }}
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: tooltipText }}
+                itemStyle={{ color: 'var(--red)' }}
+                formatter={(value) => [`${value}${metricInfo.unit}`, metricInfo.label]}
+              />
+              <Area
+                type="monotone"
+                dataKey={effectiveMetric}
+                stroke="var(--red)"
+                strokeWidth={2}
+                fill="rgba(var(--accent-rgb),0.18)"
+                dot={false}
+                activeDot={{ r: 4 }}
+                name={metricInfo.label}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Abitudini: giorni della settimana (solo su finestre multi-settimana) */}
+      {(period === 'month' || period === 'year' || period === 'all') && filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">IN QUALI GIORNI TI ALLENI</h2>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={weekdayData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={tooltipStyle}
                 labelStyle={{ color: tooltipText }}
                 itemStyle={{ color: 'var(--red)' }}
               />
-              <Bar dataKey="count" fill="var(--red)" radius={[4, 4, 0, 0]} name="Sessioni" />
+              <Bar dataKey="sessions" fill="var(--red)" radius={[4, 4, 0, 0]} name="Sessioni" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Obiettivo vs reale — finestra fissa: ultime 8 settimane */}
+      {activities.length > 0 && filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">OBIETTIVO VS REALE</h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Obiettivo raggiunto in <span className="text-[var(--red)] font-semibold">{weeksMet}</span> delle ultime 8 settimane
+          </p>
+          <ResponsiveContainer width="100%" height={170}>
+            <BarChart data={goalData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={8} />
+              <YAxis
+                tick={{ fill: chartTick, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+                domain={[0, (dataMax: number) => Math.max(dataMax, weeklyGoal) + 1]}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: tooltipText }}
+                itemStyle={{ color: 'var(--red)' }}
+                formatter={(value) => [`${value} su ${weeklyGoal}`, 'Sessioni']}
+              />
+              <ReferenceLine
+                y={weeklyGoal}
+                stroke={chartTick}
+                strokeDasharray="6 3"
+                label={{ value: `Obiettivo: ${weeklyGoal}`, position: 'insideTopRight', fill: chartTick, fontSize: 10 }}
+              />
+              <Bar dataKey="sessions" radius={[4, 4, 0, 0]} name="Sessioni">
+                {goalData.map((w) => (
+                  <Cell key={w.key} fill={w.met ? 'var(--red)' : 'rgba(var(--accent-rgb),0.35)'} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -222,11 +365,59 @@ export default function StatsPage() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8 }}
+                contentStyle={tooltipStyle}
                 itemStyle={{ color: tooltipText }}
               />
               <Legend wrapperStyle={{ fontSize: 12, color: legendColor }} />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Peso e allenamento: due grafici impilati sullo stesso asse settimanale */}
+      {weightPoints >= 2 && filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">PESO E ALLENAMENTO</h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Peso medio e minuti di allenamento, settimana per settimana (ultime 12)
+          </p>
+          <p className="text-xs text-gray-400 mb-1">Peso (kg)</p>
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={weightData} syncId="pesoAllenamento" margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="label" hide />
+              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: tooltipText }}
+                itemStyle={{ color: 'var(--red)' }}
+                formatter={(value) => [`${value} kg`, 'Peso medio']}
+              />
+              <Line
+                type="monotone"
+                dataKey="weightKg"
+                stroke="var(--red)"
+                strokeWidth={2}
+                dot={{ r: 3, fill: 'var(--red)', strokeWidth: 0 }}
+                connectNulls
+                name="Peso medio"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          <p className="text-xs text-gray-400 mb-1 mt-2">Minuti di allenamento</p>
+          <ResponsiveContainer width="100%" height={110}>
+            <BarChart data={weightData} syncId="pesoAllenamento" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <CartesianGrid stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={8} />
+              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: tooltipText }}
+                itemStyle={{ color: 'var(--red)' }}
+                formatter={(value) => [`${value} min`, 'Allenamento']}
+              />
+              <Bar dataKey="minutes" fill="rgba(var(--accent-rgb),0.55)" radius={[4, 4, 0, 0]} name="Minuti" />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}
@@ -255,6 +446,39 @@ export default function StatsPage() {
               <span className="text-2xl">🔥</span>
             </div>
           )}
+          {longestDistance && (longestDistance.distance_km ?? 0) > 0 && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400">Distanza più lunga</p>
+                <p className="text-white font-medium">{longestDistance.distance_km} km</p>
+              </div>
+              <span className="text-2xl">📏</span>
+            </div>
+          )}
+          {busiestDay && (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400">Giorno più attivo</p>
+                <p className="text-white font-medium">
+                  {format(parseISO(busiestDay.date), 'd MMMM yyyy', { locale: it })} · {fmtMinutes(busiestDay.minutes)}
+                </p>
+              </div>
+              <span className="text-2xl">📆</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Export CSV */}
+      {filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">ESPORTA I DATI</h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Scarica le attività del periodo selezionato in formato CSV, pronto per Excel o Google Sheets.
+          </p>
+          <button type="button" className="btn-primary w-full py-2 text-sm" onClick={handleExportCsv}>
+            📄 Scarica CSV ({filtered.length} attività)
+          </button>
         </div>
       )}
 

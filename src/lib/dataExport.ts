@@ -44,12 +44,20 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   }
 }
 
-export function downloadAsJson(data: unknown, filename: string) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+export function downloadAsJson(data: unknown, filename: string) {
+  downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), filename)
+}
+
+export function downloadAsCsv(csv: string, filename: string) {
+  // BOM UTF-8: senza, Excel su Windows legge male le lettere accentate
+  downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }), filename)
 }
