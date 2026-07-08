@@ -46,6 +46,15 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   useEffect(() => () => { if (newPhotoPreview) URL.revokeObjectURL(newPhotoPreview) }, [newPhotoPreview])
   const photoPreview = newPhotoPreview ?? (photoRemoved ? null : activity.photo_url ?? null)
 
+  // Blocca lo scroll della pagina sottostante finché la schermata è aperta:
+  // su iOS, senza questo, il gesto a metà corsa "aggancia" il body dietro e lo
+  // scorrimento del form si ferma finché non si riappoggia il dito.
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   const parsed = parseISO(activity.date)
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
@@ -143,8 +152,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-4"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)', WebkitOverflowScrolling: 'touch' }}
       >
         {/* Activity type grid */}
         <div className="card">
