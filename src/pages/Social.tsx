@@ -18,6 +18,7 @@ import { getLevelDef } from '../lib/levels'
 import { isRateLimitError } from '../lib/errors'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
+import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
 import type { GroupMessage, GroupMember } from '../hooks/useGroups'
@@ -944,7 +945,7 @@ export default function SocialPage() {
         {tab === 'feed' && (
           <>
             {feedLoading ? (
-              <div className="space-y-4">{[1, 2].map(i => <div key={i} className="card animate-pulse h-36" />)}</div>
+              <div className="space-y-4">{[1, 2].map(i => <SkeletonCard key={i} lines={4} />)}</div>
             ) : feed.length === 0 ? (
               <div className="card py-14 text-center">
                 <div
@@ -1046,12 +1047,7 @@ export default function SocialPage() {
               ))}
             </div>
             {lbLoading ? (
-              <div className="space-y-3">{[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-3 animate-pulse">
-                  <div className="w-10 h-10 rounded-full bg-[var(--grey)]" />
-                  <div className="flex-1 h-3 bg-[var(--grey)] rounded w-1/3" />
-                </div>
-              ))}</div>
+              <div className="space-y-3">{[1, 2, 3].map(i => <SkeletonRow key={i} />)}</div>
             ) : (lbScope === 'friends' ? lbEntries.length <= 1 : lbEntries.length === 0) ? (
               <div className="card py-14 text-center">
                 <div
@@ -1187,12 +1183,7 @@ export default function SocialPage() {
             <div className="card">
               <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">I tuoi amici ({friends.length})</p>
               {friendsLoading ? (
-                <div className="space-y-3">{[1, 2].map(i => (
-                  <div key={i} className="flex items-center gap-3 animate-pulse">
-                    <div className="w-10 h-10 rounded-full bg-[var(--grey)]" />
-                    <div className="flex-1 h-3 bg-[var(--grey)] rounded w-1/3" />
-                  </div>
-                ))}</div>
+                <div className="space-y-3">{[1, 2].map(i => <SkeletonRow key={i} />)}</div>
               ) : friends.length === 0 ? (
                 <div className="py-8 text-center">
                   <div
@@ -1260,15 +1251,7 @@ export default function SocialPage() {
             )}
 
             {loadingConvs ? (
-              <div className="space-y-2">{[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center gap-3 animate-pulse p-2">
-                  <div className="w-12 h-12 rounded-full bg-[var(--grey)]" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 bg-[var(--grey)] rounded w-1/3" />
-                    <div className="h-2.5 bg-[var(--grey)] rounded w-2/3" />
-                  </div>
-                </div>
-              ))}</div>
+              <div className="space-y-2">{[1, 2, 3].map(i => <div key={i} className="p-2"><SkeletonRow avatarSize={48} lines={2} /></div>)}</div>
             ) : conversations.length === 0 ? (
               <div className="card py-12 text-center">
                 <div
@@ -1326,7 +1309,7 @@ export default function SocialPage() {
             </button>
 
             {groupsLoading ? (
-              <div className="space-y-3">{[1, 2].map(i => <div key={i} className="card animate-pulse h-16" />)}</div>
+              <div className="space-y-3">{[1, 2].map(i => <SkeletonCard key={i} lines={2} />)}</div>
             ) : groups.length === 0 ? (
               <div className="card py-12 text-center">
                 <div
