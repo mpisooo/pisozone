@@ -1,6 +1,8 @@
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 import { captureError } from './sentry.js'
+import { getRomeHour } from './time.js'
+import { allowsNotification, type NotificationCategory, type NotificationPrefs } from './notificationPrefs.js'
 
 // Riusa VITE_SUPABASE_URL (già configurata su Vercel per il build del client):
 // il prefisso VITE_ è solo una convenzione di Vite per l'inclusione nel bundle
@@ -36,6 +38,24 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
     .eq('user_id', userId)
 
   await sendToSubscriptions((subs as PushSubscriptionRow[]) ?? [], payload)
+}
+
+const NOTIFICATION_PREFS_SELECT =
+  'notif_reminder_enabled, notif_messages_enabled, notif_friend_requests_enabled, notif_quiet_start, notif_quiet_end'
+
+// Come sendPushToUser, ma rispetta il toggle per categoria e la fascia di
+// silenzio impostati dall'utente (v28). Va usata per le push innescate da un
+// singolo evento (nuovo messaggio, richiesta di amicizia); il cron del
+// promemoria filtra invece in batch perché itera su più utenti in un colpo solo.
+export async function sendPushToUserIfAllowed(userId: string, category: NotificationCategory, payload: PushPayload) {
+  const { data: prefs } = await supabaseAdmin
+    .from('profiles')
+    .select(NOTIFICATION_PREFS_SELECT)
+    .eq('id', userId)
+    .single()
+
+  if (!allowsNotification(prefs as NotificationPrefs | null, category, getRomeHour(new Date()))) return
+  await sendPushToUser(userId, payload)
 }
 
 export async function sendToSubscriptions(subs: PushSubscriptionRow[], payload: PushPayload) {

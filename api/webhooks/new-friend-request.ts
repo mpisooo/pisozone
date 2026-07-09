@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { supabaseAdmin, sendToSubscriptions } from '../_lib/push.js'
+import { supabaseAdmin, sendPushToUserIfAllowed } from '../_lib/push.js'
 import { withSentry } from '../_lib/sentry.js'
 import { rateLimited } from '../_lib/rateLimit.js'
 
@@ -29,12 +29,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     .eq('id', friendship.requester_id)
     .single()
 
-  const { data: subs } = await supabaseAdmin
-    .from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth_key')
-    .eq('user_id', friendship.addressee_id)
-
-  await sendToSubscriptions(subs ?? [], {
+  await sendPushToUserIfAllowed(friendship.addressee_id, 'friend_requests', {
     title: 'Nuova richiesta di amicizia',
     body: `${requester?.username ?? 'Un utente'} vuole aggiungerti come amico`,
     url: '/social',

@@ -29,6 +29,14 @@ export interface Activity {
   // Opzionale: esiste solo dopo la migrazione v27. URL pubblico della foto
   // allegata nel bucket "activity-photos"; undefined = colonna non ancora creata.
   photo_url?: string | null
+  // Opzionale: esiste solo dopo la migrazione v29. true = registrata con il
+  // tracciamento GPS (i punti del percorso vivono in activity_routes).
+  gps_tracked?: boolean
+}
+
+export interface RoutePoint {
+  lat: number
+  lng: number
 }
 
 export interface Profile {
@@ -57,6 +65,13 @@ export interface Profile {
   // Opzionale: esiste solo dopo la migrazione v25. false = nuovo utente che
   // non ha ancora visto il tour di benvenuto; undefined = colonna assente.
   onboarding_seen?: boolean
+  // Opzionali: esistono solo dopo la migrazione v28. undefined = colonna non
+  // ancora creata (tutte le notifiche attive, nessuna fascia di silenzio).
+  notif_reminder_enabled?: boolean
+  notif_messages_enabled?: boolean
+  notif_friend_requests_enabled?: boolean
+  notif_quiet_start?: number | null
+  notif_quiet_end?: number | null
 }
 
 export interface ChallengeTemplate {

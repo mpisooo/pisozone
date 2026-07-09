@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { supabaseAdmin, sendToSubscriptions } from '../_lib/push.js'
+import { supabaseAdmin, sendPushToUserIfAllowed } from '../_lib/push.js'
 import { withSentry } from '../_lib/sentry.js'
 import { rateLimited } from '../_lib/rateLimit.js'
 
@@ -27,12 +27,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     .eq('id', message.sender_id)
     .single()
 
-  const { data: subs } = await supabaseAdmin
-    .from('push_subscriptions')
-    .select('id, endpoint, p256dh, auth_key')
-    .eq('user_id', message.receiver_id)
-
-  await sendToSubscriptions(subs ?? [], {
+  await sendPushToUserIfAllowed(message.receiver_id, 'messages', {
     title: `Nuovo messaggio da ${sender?.username ?? 'un amico'}`,
     body: message.content.slice(0, 100),
     url: '/social',
