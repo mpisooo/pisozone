@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useProfile } from '../context/ProfileContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import { getZoneByPercent } from '../lib/zones'
 import shell from '../lib/i18n/shell'
 
 const STEPS = shell.onboarding.steps
@@ -35,14 +36,17 @@ export default function OnboardingTour() {
   const isLast = step === STEPS.length - 1
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,0.85)' }}>
+    <div
+      className="celebration-backdrop fixed inset-0 z-[110] flex items-center justify-center p-5"
+      style={{ background: 'rgba(0,0,0,0.85)' }}
+    >
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={shell.onboarding.ariaLabel}
-        className="w-full max-w-sm rounded-2xl p-6 text-center space-y-4"
-        style={{ background: 'var(--grey-dark)', border: '1px solid var(--grey)' }}
+        className="celebration-pop w-full max-w-sm rounded-2xl p-6 text-center space-y-4"
+        style={{ background: 'var(--grey-dark)', border: '1px solid var(--grey)', boxShadow: 'var(--shadow-lg)' }}
       >
         <div className="text-6xl" aria-hidden="true">{current.icon}</div>
         <h2 className="font-bebas text-3xl tracking-wider text-[var(--red)] leading-none">
@@ -50,18 +54,24 @@ export default function OnboardingTour() {
         </h2>
         <p className="text-sm text-gray-300 leading-relaxed min-h-16">{current.text}</p>
 
-        {/* Indicatore di avanzamento */}
+        {/* Indicatore di avanzamento: si scalda lungo lo spettro Zone via via
+            che si procede, invece del solito pallino rosso fisso. */}
         <div className="flex justify-center gap-1.5" aria-label={shell.onboarding.stepIndicator(step + 1, STEPS.length)}>
-          {STEPS.map((_, i) => (
-            <span
-              key={i}
-              className="h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: i === step ? 20 : 6,
-                background: i === step ? 'var(--red)' : 'var(--grey-light)',
-              }}
-            />
-          ))}
+          {STEPS.map((_, i) => {
+            const zone = getZoneByPercent((i / (STEPS.length - 1)) * 100)
+            const reached = i <= step
+            return (
+              <span
+                key={i}
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: i === step ? 20 : 6,
+                  background: reached ? zone.cssVar : 'var(--grey-light)',
+                  boxShadow: i === step ? `0 0 8px ${zone.cssVar}` : 'none',
+                }}
+              />
+            )
+          })}
         </div>
 
         <div className="flex items-center gap-3 pt-1">

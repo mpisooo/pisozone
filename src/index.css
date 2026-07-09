@@ -456,9 +456,12 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   animation: splash-logo-in 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   line-height: 1;
 }
+/* Spettro Zone in versione fissa: come il resto della schermata pre-login
+   (rosso hardcoded, non var(--red)), non deve seguire il tema scelto
+   dall'utente — qui l'identità si presenta prima ancora del login. */
 .splash-line {
   height: 2px;
-  background: linear-gradient(90deg, transparent, #F44352, transparent);
+  background: linear-gradient(90deg, transparent, #3B82F6, #10B981, #FBBF24, #F44352, transparent);
   animation: splash-line-expand 0.7s ease 0.35s both;
   margin-top: 8px;
 }
