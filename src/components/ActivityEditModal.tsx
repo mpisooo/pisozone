@@ -1,13 +1,18 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
 import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
+import { fetchActivityRoute } from '../lib/activityRoutes'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import PhotoPickerField from './PhotoPickerField'
-import type { Activity, ActivityType } from '../types'
+import RouteShape from './RouteShape'
+import common from '../lib/i18n/common'
+import log from '../lib/i18n/log'
+import type { Activity, ActivityType, RoutePoint } from '../types'
 
 type FormValues = {
   type: ActivityType
@@ -36,8 +41,20 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   // La X toglie sempre la foto mostrata: per ripristinare basta chiudere senza salvare.
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoRemoved, setPhotoRemoved] = useState(false)
+  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
+
+  // Sola lettura: il percorso si registra solo dal tracciamento GPS in Log.tsx,
+  // qui si mostra soltanto la sagoma se l'attività ne ha uno.
+  useEffect(() => {
+    if (!activity.gps_tracked) return
+    let cancelled = false
+    fetchActivityRoute(activity.id).then(({ points }) => {
+      if (!cancelled) setRoutePoints(points)
+    })
+    return () => { cancelled = true }
+  }, [activity.id, activity.gps_tracked])
 
   const newPhotoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -90,7 +107,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       const { url, error: photoError } = await uploadActivityPhoto(activity.user_id, activity.id, photoFile)
       if (photoError || !url) {
         setSaving(false)
-        setErrorMsg('Caricamento della foto non riuscito. Controlla la connessione e riprova.')
+        setErrorMsg(log.edit.photoUploadFailed)
         return
       }
       photoUpdates.photo_url = url
@@ -109,7 +126,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     })
     setSaving(false)
     if (error) {
-      setErrorMsg('Modifica non riuscita. Controlla la connessione e riprova.')
+      setErrorMsg(log.edit.updateFailed)
       return
     }
     if (wantsRemoval) removeActivityPhoto(activity.user_id, activity.id)
@@ -121,7 +138,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     setErrorMsg('')
     const { error } = await deleteActivity(activity.id)
     if (error) {
-      setErrorMsg('Eliminazione non riuscita. Controlla la connessione e riprova.')
+      setErrorMsg(log.edit.deleteFailed)
       setConfirmDelete(false)
       return
     }
@@ -131,12 +148,12 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   // Schermata fissa a tutto schermo (come Registra), non più bottom sheet:
   // l'header con la X resta sempre visibile mentre il contenuto scorre, e lo
   // sfondo opaco copre il calendario sottostante.
-  return (
+  return createPortal(
     <div
       ref={panelRef}
       role="dialog"
       aria-modal="true"
-      aria-label="Modifica attività"
+      aria-label={log.edit.ariaLabel}
       className="fixed inset-0 z-50 flex flex-col page-enter"
       style={{ background: 'var(--black)' }}
     >
@@ -144,8 +161,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
         className="flex items-center justify-between px-4 pb-3 border-b border-[var(--grey)]"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)' }}
       >
-        <span className="font-bebas text-2xl text-white tracking-wider">MODIFICA ATTIVITÀ</span>
-        <button type="button" onClick={onClose} aria-label="Chiudi" className="p-2 -mr-2 text-gray-400 hover:text-white">
+        <span className="font-bebas text-2xl text-white tracking-wider">{log.editActivityTitle}</span>
+        <button type="button" onClick={onClose} aria-label={common.close} className="p-2 -mr-2 text-gray-400 hover:text-white">
           <X size={22} />
         </button>
       </div>
@@ -157,7 +174,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       >
         {/* Activity type grid */}
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">TIPO DI ATTIVITÀ</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{log.form.activityTypeTitle}</h2>
           <div className="grid grid-cols-5 gap-2">
             {ACTIVITY_OPTIONS.map((opt) => {
               const isSelected = selectedType === opt.value
@@ -179,30 +196,30 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
         </div>
 
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATA E ORA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.dateTimeTitle}</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <label htmlFor="edit-date" className="block text-xs text-gray-400 mb-1">Data</label>
+              <label htmlFor="edit-date" className="block text-xs text-gray-400 mb-1">{log.form.dateLabel}</label>
               <input id="edit-date" type="date" {...register('date')} className="input-dark w-full" />
             </div>
             <div className="min-w-0">
-              <label htmlFor="edit-time" className="block text-xs text-gray-400 mb-1">Ora</label>
+              <label htmlFor="edit-time" className="block text-xs text-gray-400 mb-1">{log.form.timeLabel}</label>
               <input id="edit-time" type="time" {...register('time')} className="input-dark w-full" />
             </div>
           </div>
         </div>
 
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DURATA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.durationTitle}</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="edit-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
+              <label htmlFor="edit-hours" className="block text-xs text-gray-400 mb-1">{log.form.hoursLabel}</label>
               <input
                 id="edit-hours"
                 type="number"
                 {...register('hours', {
-                  min: { value: 0, message: 'Non può essere negativa' },
-                  max: { value: 12, message: 'Massimo 12 ore' },
+                  min: { value: 0, message: log.form.validation.hoursNotNegative },
+                  max: { value: 12, message: log.form.validation.hoursMax },
                 })}
                 className="input-dark"
                 min={0}
@@ -210,14 +227,14 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               />
             </div>
             <div>
-              <label htmlFor="edit-minutes" className="block text-xs text-gray-400 mb-1">Minuti</label>
+              <label htmlFor="edit-minutes" className="block text-xs text-gray-400 mb-1">{log.form.minutesLabel}</label>
               <input
                 id="edit-minutes"
                 type="number"
                 {...register('minutes', {
-                  min: { value: 0, message: 'Non possono essere negativi' },
-                  max: { value: 59, message: 'Massimo 59 minuti' },
-                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || 'Inserisci una durata maggiore di zero',
+                  min: { value: 0, message: log.form.validation.minutesNotNegative },
+                  max: { value: 59, message: log.form.validation.minutesMax },
+                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || log.form.validation.minutesDurationZero,
                 })}
                 className="input-dark"
                 min={0}
@@ -230,34 +247,41 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           )}
         </div>
 
+        {activity.gps_tracked && routePoints.length >= 2 && (
+          <div className="card space-y-2">
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.routeTitle}</h2>
+            <RouteShape points={routePoints} width={280} height={140} />
+          </div>
+        )}
+
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DETTAGLI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.detailsTitle}</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="edit-calories" className="block text-xs text-gray-400 mb-1">Calorie</label>
+              <label htmlFor="edit-calories" className="block text-xs text-gray-400 mb-1">{log.edit.caloriesLabel}</label>
               <input
                 id="edit-calories"
                 type="number"
                 {...register('calories', {
-                  min: { value: 0, message: 'Non possono essere negative' },
-                  max: { value: 20000, message: 'Valore non realistico' },
+                  min: { value: 0, message: log.form.validation.caloriesNotNegative },
+                  max: { value: 20000, message: log.form.validation.unrealisticValue },
                 })}
                 className="input-dark"
-                placeholder="auto"
+                placeholder={log.edit.caloriesPlaceholder}
                 min={0}
               />
               {errors.calories && <p className="text-xs text-red-400 mt-1">{errors.calories.message}</p>}
             </div>
             {showDist && (
               <div>
-                <label htmlFor="edit-distance" className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
+                <label htmlFor="edit-distance" className="block text-xs text-gray-400 mb-1">{log.form.distanceLabel}</label>
                 <input
                   id="edit-distance"
                   type="number"
                   step="0.01"
                   {...register('distance_km', {
-                    min: { value: 0, message: 'Non può essere negativa' },
-                    max: { value: 1000, message: 'Valore non realistico' },
+                    min: { value: 0, message: log.form.validation.distanceNotNegative },
+                    max: { value: 1000, message: log.form.validation.unrealisticValue },
                   })}
                   className="input-dark"
                   min={0}
@@ -268,12 +292,12 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           </div>
 
           <div>
-            <label htmlFor="edit-notes" className="block text-xs text-gray-400 mb-1">Note</label>
+            <label htmlFor="edit-notes" className="block text-xs text-gray-400 mb-1">{log.edit.notesLabel}</label>
             <textarea id="edit-notes" {...register('notes')} className="input-dark resize-none" rows={2} />
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-1">Foto</p>
+            <p className="text-xs text-gray-400 mb-1">{log.edit.photoLabel}</p>
             <PhotoPickerField
               previewUrl={photoPreview}
               onSelect={(f) => { setPhotoFile(f); setPhotoRemoved(false) }}
@@ -297,7 +321,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             disabled={saving}
           >
             <Save size={16} />
-            {saving ? 'Salvataggio...' : 'Salva modifiche'}
+            {saving ? log.new.saving : log.edit.saveChanges}
           </button>
           <button
             type="button"
@@ -310,10 +334,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             style={confirmDelete ? { background: 'var(--red)' } : { border: '1px solid #7f1d1d' }}
           >
             <Trash2 size={16} />
-            {confirmDelete ? 'Conferma?' : 'Elimina'}
+            {confirmDelete ? common.confirmQuestion : common.delete}
           </button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body,
   )
 }

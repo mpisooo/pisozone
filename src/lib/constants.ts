@@ -49,6 +49,73 @@ export function calcCalories(
   return Math.round(MET[type] * weightKg * (durationMin / 60) * genderFactor)
 }
 
+export type GpsTrackableType = 'corsa' | 'bici' | 'camminata'
+
+// Attività idonee al tracciamento GPS: outdoor, telefono trasportabile,
+// distanza rilevante. Escluse nuoto (impossibile portare il telefono) e
+// motocross (non ha senso portarlo mentre si guida) anche se in
+// ACTIVITY_OPTIONS hanno hasDist: true per l'inserimento manuale.
+export const GPS_TRACKABLE_TYPES: GpsTrackableType[] = ['corsa', 'bici', 'camminata']
+
+// MET per fascia di velocità media (km/h), valori approssimati dal Compendium
+// of Physical Activities: a parità di durata, correre a 8 km/h e a 16 km/h
+// bruciano calorie molto diverse, cosa che il MET fisso di calcCalories non
+// distingue. Ogni voce copre "fino a maxKmh compreso"; l'ultima (Infinity)
+// copre tutto ciò che sta sopra la soglia precedente.
+const SPEED_MET_TABLE: Record<GpsTrackableType, { maxKmh: number; met: number }[]> = {
+  camminata: [
+    { maxKmh: 3.2, met: 2.0 },
+    { maxKmh: 4.7, met: 2.8 },
+    { maxKmh: 5.5, met: 3.3 },
+    { maxKmh: 6.4, met: 4.3 },
+    { maxKmh: 7.2, met: 5.0 },
+    { maxKmh: Infinity, met: 6.3 },
+  ],
+  corsa: [
+    { maxKmh: 8.0, met: 6.0 },
+    { maxKmh: 9.6, met: 8.3 },
+    { maxKmh: 10.8, met: 9.0 },
+    { maxKmh: 11.3, met: 9.8 },
+    { maxKmh: 12.9, met: 10.5 },
+    { maxKmh: 14.5, met: 11.0 },
+    { maxKmh: 16.1, met: 11.8 },
+    { maxKmh: 17.7, met: 12.8 },
+    { maxKmh: 19.3, met: 14.5 },
+    { maxKmh: Infinity, met: 16.0 },
+  ],
+  bici: [
+    { maxKmh: 16.0, met: 4.0 },
+    { maxKmh: 19.3, met: 6.8 },
+    { maxKmh: 22.5, met: 8.0 },
+    { maxKmh: 25.7, met: 10.0 },
+    { maxKmh: 30.6, met: 12.0 },
+    { maxKmh: Infinity, met: 15.8 },
+  ],
+}
+
+function metForSpeed(type: GpsTrackableType, avgSpeedKmh: number): number {
+  const table = SPEED_MET_TABLE[type]
+  return (table.find((bracket) => avgSpeedKmh <= bracket.maxKmh) ?? table[table.length - 1]).met
+}
+
+// Come calcCalories, ma con il MET derivato dalla velocità media invece che
+// fisso — usata per le attività registrate con il tracciamento GPS. Se la
+// velocità non è valida (sessione troppo corta, GPS mai agganciato), ricade
+// sul MET fisso così c'è sempre un valore.
+export function calcCaloriesFromSpeed(
+  type: GpsTrackableType,
+  durationMin: number,
+  avgSpeedKmh: number,
+  weightKg: number,
+  gender?: 'male' | 'female' | null,
+): number {
+  if (!Number.isFinite(avgSpeedKmh) || avgSpeedKmh <= 0) {
+    return calcCalories(type, durationMin, weightKg, gender)
+  }
+  const genderFactor = gender === 'female' ? 0.9 : 1.0
+  return Math.round(metForSpeed(type, avgSpeedKmh) * weightKg * (durationMin / 60) * genderFactor)
+}
+
 export const MEDALS: MedalDefinition[] = [
   // BRONZE
   {

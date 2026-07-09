@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
-import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle, Satellite } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
-import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
+import { ACTIVITY_OPTIONS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { uploadActivityPhoto } from '../lib/activityPhotos'
 import PhotoPickerField from '../components/PhotoPickerField'
+import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
+import log from '../lib/i18n/log'
 import type { ActivityType } from '../types'
 
 type FormValues = {
@@ -30,6 +32,8 @@ export default function LogPage() {
   const [saving, setSaving] = useState(false)
   const [showCalInfo, setShowCalInfo] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [tracking, setTracking] = useState(false)
+  const [routeWarning, setRouteWarning] = useState(false)
 
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -134,7 +138,7 @@ export default function LogPage() {
   return (
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
       <div className="pt-2">
-        <span className="font-bebas text-4xl text-white tracking-widest">REGISTRA ATTIVITÀ</span>
+        <span className="font-bebas text-4xl text-white tracking-widest">{log.newActivityTitle}</span>
         <div className="header-accent" />
       </div>
 
@@ -142,7 +146,7 @@ export default function LogPage() {
 
         {/* Activity type grid */}
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">TIPO DI ATTIVITÀ</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{log.form.activityTypeTitle}</h2>
           <div className="grid grid-cols-5 gap-2">
             {ACTIVITY_OPTIONS.map((opt) => {
               const isSelected = selectedType === opt.value
@@ -170,16 +174,27 @@ export default function LogPage() {
           </div>
         </div>
 
+        {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && (
+          <button
+            type="button"
+            onClick={() => setTracking(true)}
+            className="btn-primary w-full flex items-center justify-center gap-2"
+          >
+            <Satellite size={18} />
+            {log.gpsButton}
+          </button>
+        )}
+
         {/* Date & Time */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATA E ORA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.dateTimeTitle}</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <label htmlFor="log-date" className="block text-xs text-gray-400 mb-1">Data</label>
+              <label htmlFor="log-date" className="block text-xs text-gray-400 mb-1">{log.form.dateLabel}</label>
               <input id="log-date" type="date" {...register('date', { required: true })} className="input-dark w-full" />
             </div>
             <div className="min-w-0">
-              <label htmlFor="log-time" className="block text-xs text-gray-400 mb-1">Ora</label>
+              <label htmlFor="log-time" className="block text-xs text-gray-400 mb-1">{log.form.timeLabel}</label>
               <input id="log-time" type="time" {...register('time')} className="input-dark w-full" />
             </div>
           </div>
@@ -187,16 +202,16 @@ export default function LogPage() {
 
         {/* Duration */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DURATA</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.durationTitle}</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="log-hours" className="block text-xs text-gray-400 mb-1">Ore</label>
+              <label htmlFor="log-hours" className="block text-xs text-gray-400 mb-1">{log.form.hoursLabel}</label>
               <input
                 id="log-hours"
                 type="number"
                 {...register('hours', {
-                  min: { value: 0, message: 'Non può essere negativa' },
-                  max: { value: 12, message: 'Massimo 12 ore' },
+                  min: { value: 0, message: log.form.validation.hoursNotNegative },
+                  max: { value: 12, message: log.form.validation.hoursMax },
                 })}
                 className="input-dark"
                 min={0}
@@ -204,14 +219,14 @@ export default function LogPage() {
               />
             </div>
             <div>
-              <label htmlFor="log-minutes" className="block text-xs text-gray-400 mb-1">Minuti</label>
+              <label htmlFor="log-minutes" className="block text-xs text-gray-400 mb-1">{log.form.minutesLabel}</label>
               <input
                 id="log-minutes"
                 type="number"
                 {...register('minutes', {
-                  min: { value: 0, message: 'Non possono essere negativi' },
-                  max: { value: 59, message: 'Massimo 59 minuti' },
-                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || 'Inserisci una durata maggiore di zero',
+                  min: { value: 0, message: log.form.validation.minutesNotNegative },
+                  max: { value: 59, message: log.form.validation.minutesMax },
+                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || log.form.validation.minutesDurationZero,
                 })}
                 className="input-dark"
                 min={0}
@@ -221,7 +236,7 @@ export default function LogPage() {
           </div>
           {durationMin > 0 && (
             <p className="text-xs text-gray-400">
-              Totale: <span className="text-white font-medium">{hours}h {minutes < 10 ? '0' + minutes : minutes}min</span>
+              {log.new.durationTotalPrefix} <span className="text-white font-medium">{hours}h {minutes < 10 ? '0' + minutes : minutes}min</span>
             </p>
           )}
           {(errors.hours || errors.minutes) && (
@@ -231,44 +246,44 @@ export default function LogPage() {
 
         {/* Calories & Distance */}
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DETTAGLI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.detailsTitle}</h2>
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="log-calories" className="text-xs text-gray-400">
-                Calorie bruciate
+                {log.new.caloriesLabel}
                 {autoCalories && caloriesInput === '' && (
-                  <span className="ml-2 text-gray-500">(auto: ~{autoCalories} kcal)</span>
+                  <span className="ml-2 text-gray-500">{log.new.caloriesAutoHint(autoCalories)}</span>
                 )}
               </label>
               <button
                 type="button"
                 onClick={() => setShowCalInfo(v => !v)}
                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-[var(--red)] transition-colors"
-                aria-label="Come vengono calcolate le calorie"
+                aria-label={log.new.calorieInfoAriaLabel}
               >
                 <Info size={13} />
-                <span>Come si calcola?</span>
+                <span>{log.new.calorieInfoToggle}</span>
                 {showCalInfo ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
             </div>
 
             {showCalInfo && (
               <div className="rounded-lg p-3 mb-2 text-xs space-y-2 bg-[var(--grey)] border border-[var(--grey-light)]">
-                <p className="font-semibold text-[var(--red)]">Stima basata sul MET</p>
+                <p className="font-semibold text-[var(--red)]">{log.new.calorieInfo.heading}</p>
                 <p className="text-gray-400 leading-relaxed">
-                  Il calcolo usa la formula standard dell&apos;equivalente metabolico (MET):
+                  {log.new.calorieInfo.intro}
                 </p>
                 <div className="font-mono text-center py-1.5 rounded bg-[var(--grey-dark)] text-gray-300">
-                  kcal = MET × peso (kg) × durata (ore)
+                  {log.new.calorieInfo.formula}
                 </div>
                 <ul className="text-gray-400 space-y-1 leading-relaxed">
-                  <li><span className="text-white">MET</span> — intensità dell&apos;attività (es. corsa = 9.8, yoga = 2.5, nuoto = 8.0)</li>
-                  <li><span className="text-white">Peso</span> — preso dal tuo profilo{profile?.weight_kg ? ` (${profile.weight_kg} kg)` : ' — impostalo nel Profilo per attivare il calcolo auto'}</li>
-                  <li><span className="text-white">Durata</span> — ore inserite nella sezione DURATA</li>
-                  <li><span className="text-white">Sesso</span> — {profile?.gender ? (profile.gender === 'female' ? 'femmina (−10% kcal per composizione corporea)' : 'maschio') : 'non impostato — aggiungilo nel Profilo per una stima più precisa'}</li>
+                  <li><span className="text-white">{log.new.calorieInfo.metLabel}</span> — {log.new.calorieInfo.metDesc}</li>
+                  <li><span className="text-white">{log.new.calorieInfo.weightLabel}</span> — {log.new.calorieInfo.weightDesc(profile?.weight_kg)}</li>
+                  <li><span className="text-white">{log.new.calorieInfo.durationLabel}</span> — {log.new.calorieInfo.durationDesc}</li>
+                  <li><span className="text-white">{log.new.calorieInfo.genderLabel}</span> — {log.new.calorieInfo.genderDesc(profile?.gender)}</li>
                 </ul>
                 <p className="text-gray-500 leading-relaxed">
-                  È una <span className="text-gray-400">stima</span>: il valore reale dipende dall&apos;intensità effettiva, dalla frequenza cardiaca e dalla tua forma fisica. Puoi sempre sovrascriverlo manualmente.
+                  {log.new.calorieInfo.estimateBefore}<span className="text-gray-400">{log.new.calorieInfo.estimateEmphasis}</span>{log.new.calorieInfo.estimateAfter}
                 </p>
               </div>
             )}
@@ -277,11 +292,11 @@ export default function LogPage() {
               id="log-calories"
               type="number"
               {...register('calories', {
-                min: { value: 0, message: 'Non possono essere negative' },
-                max: { value: 20000, message: 'Valore non realistico' },
+                min: { value: 0, message: log.form.validation.caloriesNotNegative },
+                max: { value: 20000, message: log.form.validation.unrealisticValue },
               })}
               className="input-dark"
-              placeholder={autoCalories ? `~${autoCalories} (calcolato auto)` : 'es. 350'}
+              placeholder={autoCalories ? log.new.caloriesPlaceholderAuto(autoCalories) : log.new.caloriesPlaceholderManual}
               min={0}
             />
             {errors.calories && <p className="text-xs text-red-400 mt-1">{errors.calories.message}</p>}
@@ -289,17 +304,17 @@ export default function LogPage() {
 
           {showDist && (
             <div>
-              <label htmlFor="log-distance" className="block text-xs text-gray-400 mb-1">Distanza (km)</label>
+              <label htmlFor="log-distance" className="block text-xs text-gray-400 mb-1">{log.form.distanceLabel}</label>
               <input
                 id="log-distance"
                 type="number"
                 step="0.01"
                 {...register('distance_km', {
-                  min: { value: 0, message: 'Non può essere negativa' },
-                  max: { value: 1000, message: 'Valore non realistico' },
+                  min: { value: 0, message: log.form.validation.distanceNotNegative },
+                  max: { value: 1000, message: log.form.validation.unrealisticValue },
                 })}
                 className="input-dark"
-                placeholder="es. 5.4"
+                placeholder={log.new.distancePlaceholder}
                 min={0}
               />
               {errors.distance_km && <p className="text-xs text-red-400 mt-1">{errors.distance_km.message}</p>}
@@ -307,25 +322,25 @@ export default function LogPage() {
           )}
 
           <div>
-            <label htmlFor="log-notes" className="block text-xs text-gray-400 mb-1">Note (opzionale)</label>
+            <label htmlFor="log-notes" className="block text-xs text-gray-400 mb-1">{log.new.notesLabel}</label>
             <textarea
               id="log-notes"
               {...register('notes')}
               className="input-dark resize-none"
               rows={3}
-              placeholder="Come ti sei sentito? Dettagli dell'allenamento..."
+              placeholder={log.new.notesPlaceholder}
             />
           </div>
 
           <div>
-            <p className="text-xs text-gray-400 mb-1">Foto (opzionale)</p>
+            <p className="text-xs text-gray-400 mb-1">{log.new.photoLabel}</p>
             <PhotoPickerField
               previewUrl={photoPreview}
               onSelect={setPhotoFile}
               onClear={() => setPhotoFile(null)}
               inputId="log-photo"
             />
-            <p className="text-[10px] text-gray-600 mt-1">Sarà visibile ai tuoi amici nel feed.</p>
+            <p className="text-[10px] text-gray-600 mt-1">{log.new.photoHint}</p>
           </div>
         </div>
 
@@ -337,24 +352,42 @@ export default function LogPage() {
           {saving ? (
             <>
               <div className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-              Salvataggio...
+              {log.new.saving}
             </>
           ) : (
             <>
               <Zap size={22} fill="currentColor" />
-              Salva attività
+              {log.new.save}
             </>
           )}
         </button>
       </form>
 
+      {tracking && (
+        <WorkoutTrackingOverlay
+          activityType={selectedType as GpsTrackableType}
+          addActivity={addActivity}
+          onClose={() => setTracking(false)}
+          onSaved={(credits) => {
+            setTracking(false)
+            setCreditsEarned(credits)
+            setSaved(true)
+            setTimeout(() => setSaved(false), 2500)
+          }}
+          onSaveWarning={() => {
+            setRouteWarning(true)
+            setTimeout(() => setRouteWarning(false), 4000)
+          }}
+        />
+      )}
+
       {saved && (
         <div className="toast-enter toast-saved flex items-center gap-3">
           <CheckCircle2 size={22} className="text-green-400 shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">Attività salvata!</p>
+            <p className="text-white font-semibold text-sm">{log.new.savedToast.title}</p>
             <p className="text-green-400 text-xs">
-              {creditsEarned > 0 ? `+${creditsEarned} 💎 crediti guadagnati` : 'Continua così 💪'}
+              {creditsEarned > 0 ? log.new.savedToast.credits(creditsEarned) : log.new.savedToast.noCredits}
             </p>
           </div>
         </div>
@@ -364,8 +397,8 @@ export default function LogPage() {
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">Salvataggio non riuscito</p>
-            <p className="text-[var(--red)] text-xs">Controlla la connessione e riprova</p>
+            <p className="text-white font-semibold text-sm">{log.new.errorToast.title}</p>
+            <p className="text-[var(--red)] text-xs">{log.new.errorToast.body}</p>
           </div>
         </div>
       )}
@@ -374,8 +407,18 @@ export default function LogPage() {
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">Attività salvata, ma foto non caricata</p>
-            <p className="text-[var(--red)] text-xs">Riprova dal calendario, modificando l'attività</p>
+            <p className="text-white font-semibold text-sm">{log.new.photoWarningToast.title}</p>
+            <p className="text-[var(--red)] text-xs">{log.new.photoWarningToast.body}</p>
+          </div>
+        </div>
+      )}
+
+      {routeWarning && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">{log.new.routeWarningToast.title}</p>
+            <p className="text-[var(--red)] text-xs">{log.new.routeWarningToast.body}</p>
           </div>
         </div>
       )}
