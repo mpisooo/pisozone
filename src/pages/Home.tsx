@@ -19,6 +19,18 @@ import PushNotificationPrompt from '../components/PushNotificationPrompt'
 import PisoRing from '../components/PisoRing'
 import home from '../lib/i18n/home'
 
+// Etichetta di capitolo: raggruppa la Home in una storia leggibile scorrendo
+// (roadmap v2, pilastro 01 punto 6) invece di una pila indifferenziata di
+// card. Va sopra sezioni il cui contenuto non è già autoesplicativo dal
+// titolo della card stessa.
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] text-gray-600 tracking-[0.2em] uppercase font-semibold px-1">
+      {children}
+    </p>
+  )
+}
+
 export default function HomePage() {
   const { user } = useAuth()
   const { profile, loading: profileLoading, refetch: refetchProfile, updateProfile } = useProfile()
@@ -131,7 +143,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
+    <div className="page-enter relative p-4 pb-24 space-y-4 max-w-lg mx-auto">
+      {/* Bagliore ambientale: la Home come vetrina dell'identità */}
+      <div className="hero-glow" aria-hidden="true" />
+
       {/* Greeting */}
       <div className="pt-2">
         <p className="text-gray-500 text-sm capitalize">{todayLabel}</p>
@@ -232,144 +247,153 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Last activity */}
-      {lastActivity && lastOpt ? (
-        <button
-          type="button"
-          className="card w-full text-left"
-          onClick={() => navigate('/calendar')}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
-            <ChevronRight size={16} className="text-gray-600" />
-          </div>
-          <div className="flex items-center gap-3">
-            <span
-              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-              style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
-            >
-              {lastOpt.emoji}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white">{lastOpt.label}</p>
-              <p className="text-xs text-gray-400">
-                {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
+      {/* Attività recente */}
+      <div className="space-y-2">
+        <SectionLabel>{home.sections.recent}</SectionLabel>
+        {lastActivity && lastOpt ? (
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/calendar')}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
+              <ChevronRight size={16} className="text-gray-600" />
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
+              >
+                {lastOpt.emoji}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-white">{lastOpt.label}</p>
+                <p className="text-xs text-gray-400">
+                  {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
+                </p>
+              </div>
+              <p className="text-xs text-gray-500 flex-shrink-0">
+                {format(parseISO(lastActivity.date), 'd MMM', { locale: it })}
               </p>
             </div>
-            <p className="text-xs text-gray-500 flex-shrink-0">
-              {format(parseISO(lastActivity.date), 'd MMM', { locale: it })}
+          </button>
+        ) : (
+          <div className="card text-center py-10">
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center text-7xl mx-auto mb-4"
+              style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
+            >
+              🏋️
+            </div>
+            <p className="font-bebas text-2xl text-white tracking-wider mb-1">{home.emptyState.title}</p>
+            <p className="text-gray-500 text-sm mb-5 leading-relaxed">
+              {home.emptyState.body}
             </p>
+            <button className="btn-primary px-8 py-2.5 text-sm" onClick={() => navigate('/log')}>
+              {home.emptyState.cta}
+            </button>
           </div>
-        </button>
-      ) : (
-        <div className="card text-center py-10">
-          <div
-            className="w-28 h-28 rounded-full flex items-center justify-center text-7xl mx-auto mb-4"
-            style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
+        )}
+      </div>
+
+      {/* Il tuo percorso: medaglia più vicina */}
+      {nearestMedal && (
+        <div className="space-y-2">
+          <SectionLabel>{home.sections.progress}</SectionLabel>
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/medals')}
           >
-            🏋️
-          </div>
-          <p className="font-bebas text-2xl text-white tracking-wider mb-1">{home.emptyState.title}</p>
-          <p className="text-gray-500 text-sm mb-5 leading-relaxed">
-            {home.emptyState.body}
-          </p>
-          <button className="btn-primary px-8 py-2.5 text-sm" onClick={() => navigate('/log')}>
-            {home.emptyState.cta}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Trophy size={14} className="text-[var(--red)]" />
+                <span className="text-xs text-gray-400">{home.nearestMedal.title}</span>
+              </div>
+              <ChevronRight size={16} className="text-gray-600" />
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: 'rgba(250,204,21,0.12)' }}
+              >
+                {nearestMedal.medal.icon}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bebas text-lg text-white leading-tight">{nearestMedal.medal.name}</p>
+                <p className="text-xs text-gray-400 truncate">{nearestMedal.medal.description}</p>
+                <div className="progress-track mt-1.5 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${nearestMedal.pct * 100}%`,
+                      background: 'linear-gradient(90deg,var(--red),#FF5E63)',
+                      transition: 'width 0.7s',
+                    }}
+                  />
+                </div>
+              </div>
+              <span className="font-bebas text-xl text-[var(--red)] flex-shrink-0">
+                {Math.round(nearestMedal.pct * 100)}%
+              </span>
+            </div>
           </button>
         </div>
       )}
 
-      {/* Nearest medal */}
-      {nearestMedal && (
-        <button
-          type="button"
-          className="card w-full text-left"
-          onClick={() => navigate('/medals')}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Trophy size={14} className="text-[var(--red)]" />
-              <span className="text-xs text-gray-400">{home.nearestMedal.title}</span>
-            </div>
-            <ChevronRight size={16} className="text-gray-600" />
-          </div>
-          <div className="flex items-center gap-3">
-            <span
-              className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-              style={{ background: 'rgba(250,204,21,0.12)' }}
-            >
-              {nearestMedal.medal.icon}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="font-bebas text-lg text-white leading-tight">{nearestMedal.medal.name}</p>
-              <p className="text-xs text-gray-400 truncate">{nearestMedal.medal.description}</p>
-              <div className="progress-track mt-1.5 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${nearestMedal.pct * 100}%`,
-                    background: 'linear-gradient(90deg,var(--red),#FF5E63)',
-                    transition: 'width 0.7s',
-                  }}
-                />
+      {/* La tua cerchia: classifica settimanale */}
+      <div className="space-y-2">
+        <SectionLabel>{home.sections.circle}</SectionLabel>
+        {hasFriends ? (
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/social', { state: { tab: 'classifica' } })}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-[var(--red)]" />
+                <span className="text-xs text-gray-400">{home.leaderboard.title}</span>
               </div>
+              <ChevronRight size={16} className="text-gray-600" />
             </div>
-            <span className="font-bebas text-xl text-[var(--red)] flex-shrink-0">
-              {Math.round(nearestMedal.pct * 100)}%
-            </span>
-          </div>
-        </button>
-      )}
-
-      {/* Leaderboard settimanale */}
-      {hasFriends ? (
-        <button
-          type="button"
-          className="card w-full text-left"
-          onClick={() => navigate('/social', { state: { tab: 'classifica' } })}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Users size={14} className="text-[var(--red)]" />
-              <span className="text-xs text-gray-400">{home.leaderboard.title}</span>
+            <div className="space-y-2">
+              {lbEntries.slice(0, 3).map((entry, i) => (
+                <div key={entry.user_id} className="flex items-center gap-3">
+                  <span className={`font-bebas text-lg w-5 text-center ${i === 0 ? 'text-[var(--red)]' : 'text-gray-500'}`}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
+                      {entry.username}{entry.isMe ? home.leaderboard.youSuffix : ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-white">{home.leaderboard.caloriesLabel(entry.calories)}</p>
+                    <p className="text-xs text-gray-500">{home.leaderboard.sessionsLabel(entry.count)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <ChevronRight size={16} className="text-gray-600" />
-          </div>
-          <div className="space-y-2">
-            {lbEntries.slice(0, 3).map((entry, i) => (
-              <div key={entry.user_id} className="flex items-center gap-3">
-                <span className={`font-bebas text-lg w-5 text-center ${i === 0 ? 'text-[var(--red)]' : 'text-gray-500'}`}>
-                  {i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
-                    {entry.username}{entry.isMe ? home.leaderboard.youSuffix : ''}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{home.leaderboard.caloriesLabel(entry.calories)}</p>
-                  <p className="text-xs text-gray-500">{home.leaderboard.sessionsLabel(entry.count)}</p>
-                </div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/social', { state: { tab: 'friends' } })}
+          >
+            <div className="flex items-center gap-3">
+              <Users size={22} className="text-gray-700 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-400">{home.leaderboard.addFriendsTitle}</p>
+                <p className="text-xs text-gray-600">{home.leaderboard.addFriendsBody}</p>
               </div>
-            ))}
-          </div>
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="card w-full text-left"
-          onClick={() => navigate('/social', { state: { tab: 'friends' } })}
-        >
-          <div className="flex items-center gap-3">
-            <Users size={22} className="text-gray-700 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-gray-400">{home.leaderboard.addFriendsTitle}</p>
-              <p className="text-xs text-gray-600">{home.leaderboard.addFriendsBody}</p>
+              <ChevronRight size={16} className="text-gray-600 ml-auto flex-shrink-0" />
             </div>
-            <ChevronRight size={16} className="text-gray-600 ml-auto flex-shrink-0" />
-          </div>
-        </button>
-      )}
+          </button>
+        )}
+      </div>
 
       {/* Daily challenges widget */}
       <button

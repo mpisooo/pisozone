@@ -225,6 +225,18 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .heatmap-3  { background: rgba(var(--accent-rgb), 0.75); }
 .heatmap-4  { background: rgba(var(--accent-rgb), 1); }
 
+/* ── Home "eroe": bagliore ambientale in cima alla pagina, dietro al saluto
+   e al PisoRing — la prima schermata come vetrina (roadmap v2, pilastro 01
+   punto 6). Puramente decorativo, va sotto ai contenuti in flusso. ── */
+.hero-glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 320px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 60% at 50% 0%, rgba(var(--accent-rgb), 0.12), transparent 70%);
+}
+
 /* ── Spettro Zone: motivo firma, riusato ovunque serva rappresentare
    l'intensità (barre, anelli, glow). Unica fonte visiva: chi vuole lo stesso
    gradiente in JS/inline style usa ZONE_SPECTRUM_GRADIENT da lib/zones.ts. ── */

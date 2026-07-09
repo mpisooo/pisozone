@@ -34,6 +34,16 @@ const home = {
       `Obiettivo settimanale: ${sessions} su ${goal} sessioni. Calorie di oggi: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'giorno' : 'giorni'}.`,
   },
 
+  // Etichette dei "capitoli" che raggruppano la Home in una storia leggibile
+  // scorrendo (roadmap v2, pilastro 01 punto 6): il colpo d'occhio del
+  // PisoRing, poi il dettaglio. Niente etichetta per le sfide di oggi: il
+  // titolo della card ("Sfide di oggi") la renderebbe ridondante.
+  sections: {
+    recent: 'Attività recente',
+    progress: 'Il tuo percorso',
+    circle: 'La tua cerchia',
+  },
+
   lastActivity: {
     title: 'Ultima attività',
     meta: (durationMin: number, calories: number | null | undefined, distanceKm: number | null | undefined) =>
