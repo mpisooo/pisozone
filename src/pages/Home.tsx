@@ -12,9 +12,11 @@ import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { calcStreak } from '../lib/challenges'
+import { getZoneByPercent } from '../lib/zones'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
+import PisoRing from '../components/PisoRing'
 import home from '../lib/i18n/home'
 
 export default function HomePage() {
@@ -76,8 +78,8 @@ export default function HomePage() {
     [activities, weekStart]
   )
   const weeklyGoal = profile?.weekly_goal ?? 3
-  const weekPct = Math.min((weekActivities.length / weeklyGoal) * 100, 100)
-  const weekDone = weekPct >= 100
+  const weekPctRaw = weeklyGoal > 0 ? (weekActivities.length / weeklyGoal) * 100 : 0
+  const weekDone = weekActivities.length >= weeklyGoal
 
   const todayPrefix = format(new Date(), 'yyyy-MM-dd')
   const todayActivities = useMemo(
@@ -86,6 +88,15 @@ export default function HomePage() {
   )
   const todayCalories = todayActivities.reduce((s, a) => s + (a.calories ?? 0), 0)
   const dailyCalGoal = profile?.daily_calorie_goal ?? null
+  const calPctRaw = dailyCalGoal ? (todayCalories / dailyCalGoal) * 100 : 0
+  const calDone = dailyCalGoal != null && todayCalories >= dailyCalGoal
+
+  // PisoRing: cap visivo dello streak a 30 giorni, la stessa soglia della
+  // medaglia diamante "Inarrestabile" — un anello pieno è un traguardo raro.
+  const streakPctRaw = Math.min((streak / 30) * 100, 100)
+  const weekZone = getZoneByPercent(weekPctRaw)
+  const calZone = getZoneByPercent(calPctRaw)
+  const streakZone = getZoneByPercent(streakPctRaw)
 
   const lastActivity = activities[0] ?? null
   const lastOpt = lastActivity ? ACTIVITY_OPTIONS.find((o) => o.value === lastActivity.type) : null
@@ -131,43 +142,58 @@ export default function HomePage() {
         <div className="header-accent" />
       </div>
 
-      {/* Streak + Weekly goal */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card flex items-center gap-3">
-          <Flame
-            size={30}
-            className="text-[var(--red)] flex-shrink-0"
-            style={{ filter: streak > 0 ? 'drop-shadow(0 0 8px var(--red))' : 'none' }}
-          />
-          <div>
-            <p className="font-bebas text-4xl text-white leading-none">{streak}</p>
-            <p className="text-xs text-gray-400 leading-tight">
-              {home.streakUnit(streak)}
-            </p>
-          </div>
-        </div>
+      {/* PisoRing: obiettivo settimanale, calorie di oggi e streak in un solo sguardo */}
+      <div className="card flex flex-col items-center py-6">
+        <PisoRing
+          rings={[
+            { key: 'week', pct: weekPctRaw, color: weekZone.cssVar },
+            { key: 'cal', pct: dailyCalGoal ? calPctRaw : 0, color: calZone.cssVar },
+            { key: 'streak', pct: streakPctRaw, color: streakZone.cssVar },
+          ]}
+          srSummary={home.ring.srSummary(weekActivities.length, weeklyGoal, todayCalories, streak)}
+          center={
+            <>
+              <span className="font-bebas text-4xl text-white leading-none">
+                {Math.round(weekPctRaw)}<span className="text-lg text-gray-500">%</span>
+              </span>
+              <span className="text-[10px] text-gray-500 tracking-widest uppercase mt-1">{home.ring.centerLabel}</span>
+            </>
+          }
+        />
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400">{home.weeklyGoalLabel}</p>
-            <span className={`text-xs font-semibold ${weekDone ? 'text-green-400' : 'text-[var(--red)]'}`}>
-              {weekActivities.length}/{weeklyGoal}
+        <p className={`text-xs mt-4 ${weekDone ? 'text-green-400' : 'text-gray-500'}`}>
+          {weekDone ? home.weekGoalReached : home.weekGoalRemaining(weeklyGoal - weekActivities.length)}
+        </p>
+
+        <div className="w-full grid gap-2.5 mt-4">
+          <div className="flex items-center gap-2.5">
+            <Target size={15} style={{ color: weekZone.cssVar }} className="flex-shrink-0" />
+            <span className="text-xs text-gray-400 flex-1 truncate">{home.weeklyGoalLabel}</span>
+            <span className="text-xs font-semibold text-white flex-shrink-0">{weekActivities.length}/{weeklyGoal}</span>
+            {weekDone && <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />}
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Zap size={15} style={{ color: dailyCalGoal ? calZone.cssVar : 'var(--grey-light)' }} className="flex-shrink-0" />
+            <span className="text-xs text-gray-400 flex-1 truncate">{home.dailyCalorieGoal.title}</span>
+            <span className="text-xs font-semibold text-white flex-shrink-0">
+              {todayCalories}{dailyCalGoal ? home.dailyCalorieGoal.suffix(dailyCalGoal) : home.dailyCalorieGoal.noGoalSuffix}
             </span>
+            {calDone && <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />}
           </div>
-          <div className="progress-track h-2 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
+
+          <div className="flex items-center gap-2.5">
+            <Flame
+              size={15}
               style={{
-                width: `${weekPct}%`,
-                background: weekDone
-                  ? 'linear-gradient(90deg,#4ade80,#22c55e)'
-                  : 'linear-gradient(90deg,var(--red),#FF5E63)',
+                color: streakZone.cssVar,
+                filter: streak > 0 ? `drop-shadow(0 0 5px ${streakZone.cssVar})` : 'none',
               }}
+              className="flex-shrink-0"
             />
+            <span className="text-xs text-gray-400 flex-1 truncate">{home.ring.streakLabel}</span>
+            <span className="text-xs font-semibold text-white flex-shrink-0">{home.ring.streakDaysLabel(streak)}</span>
           </div>
-          <p className="text-xs text-gray-500 mt-1.5">
-            {weekDone ? home.weekGoalReached : home.weekGoalRemaining(weeklyGoal - weekActivities.length)}
-          </p>
         </div>
       </div>
 
@@ -203,37 +229,6 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Daily calorie goal */}
-      {dailyCalGoal !== null && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Zap size={15} className="text-[var(--red)]" />
-              <span className="text-sm font-medium text-gray-300">{home.dailyCalorieGoal.title}</span>
-            </div>
-            <span className="font-bebas text-lg text-white">
-              {todayCalories}
-              <span className="text-sm text-gray-500">{home.dailyCalorieGoal.suffix(dailyCalGoal)}</span>
-            </span>
-          </div>
-          <div className="progress-track h-2.5 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${Math.min((todayCalories / dailyCalGoal) * 100, 100)}%`,
-                background:
-                  todayCalories >= dailyCalGoal
-                    ? 'linear-gradient(90deg,#4ade80,#22c55e)'
-                    : 'linear-gradient(90deg,var(--red),#facc15)',
-              }}
-            />
-          </div>
-          {todayCalories >= dailyCalGoal && (
-            <p className="text-xs text-green-400 mt-1">{home.dailyCalorieGoal.reached}</p>
-          )}
         </div>
       )}
 

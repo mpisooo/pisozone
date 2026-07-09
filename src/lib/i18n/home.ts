@@ -22,7 +22,16 @@ const home = {
   dailyCalorieGoal: {
     title: 'Calorie bruciate oggi',
     suffix: (goal: number) => ` / ${goal} kcal`,
+    noGoalSuffix: ' kcal',
     reached: '🎉 Obiettivo calorico raggiunto!',
+  },
+
+  ring: {
+    centerLabel: 'Settimana',
+    streakLabel: 'Streak',
+    streakDaysLabel: (n: number) => (n === 1 ? '1 giorno' : `${n} giorni`),
+    srSummary: (sessions: number, goal: number, calories: number, streakDays: number) =>
+      `Obiettivo settimanale: ${sessions} su ${goal} sessioni. Calorie di oggi: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'giorno' : 'giorni'}.`,
   },
 
   lastActivity: {
