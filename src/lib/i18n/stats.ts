@@ -58,6 +58,11 @@ const stats = {
     heading: 'DISTRIBUZIONE ATTIVITÀ',
   },
 
+  zones: {
+    heading: 'SPETTRO DI INTENSITÀ',
+    subtitle: 'Come si distribuiscono i minuti allenati tra le zone di sforzo',
+  },
+
   weightTraining: {
     heading: 'PESO E ALLENAMENTO',
     subtitle: 'Peso medio e minuti di allenamento, settimana per settimana (ultime 12)',

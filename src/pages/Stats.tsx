@@ -13,7 +13,7 @@ import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
-  buildWeightTrainingSeries, activitiesToCsv,
+  buildWeightTrainingSeries, buildZoneDistribution, activitiesToCsv,
 } from '../lib/stats'
 import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
@@ -155,6 +155,10 @@ export default function StatsPage() {
       .sort((a, b) => b.value - a.value),
     [typeCounts]
   )
+
+  // Spettro di intensità: minuti per zona (lib/zones.ts), prima applicazione
+  // visibile del sistema Zone (roadmap v2, pillar 01)
+  const zoneData = useMemo(() => buildZoneDistribution(filtered), [filtered])
 
   // Records
   const longestSession = filtered.reduce((best, a) => a.duration_min > (best?.duration_min ?? 0) ? a : best, null as Activity | null)
@@ -368,6 +372,28 @@ export default function StatsPage() {
               <Legend wrapperStyle={{ fontSize: 12, color: legendColor }} />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Spettro di intensità */}
+      {filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.zones.heading}</h2>
+          <p className="text-xs text-gray-400 mb-3">{stats.zones.subtitle}</p>
+          <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
+            {zoneData.filter((z) => z.minutes > 0).map((z) => (
+              <div key={z.zoneId} style={{ width: `${z.pct}%`, background: z.cssVar }} />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
+            {zoneData.map((z) => (
+              <div key={z.zoneId} className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: z.cssVar }} />
+                <span className="text-xs text-gray-400 flex-1 truncate">{z.label}</span>
+                <span className="text-xs font-semibold text-white flex-shrink-0">{z.pct}%</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

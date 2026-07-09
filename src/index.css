@@ -21,6 +21,23 @@ html.light {
   --color-text: #111111;
 }
 
+/* ── Zone di intensità: scala semantica fissa (blu→verde→ambra→rosso), NON
+   segue l'accento dei 6 temi — stessa eccezione della scala BMI, perché qui
+   il colore comunica un significato (l'intensità dello sforzo), non lo
+   stile. Vedi lib/zones.ts per le soglie MET che le popolano. ── */
+:root {
+  --zone-1: #3B82F6;
+  --zone-2: #10B981;
+  --zone-3: #FBBF24;
+  --zone-4: #F44352;
+}
+html.light {
+  --zone-1: #2563EB;
+  --zone-2: #0EA968;
+  --zone-3: #CA8A04;
+  --zone-4: #E23140;
+}
+
 /* ── Base ── */
 * { box-sizing: border-box; }
 
@@ -166,6 +183,15 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .heatmap-2  { background: rgba(var(--accent-rgb), 0.5); }
 .heatmap-3  { background: rgba(var(--accent-rgb), 0.75); }
 .heatmap-4  { background: rgba(var(--accent-rgb), 1); }
+
+/* ── Spettro Zone: motivo firma, riusato ovunque serva rappresentare
+   l'intensità (barre, anelli, glow). Unica fonte visiva: chi vuole lo stesso
+   gradiente in JS/inline style usa ZONE_SPECTRUM_GRADIENT da lib/zones.ts. ── */
+.zone-spectrum {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+}
 
 
 /* ── Badge shine animation ── */

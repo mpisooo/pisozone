@@ -6,6 +6,7 @@ import { it } from 'date-fns/locale'
 import type { Activity } from '../types'
 import type { WeightLog } from '../types'
 import { ACTIVITY_OPTIONS } from './constants'
+import { ZONES, getZoneForActivity, type ZoneId } from './zones'
 import statsI18n from './i18n/stats'
 
 // Aggregazioni pure per la pagina Statistiche. Tutte le funzioni accettano
@@ -170,6 +171,38 @@ export function buildWeightTrainingSeries(
     minutes,
     weightKg: weightCount > 0 ? Math.round((weightSum / weightCount) * 10) / 10 : null,
   }))
+}
+
+// Distribuzione dei minuti allenati per zona di intensità (lib/zones.ts,
+// soglie derivate dal MET di ogni tipo di attività). Alimenta la barra
+// "spettro" della pagina Statistiche — prima applicazione visibile del
+// sistema Zone (roadmap v2, pillar 01).
+export interface ZoneDistributionPoint {
+  zoneId: ZoneId
+  label: string
+  cssVar: string
+  minutes: number
+  pct: number
+}
+
+export function buildZoneDistribution(activities: Activity[]): ZoneDistributionPoint[] {
+  const minutesByZone = new Map<ZoneId, number>(ZONES.map((z) => [z.id, 0]))
+  let totalMinutes = 0
+  for (const a of activities) {
+    const zone = getZoneForActivity(a.type)
+    minutesByZone.set(zone.id, (minutesByZone.get(zone.id) ?? 0) + a.duration_min)
+    totalMinutes += a.duration_min
+  }
+  return ZONES.map((z) => {
+    const minutes = minutesByZone.get(z.id) ?? 0
+    return {
+      zoneId: z.id,
+      label: z.label,
+      cssVar: z.cssVar,
+      minutes,
+      pct: totalMinutes > 0 ? Math.round((minutes / totalMinutes) * 100) : 0,
+    }
+  })
 }
 
 // Export CSV pensato per Excel/Sheets in italiano: separatore ";" e

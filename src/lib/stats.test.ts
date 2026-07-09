@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
-  buildWeightTrainingSeries, activitiesToCsv,
+  buildWeightTrainingSeries, buildZoneDistribution, activitiesToCsv,
 } from './stats'
 import type { Activity, ActivityType, WeightLog } from '../types'
 
@@ -168,6 +168,41 @@ describe('buildWeightTrainingSeries', () => {
       NOW,
     )
     expect(series.every((w) => w.weightKg === null && w.minutes === 0)).toBe(true)
+  })
+})
+
+describe('buildZoneDistribution', () => {
+  it('restituisce le 4 zone anche senza attività, tutte a zero', () => {
+    const dist = buildZoneDistribution([])
+    expect(dist).toHaveLength(4)
+    expect(dist.every((z) => z.minutes === 0 && z.pct === 0)).toBe(true)
+  })
+
+  it('somma i minuti per zona secondo il MET del tipo di attività', () => {
+    const acts = [
+      mkAct({ type: 'yoga' as ActivityType, duration_min: 40 }),       // Recupero
+      mkAct({ type: 'corsa' as ActivityType, duration_min: 30 }),      // Picco
+      mkAct({ type: 'corsa' as ActivityType, duration_min: 30 }),      // Picco
+    ]
+    const dist = buildZoneDistribution(acts)
+    const recupero = dist.find((z) => z.zoneId === 1)!
+    const picco = dist.find((z) => z.zoneId === 4)!
+    expect(recupero.minutes).toBe(40)
+    expect(picco.minutes).toBe(60)
+    expect(recupero.pct).toBe(40)
+    expect(picco.pct).toBe(60)
+  })
+
+  it('le percentuali sono coerenti (sommano vicino a 100, con arrotondamento)', () => {
+    const acts = [
+      mkAct({ type: 'yoga' as ActivityType, duration_min: 10 }),
+      mkAct({ type: 'palestra' as ActivityType, duration_min: 20 }),
+      mkAct({ type: 'corsa' as ActivityType, duration_min: 30 }),
+    ]
+    const dist = buildZoneDistribution(acts)
+    const totalPct = dist.reduce((s, z) => s + z.pct, 0)
+    expect(totalPct).toBeGreaterThanOrEqual(99)
+    expect(totalPct).toBeLessThanOrEqual(101)
   })
 })
 
