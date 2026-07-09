@@ -38,6 +38,27 @@ html.light {
   --zone-4: #E23140;
 }
 
+/* ── Materiali e profondità: gerarchia di elevazione + glow direzionale
+   sull'accento (roadmap v2, pilastro 01 punto 5). Le superfici scure hanno
+   anche un filo di luce interna in alto (tipico delle UI "materiali" scure);
+   quelle chiare restano ombre morbide classiche. --glow-accent deriva da
+   --accent-rgb: si adatta da solo ai 6 temi, nessuna variante light/dark. ── */
+:root {
+  --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.28);
+  --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 32px rgba(0, 0, 0, 0.35);
+  --shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 10px rgba(0, 0, 0, 0.4), 0 28px 56px rgba(0, 0, 0, 0.4);
+  --shadow-chrome-down: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --shadow-chrome-up: 0 -2px 16px rgba(0, 0, 0, 0.35);
+  --glow-accent: 0 4px 24px rgba(var(--accent-rgb), 0.45);
+}
+html.light {
+  --shadow-sm: 0 1px 2px rgba(20, 18, 22, 0.05), 0 6px 14px rgba(20, 18, 22, 0.05);
+  --shadow-md: 0 2px 4px rgba(20, 18, 22, 0.06), 0 14px 28px rgba(20, 18, 22, 0.07);
+  --shadow-lg: 0 4px 8px rgba(20, 18, 22, 0.07), 0 24px 48px rgba(20, 18, 22, 0.1);
+  --shadow-chrome-down: 0 2px 14px rgba(20, 18, 22, 0.12);
+  --shadow-chrome-up: 0 -2px 14px rgba(20, 18, 22, 0.12);
+}
+
 /* ── Base ── */
 * { box-sizing: border-box; }
 
@@ -74,10 +95,27 @@ html, body, #root {
   border-radius: 12px;
   padding: 1.25rem;
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
-html.light .card {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+/* Superficie "eroe": elevazione maggiore + mesh gradient dell'accento +
+   grana sottile (rumore SVG desaturato, "overlay" per restare simmetrico su
+   dark/light). Da usare con parsimonia sui momenti di punta di una pagina
+   (es. il PisoRing in Home), non come default di ogni card. */
+.card.card-hero {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background-image: radial-gradient(140% 90% at 100% -10%, rgba(var(--accent-rgb), 0.14), transparent 60%);
+}
+.card.card-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  pointer-events: none;
 }
 
 /* ── Red glow button ── */
@@ -91,10 +129,13 @@ html.light .card {
   border: none;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
+  /* Glow permanente, non solo su :hover — su mobile il tap non attraversa
+     mai lo stato hover, quindi il CTA principale restava piatto di default. */
+  box-shadow: var(--glow-accent);
 }
 .btn-primary:hover {
   background: var(--red-dark);
-  box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 6px 32px rgba(var(--accent-rgb), 0.6);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
@@ -297,7 +338,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 /* ── Save activity button ── */
 .btn-save {
   background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
-  box-shadow: 0 4px 24px rgba(var(--accent-rgb), 0.45);
+  box-shadow: var(--glow-accent);
 }
 .btn-save:disabled {
   background: var(--grey-light);
@@ -355,6 +396,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   background: var(--black);
   border-bottom: 1px solid var(--grey-dark);
   height: calc(52px + env(safe-area-inset-top));
+  box-shadow: var(--shadow-chrome-down);
 }
 .topbar-dropdown {
   background: var(--grey-dark);
@@ -363,6 +405,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .navbar {
   background: var(--black);
   border-top: 1px solid var(--grey);
+  box-shadow: var(--shadow-chrome-up);
 }
 .topbar-logo {
   line-height: 1;

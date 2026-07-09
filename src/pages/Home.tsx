@@ -143,7 +143,7 @@ export default function HomePage() {
       </div>
 
       {/* PisoRing: obiettivo settimanale, calorie di oggi e streak in un solo sguardo */}
-      <div className="card flex flex-col items-center py-6">
+      <div className="card card-hero flex flex-col items-center py-6">
         <PisoRing
           rings={[
             { key: 'week', pct: weekPctRaw, color: weekZone.cssVar },
