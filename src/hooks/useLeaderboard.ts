@@ -3,6 +3,7 @@ import { startOfWeek } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 
 export interface LeaderboardEntry {
   user_id: string
@@ -34,7 +35,7 @@ export function useLeaderboard(scope: 'friends' | 'global' = 'friends') {
         p_start: weekStart.toISOString(),
       })
       if (error) {
-        showError('Classifica globale non disponibile. Riprova.')
+        showError(social.leaderboard.errors.globalUnavailable)
         setEntries([])
       } else {
         setEntries(
@@ -63,7 +64,7 @@ export function useLeaderboard(scope: 'friends' | 'global' = 'friends') {
         .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
         .eq('status', 'accepted')
 
-      if (friendshipsError) showError('Errore nel caricamento della classifica. Riprova.')
+      if (friendshipsError) showError(social.leaderboard.errors.loadFailed)
 
       const friendIds = (friendships ?? []).map(f =>
         f.requester_id === user.id ? f.addressee_id : f.requester_id
@@ -84,7 +85,7 @@ export function useLeaderboard(scope: 'friends' | 'global' = 'friends') {
       ])
 
       if (profilesRes.error || activitiesRes.error) {
-        showError('Errore nel caricamento della classifica. Riprova.')
+        showError(social.leaderboard.errors.loadFailed)
       }
 
       const profilesMap: Record<string, { username: string; photo_url: string | null }> = {}

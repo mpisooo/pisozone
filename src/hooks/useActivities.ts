@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { removeActivityPhoto } from '../lib/activityPhotos'
+import log from '../lib/i18n/log'
 import type { Activity } from '../types'
 
 export function useActivities() {
@@ -19,7 +20,7 @@ export function useActivities() {
       .select('*')
       .eq('user_id', user.id)
       .order('date', { ascending: false })
-    if (error) showError('Errore nel caricamento delle attività. Riprova.')
+    if (error) showError(log.errors.loadFailed)
     else if (data) setActivities(data as Activity[])
     setLoading(false)
   }, [user, showError])

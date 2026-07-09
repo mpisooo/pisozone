@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { supabase, supabaseReady } from '../lib/supabase'
+import auth from '../lib/i18n/auth'
 
 type LoginForm = { username: string; password: string }
 type RegisterForm = { username: string; password: string; confirmPassword: string; accept: boolean }
@@ -28,46 +29,46 @@ export default function AuthPage() {
   if (user) return <Navigate to="/profile" replace />
 
   const handleLogin = async (v: LoginForm) => {
-    if (!supabaseReady) { setError('Configurazione server mancante — contatta l\'amministratore'); return }
+    if (!supabaseReady) { setError(auth.errors.serverConfigMissing); return }
     setSubmitting(true); setError('')
     try {
       const { error: err } = await signIn(v.username, v.password)
-      if (err) setError(err.message || 'Username o password non corretti')
+      if (err) setError(err.message || auth.errors.invalidCredentials)
       else navigate('/profile')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore di connessione al server')
+      setError(e instanceof Error ? e.message : auth.errors.connectionError)
     }
     setSubmitting(false)
   }
 
   const handleRegister = async (v: RegisterForm) => {
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(v.username)) {
-      setError('Username: 3-20 caratteri, solo lettere, numeri e _')
+      setError(auth.errors.usernameFormat)
       return
     }
     if (v.password !== v.confirmPassword) {
-      setError('Le password non coincidono')
+      setError(auth.errors.passwordMismatch)
       return
     }
     if (v.password.length < 6) {
-      setError('La password deve essere di almeno 6 caratteri')
+      setError(auth.errors.passwordTooShort)
       return
     }
     if (!v.accept) {
-      setError('Per creare un account devi accettare la Privacy Policy e i Termini di Servizio')
+      setError(auth.errors.mustAcceptTerms)
       return
     }
-    if (!supabaseReady) { setError('Configurazione server mancante — contatta l\'amministratore'); return }
+    if (!supabaseReady) { setError(auth.errors.serverConfigMissing); return }
     setSubmitting(true); setError('')
     try {
       const { error: err } = await signUp(v.username, v.password)
       if (err) {
-        setError(err.message.includes('already') ? 'Username già in uso' : err.message)
+        setError(err.message.includes('already') ? auth.errors.usernameTaken : err.message)
       } else {
         navigate('/profile')
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore di connessione al server')
+      setError(e instanceof Error ? e.message : auth.errors.connectionError)
     }
     setSubmitting(false)
   }
@@ -93,8 +94,8 @@ export default function AuthPage() {
 
   const handleResetPassword = async () => {
     if (submitting) return
-    if (newPassword !== confirmNewPassword) { setError('Le password non coincidono'); return }
-    if (newPassword.length < 6) { setError('La password deve essere di almeno 6 caratteri'); return }
+    if (newPassword !== confirmNewPassword) { setError(auth.errors.passwordMismatch); return }
+    if (newPassword.length < 6) { setError(auth.errors.passwordTooShort); return }
     setSubmitting(true); setError('')
     const { error: otpError } = await supabase.auth.verifyOtp({
       email: recoverEmail.trim(),
@@ -103,7 +104,7 @@ export default function AuthPage() {
     })
     if (otpError) {
       setSubmitting(false)
-      setError('Codice non valido o scaduto. Riprova.')
+      setError(auth.errors.invalidOrExpiredCode)
       return
     }
     const { error: pwError } = await supabase.auth.updateUser({ password: newPassword })
@@ -122,7 +123,7 @@ export default function AuthPage() {
         <h1 className="font-bebas text-7xl text-[#F44352] tracking-widest" style={{ lineHeight: 1 }}>
           PISOZONE
         </h1>
-        <p className="text-gray-500 text-sm mt-2 tracking-wide">IL TUO TRACKER DI ATTIVITÀ FISICA</p>
+        <p className="text-gray-500 text-sm mt-2 tracking-wide">{auth.subtitle}</p>
       </div>
 
       <div className="w-full max-w-sm">
@@ -134,7 +135,7 @@ export default function AuthPage() {
             className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft size={16} />
-            Torna al login
+            {auth.tabs.backToLogin}
           </button>
         ) : (
           <div className="flex rounded-xl overflow-hidden mb-6 border border-[var(--grey)]">
@@ -150,7 +151,7 @@ export default function AuthPage() {
                 }`}
                 style={{ background: tab === t ? '#F44352' : 'var(--grey-dark)' }}
               >
-                {t === 'login' ? 'Accedi' : 'Registrati'}
+                {t === 'login' ? auth.tabs.login : auth.tabs.register}
               </button>
             ))}
           </div>
@@ -167,22 +168,22 @@ export default function AuthPage() {
         {tab === 'login' ? (
           <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Username</label>
+              <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.usernameLabel}</label>
               <input
                 {...loginForm.register('username', { required: true })}
                 className="input-dark"
-                placeholder="il_tuo_username"
+                placeholder={auth.fields.usernamePlaceholder}
                 autoComplete="username"
                 autoCapitalize="none"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Password</label>
+              <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.passwordLabel}</label>
               <input
                 type="password"
                 {...loginForm.register('password', { required: true })}
                 className="input-dark"
-                placeholder="••••••••"
+                placeholder={auth.fields.passwordPlaceholder}
                 autoComplete="current-password"
               />
               <button
@@ -190,43 +191,43 @@ export default function AuthPage() {
                 onClick={openRecover}
                 className="text-xs text-gray-500 hover:text-[#F44352] transition-colors mt-1.5"
               >
-                Password dimenticata?
+                {auth.login.forgotPassword}
               </button>
             </div>
             <button type="submit" className="btn-primary w-full mt-2" disabled={submitting}>
-              {submitting ? 'Accesso...' : 'Accedi'}
+              {submitting ? auth.login.submitting : auth.login.submit}
             </button>
           </form>
         ) : tab === 'register' ? (
           <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Username</label>
+              <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.usernameLabel}</label>
               <input
                 {...registerForm.register('username', { required: true })}
                 className="input-dark"
-                placeholder="il_tuo_username"
+                placeholder={auth.fields.usernamePlaceholder}
                 autoComplete="username"
                 autoCapitalize="none"
               />
-              <p className="text-xs text-gray-600 mt-1">3–20 caratteri, solo lettere, numeri e _</p>
+              <p className="text-xs text-gray-600 mt-1">{auth.register.usernameHint}</p>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Password</label>
+              <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.passwordLabel}</label>
               <input
                 type="password"
                 {...registerForm.register('password', { required: true })}
                 className="input-dark"
-                placeholder="••••••••"
+                placeholder={auth.fields.passwordPlaceholder}
                 autoComplete="new-password"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Conferma password</label>
+              <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.confirmPasswordLabel}</label>
               <input
                 type="password"
                 {...registerForm.register('confirmPassword', { required: true })}
                 className="input-dark"
-                placeholder="••••••••"
+                placeholder={auth.fields.passwordPlaceholder}
                 autoComplete="new-password"
               />
             </div>
@@ -238,18 +239,18 @@ export default function AuthPage() {
                 className="mt-0.5 h-4 w-4 shrink-0 accent-[#F44352]"
               />
               <span className="text-xs text-gray-400 leading-relaxed">
-                Ho letto e accetto la{' '}
+                {auth.register.acceptBefore}{' '}
                 <a href="/privacy" target="_blank" rel="noopener" className="text-[#F44352] underline">
-                  Privacy Policy
+                  {auth.legalLinks.privacyPolicy}
                 </a>{' '}
-                e i{' '}
+                {auth.register.acceptMiddle}{' '}
                 <a href="/termini" target="_blank" rel="noopener" className="text-[#F44352] underline">
-                  Termini di Servizio
+                  {auth.legalLinks.termsOfService}
                 </a>
               </span>
             </label>
             <button type="submit" className="btn-primary w-full mt-2" disabled={submitting}>
-              {submitting ? 'Creazione account...' : 'Crea account'}
+              {submitting ? auth.register.submitting : auth.register.submit}
             </button>
           </form>
         ) : (
@@ -257,17 +258,16 @@ export default function AuthPage() {
             {recoverStep === 'email' ? (
               <>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Inserisci l'email di recupero che hai verificato nel tuo profilo. Se corrisponde a
-                  un account, riceverai un codice per reimpostare la password.
+                  {auth.recover.email.intro}
                 </p>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Email</label>
+                  <label className="block text-xs text-gray-400 mb-1.5">{auth.recover.email.label}</label>
                   <input
                     type="email"
                     value={recoverEmail}
                     onChange={(e) => setRecoverEmail(e.target.value)}
                     className="input-dark"
-                    placeholder="la-tua-email@esempio.com"
+                    placeholder={auth.recover.email.placeholder}
                     autoComplete="email"
                   />
                 </div>
@@ -277,44 +277,44 @@ export default function AuthPage() {
                   disabled={submitting || !recoverEmail.trim()}
                   className="btn-primary w-full mt-2 disabled:opacity-50"
                 >
-                  {submitting ? 'Invio...' : 'Invia codice'}
+                  {submitting ? auth.recover.email.submitting : auth.recover.email.submit}
                 </button>
               </>
             ) : (
               <>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Controlla la tua email: se l'indirizzo è verificato riceverai un codice a 6 cifre.
+                  {auth.recover.code.intro}
                 </p>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Codice</label>
+                  <label className="block text-xs text-gray-400 mb-1.5">{auth.recover.code.label}</label>
                   <input
                     value={recoverCode}
                     onChange={(e) => setRecoverCode(e.target.value)}
                     className="input-dark"
-                    placeholder="123456"
+                    placeholder={auth.recover.code.placeholder}
                     inputMode="numeric"
                     maxLength={6}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Nuova password</label>
+                  <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.newPasswordLabel}</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="input-dark"
-                    placeholder="••••••••"
+                    placeholder={auth.fields.passwordPlaceholder}
                     autoComplete="new-password"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5">Conferma nuova password</label>
+                  <label className="block text-xs text-gray-400 mb-1.5">{auth.fields.confirmNewPasswordLabel}</label>
                   <input
                     type="password"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     className="input-dark"
-                    placeholder="••••••••"
+                    placeholder={auth.fields.passwordPlaceholder}
                     autoComplete="new-password"
                   />
                 </div>
@@ -324,7 +324,7 @@ export default function AuthPage() {
                   disabled={submitting}
                   className="btn-primary w-full mt-2 disabled:opacity-50"
                 >
-                  {submitting ? 'Verifica...' : 'Reimposta password'}
+                  {submitting ? auth.recover.code.submitting : auth.recover.code.submit}
                 </button>
               </>
             )}

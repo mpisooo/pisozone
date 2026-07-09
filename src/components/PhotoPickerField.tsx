@@ -1,4 +1,5 @@
 import { Camera, X } from 'lucide-react'
+import log from '../lib/i18n/log'
 
 // Campo foto riusato da Log (nuova attività) e ActivityEditModal (modifica).
 // Controllato dal parent: qui vivono solo l'input file e l'anteprima.
@@ -23,13 +24,13 @@ export default function PhotoPickerField({
         <div className="relative">
           <img
             src={previewUrl}
-            alt="Anteprima della foto allegata"
+            alt={log.photoPicker.previewAlt}
             className="w-full max-h-64 object-cover rounded-xl"
           />
           <button
             type="button"
             onClick={onClear}
-            aria-label="Rimuovi foto"
+            aria-label={log.photoPicker.removeAria}
             className="absolute top-2 right-2 p-1.5 rounded-full text-white transition-all active:scale-90"
             style={{ background: 'rgba(0,0,0,0.65)' }}
           >
@@ -43,7 +44,7 @@ export default function PhotoPickerField({
           style={{ border: '1px dashed var(--grey-light)', background: 'var(--grey)' }}
         >
           <Camera size={17} />
-          Aggiungi una foto
+          {log.photoPicker.addPhoto}
         </label>
       )}
       <input

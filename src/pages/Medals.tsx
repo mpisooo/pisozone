@@ -8,6 +8,7 @@ import { computeStats } from '../lib/achievementStats'
 import type { MedalTier } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import MedalCelebrationOverlay from '../components/MedalCelebrationOverlay'
+import medals from '../lib/i18n/medals'
 
 const TIERS: MedalTier[] = ['bronze', 'silver', 'gold', 'diamond']
 
@@ -38,19 +39,19 @@ export default function MedalsPage() {
       {/* Header */}
       <div className="flex items-start justify-between pt-2">
         <div>
-          <span className="font-bebas text-4xl text-white tracking-widest">MEDAGLIE</span>
+          <span className="font-bebas text-4xl text-white tracking-widest">{medals.pageTitle}</span>
           <div className="header-accent" />
         </div>
         <div className="text-right">
           <p className="font-bebas text-2xl text-[var(--red)]">{claimedCount}/{MEDALS.length}</p>
-          <p className="text-xs text-gray-400">sbloccate</p>
+          <p className="text-xs text-gray-400">{medals.unlockedLabel}</p>
         </div>
       </div>
 
       {/* Overall progress bar */}
       <div className="card">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-300">Progresso totale</span>
+          <span className="text-sm text-gray-300">{medals.overallProgress}</span>
           <span className="text-sm font-medium text-[var(--red)]">
             {Math.round((claimedCount / MEDALS.length) * 100)}%
           </span>
@@ -75,7 +76,7 @@ export default function MedalsPage() {
               <h2 className={`font-bebas text-2xl tracking-wider bg-gradient-to-r ${TIER_COLORS[tier]} bg-clip-text text-transparent`}>
                 {TIER_LABELS[tier]}
               </h2>
-              <span className="text-xs text-gray-500">+{TIER_CREDITS[tier]} 💎 a sblocco</span>
+              <span className="text-xs text-gray-500">{medals.unlockCreditsLabel(TIER_CREDITS[tier])}</span>
             </div>
             <div className="space-y-2">
               {tierMedals.map((medal) => {
@@ -137,7 +138,7 @@ export default function MedalsPage() {
                           {claimed ? (
                             <div className="flex items-center gap-1.5 text-green-400 text-xs font-medium">
                               <CheckCircle2 size={14} />
-                              <span>Sbloccata</span>
+                              <span>{medals.unlockedStatus}</span>
                             </div>
                           ) : eligible ? (
                             <button
@@ -149,10 +150,10 @@ export default function MedalsPage() {
                               {isClaiming ? (
                                 <>
                                   <Loader2 size={12} className="animate-spin" />
-                                  <span>Riscatto...</span>
+                                  <span>{medals.claiming}</span>
                                 </>
                               ) : (
-                                <span>Riscatta +{TIER_CREDITS[medal.tier]} 💎</span>
+                                <span>{medals.claimButton(TIER_CREDITS[medal.tier])}</span>
                               )}
                             </button>
                           ) : null}

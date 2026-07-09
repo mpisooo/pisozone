@@ -14,6 +14,8 @@ import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
 import AnalisiTabs from '../components/AnalisiTabs'
 import SkeletonCard from '../components/SkeletonCard'
+import common from '../lib/i18n/common'
+import calendar from '../lib/i18n/calendar'
 
 function heatLevel(count: number) {
   if (count === 0) return 'heatmap-0'
@@ -97,7 +99,7 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
-            aria-label="Mese precedente"
+            aria-label={calendar.prevMonthAria}
             className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
           >
             <ChevronLeft size={20} className="text-gray-300" />
@@ -108,7 +110,7 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
-            aria-label="Mese successivo"
+            aria-label={calendar.nextMonthAria}
             className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
           >
             <ChevronRight size={20} className="text-gray-300" />
@@ -117,7 +119,7 @@ export default function CalendarPage() {
 
         {/* Weekday labels */}
         <div className="grid grid-cols-7 mb-1">
-          {['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do'].map((d) => (
+          {calendar.weekdayShortLabels.map((d) => (
             <div key={d} className="text-center text-xs text-gray-500 py-1">{d}</div>
           ))}
         </div>
@@ -139,7 +141,7 @@ export default function CalendarPage() {
                 key={key}
                 type="button"
                 onClick={() => setSelectedDay(isSelected ? null : day)}
-                aria-label={`${format(day, 'd MMMM', { locale: it })}, ${acts.length} ${acts.length === 1 ? 'attività' : 'attività registrate'}`}
+                aria-label={calendar.dayAriaLabel(format(day, 'd MMMM', { locale: it }), acts.length)}
                 className={`relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 ${level} ${
                   isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-[#0D0D0D]' : ''
                 } ${isToday ? 'ring-2 ring-[var(--red)]' : ''}`}
@@ -157,7 +159,7 @@ export default function CalendarPage() {
 
         {/* Legend */}
         <div className="flex items-center gap-2.5 mt-3 justify-end">
-          <span className="text-xs text-gray-500">Attività/giorno:</span>
+          <span className="text-xs text-gray-500">{calendar.legendLabel}</span>
           {[0, 1, 2, 3, 4].map((l) => (
             <div key={l} className="flex flex-col items-center gap-0.5">
               <div className={`w-4 h-4 rounded ${heatLevel(l)}`} />
@@ -172,8 +174,8 @@ export default function CalendarPage() {
         <div className="card flex items-center gap-3">
           <Flame size={28} className="text-[var(--red)]" />
           <div>
-            <p className="font-bebas text-2xl text-[var(--red)]">{streak} GIORNI CONSECUTIVI</p>
-            <p className="text-xs text-gray-400">Continua così, non fermarti!</p>
+            <p className="font-bebas text-2xl text-[var(--red)]">{calendar.streakCount(streak)}</p>
+            <p className="text-xs text-gray-400">{calendar.streakHint}</p>
           </div>
         </div>
       )}
@@ -185,7 +187,7 @@ export default function CalendarPage() {
             <span className="font-bebas text-xl text-white tracking-wider capitalize">
               {format(selectedDay, 'EEEE d MMMM', { locale: it })}
             </span>
-            <button type="button" onClick={() => setSelectedDay(null)} aria-label="Chiudi" className="p-1 hover:text-white text-gray-500">
+            <button type="button" onClick={() => setSelectedDay(null)} aria-label={common.close} className="p-1 hover:text-white text-gray-500">
               <X size={18} />
             </button>
           </div>
@@ -198,8 +200,8 @@ export default function CalendarPage() {
               >
                 😴
               </div>
-              <p className="text-sm text-gray-500">Giornata di riposo</p>
-              <p className="text-xs text-gray-600 mt-0.5">Nessun allenamento registrato</p>
+              <p className="text-sm text-gray-500">{calendar.restDayTitle}</p>
+              <p className="text-xs text-gray-600 mt-0.5">{calendar.restDaySubtitle}</p>
             </div>
           ) : (
             selectedDayActivities.map((a) => {
@@ -215,9 +217,9 @@ export default function CalendarPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white">{opt?.label}</p>
                     <p className="text-xs text-gray-400">
-                      {a.duration_min} min
-                      {a.calories ? ` · ${a.calories} kcal` : ''}
-                      {a.distance_km ? ` · ${a.distance_km} km` : ''}
+                      {calendar.dayPanel.durationLabel(a.duration_min)}
+                      {a.calories ? calendar.dayPanel.caloriesSuffix(a.calories) : ''}
+                      {a.distance_km ? calendar.dayPanel.distanceSuffix(a.distance_km) : ''}
                     </p>
                     {a.notes && <p className="text-xs text-gray-500 mt-1 truncate">{a.notes}</p>}
                     {a.photo_url && (
@@ -234,7 +236,7 @@ export default function CalendarPage() {
               )
             })
           )}
-          <p className="text-xs text-gray-600 text-center pt-1">Tocca un'attività per modificarla</p>
+          <p className="text-xs text-gray-600 text-center pt-1">{calendar.editHint}</p>
         </div>
       )}
 

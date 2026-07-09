@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import profileText from '../lib/i18n/profile'
 import type { WeightLog } from '../types'
 
 export function useWeightLogs() {
@@ -19,7 +20,7 @@ export function useWeightLogs() {
       .eq('user_id', user.id)
       .order('logged_at', { ascending: true })
       .limit(90)
-    if (error) showError('Errore nel caricamento dello storico peso. Riprova.')
+    if (error) showError(profileText.errors.weightLoadFailed)
     else if (data) setLogs(data as WeightLog[])
     setLoading(false)
   }, [user, showError])

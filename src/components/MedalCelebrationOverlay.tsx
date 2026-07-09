@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Coins } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { TIER_LABELS } from '../lib/constants'
+import medals from '../lib/i18n/medals'
 import type { MedalTier } from '../types'
 
 interface Props {
@@ -47,7 +48,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
       ref={panelRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Medaglia sbloccata: ${name}`}
+      aria-label={medals.celebration.unlockedAriaLabel(name)}
       className="fixed inset-0 z-[9999] flex items-center justify-center medal-celebration-backdrop"
       onClick={onDone}
     >
@@ -99,7 +100,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
         <p className="text-xs font-bold tracking-[0.3em] uppercase mb-1" style={{ color: glow.c1 }}>
           {TIER_LABELS[tier]}
         </p>
-        <p className="font-bebas text-3xl text-white tracking-wide mb-1">MEDAGLIA SBLOCCATA!</p>
+        <p className="font-bebas text-3xl text-white tracking-wide mb-1">{medals.celebration.title}</p>
         <p className="font-bebas text-2xl mb-4" style={{ color: glow.c1 }}>{name}</p>
 
         <div
@@ -107,7 +108,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
           style={{ background: 'rgba(255,255,255,0.08)', border: `1px solid ${glow.c1}55` }}
         >
           <Coins size={16} className="text-yellow-400" />
-          <span className="text-white font-semibold text-sm">+{credits} crediti</span>
+          <span className="text-white font-semibold text-sm">{medals.celebration.creditsEarned(credits)}</span>
         </div>
 
         <div>
@@ -120,7 +121,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
               color: glow.darkText ? '#0D0D0D' : '#fff',
             }}
           >
-            Fantastico!
+            {medals.celebration.doneButton}
           </button>
         </div>
       </div>

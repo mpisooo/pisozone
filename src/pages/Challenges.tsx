@@ -8,6 +8,7 @@ import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { calcStreak } from '../lib/challenges'
 import { useMemo } from 'react'
 import SkeletonCard from '../components/SkeletonCard'
+import challenges from '../lib/i18n/challenges'
 
 const TIER_COLOR: Record<string, string> = {
   '15': 'text-gray-400',
@@ -29,7 +30,7 @@ export default function ChallengesPage() {
 
   const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
 
-  const { challenges, loading: challengesLoading, claimingKey, claimChallenge, totalEarnable, totalEarned } =
+  const { challenges: dailyChallenges, loading: challengesLoading, claimingKey, claimChallenge, totalEarnable, totalEarned } =
     useDailyChallenges(activities, streak)
 
   const loading = actsLoading || profileLoading || challengesLoading
@@ -53,7 +54,7 @@ export default function ChallengesPage() {
     )
   }
 
-  const allClaimed = challenges.every((c) => c.claimed)
+  const allClaimed = dailyChallenges.every((c) => c.claimed)
 
   return (
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
@@ -61,7 +62,7 @@ export default function ChallengesPage() {
       <div className="pt-2">
         <p className="text-gray-500 text-sm capitalize">{todayLabel}</p>
         <h1 className="font-bebas text-4xl text-white tracking-wider mt-0.5">
-          Sfide di <span className="text-[var(--red)]">oggi</span>
+          {challenges.titlePrefix}<span className="text-[var(--red)]">{challenges.titleHighlight}</span>
         </h1>
         <div className="header-accent" />
       </div>
@@ -70,7 +71,7 @@ export default function ChallengesPage() {
       <div className="card flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Coins size={18} className="text-yellow-400" />
-          <span className="text-sm text-gray-300 font-medium">I tuoi crediti</span>
+          <span className="text-sm text-gray-300 font-medium">{challenges.creditsBalanceLabel}</span>
         </div>
         <span className="font-bebas text-3xl text-yellow-400 tracking-wide">{credits}</span>
       </div>
@@ -78,7 +79,7 @@ export default function ChallengesPage() {
       {/* Progress */}
       <div className="card">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-400">Crediti di oggi</span>
+          <span className="text-xs text-gray-400">{challenges.todayCreditsLabel}</span>
           <span className="text-xs font-semibold text-[var(--red)]">
             {totalEarned} / {totalEarnable}
           </span>
@@ -96,13 +97,13 @@ export default function ChallengesPage() {
           />
         </div>
         {allClaimed && (
-          <p className="text-xs text-green-400 mt-1.5">🎉 Hai completato tutte le sfide di oggi!</p>
+          <p className="text-xs text-green-400 mt-1.5">{challenges.allClaimed}</p>
         )}
       </div>
 
       {/* Challenge cards */}
       <div className="space-y-3">
-        {challenges.map(({ template, eligible, claimed }) => {
+        {dailyChallenges.map(({ template, eligible, claimed }) => {
           const isClaiming = claimingKey === template.key
 
           return (
@@ -135,7 +136,7 @@ export default function ChallengesPage() {
                     {claimed ? (
                       <div className="flex items-center gap-1.5 text-green-400 text-xs font-medium">
                         <CheckCircle2 size={14} />
-                        <span>Completata!</span>
+                        <span>{challenges.claimedLabel}</span>
                       </div>
                     ) : eligible ? (
                       <button
@@ -146,16 +147,16 @@ export default function ChallengesPage() {
                         {isClaiming ? (
                           <>
                             <Loader2 size={12} className="animate-spin" />
-                            <span>Ritiro...</span>
+                            <span>{challenges.claiming}</span>
                           </>
                         ) : (
-                          <span>Ritira +{template.credits} crediti</span>
+                          <span>{challenges.claimButton(template.credits)}</span>
                         )}
                       </button>
                     ) : (
                       <div className="flex items-center gap-1.5 text-gray-600 text-xs">
                         <Lock size={12} />
-                        <span>In corso...</span>
+                        <span>{challenges.inProgress}</span>
                       </div>
                     )}
                   </div>
@@ -168,7 +169,7 @@ export default function ChallengesPage() {
 
       {/* Hint */}
       <p className="text-center text-xs text-gray-600 pb-2">
-        Le sfide si aggiornano ogni giorno. Torna domani per nuove sfide!
+        {challenges.footerHint}
       </p>
     </div>
   )

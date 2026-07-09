@@ -15,6 +15,7 @@ import { calcStreak } from '../lib/challenges'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
+import home from '../lib/i18n/home'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -39,10 +40,10 @@ export default function HomePage() {
     return () => { cancelled = true }
   }, [profileLoading, profile, updateProfile])
 
-  const username: string = (user?.user_metadata?.username as string) || 'Atleta'
+  const username: string = (user?.user_metadata?.username as string) || home.athleteFallback
 
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera'
+  const greeting = home.greeting(hour)
   const todayLabel = format(new Date(), 'EEEE d MMMM', { locale: it })
 
   const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
@@ -141,14 +142,14 @@ export default function HomePage() {
           <div>
             <p className="font-bebas text-4xl text-white leading-none">{streak}</p>
             <p className="text-xs text-gray-400 leading-tight">
-              {streak === 1 ? 'giorno streak' : 'giorni streak'}
+              {home.streakUnit(streak)}
             </p>
           </div>
         </div>
 
         <div className="card">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400">Obiettivo settimana</p>
+            <p className="text-xs text-gray-400">{home.weeklyGoalLabel}</p>
             <span className={`text-xs font-semibold ${weekDone ? 'text-green-400' : 'text-[var(--red)]'}`}>
               {weekActivities.length}/{weeklyGoal}
             </span>
@@ -165,7 +166,7 @@ export default function HomePage() {
             />
           </div>
           <p className="text-xs text-gray-500 mt-1.5">
-            {weekDone ? '🎉 Obiettivo raggiunto!' : `ancora ${weeklyGoal - weekActivities.length} sessioni`}
+            {weekDone ? home.weekGoalReached : home.weekGoalRemaining(weeklyGoal - weekActivities.length)}
           </p>
         </div>
       </div>
@@ -176,13 +177,13 @@ export default function HomePage() {
           <div className="flex items-start gap-3">
             <span className="text-2xl flex-shrink-0">🧊</span>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-blue-300 text-sm">Streak a rischio!</p>
+              <p className="font-semibold text-blue-300 text-sm">{home.freezeOffer.title}</p>
               <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
-                Non hai registrato nulla ieri. Proteggi il tuo streak di{' '}
+                {home.freezeOffer.prefix}{' '}
                 <span className="text-white font-medium">
-                  {streakSavedByFreeze} {streakSavedByFreeze === 1 ? 'giorno' : 'giorni'}
+                  {streakSavedByFreeze} {home.freezeOffer.dayUnit(streakSavedByFreeze)}
                 </span>{' '}
-                spendendo 300 crediti.
+                {home.freezeOffer.suffix}
               </p>
               <button
                 type="button"
@@ -195,10 +196,10 @@ export default function HomePage() {
                 }`}
               >
                 {freezing
-                  ? 'Congelamento...'
+                  ? home.freezeOffer.freezing
                   : canAffordFreeze
-                  ? '🧊 Congela streak (−300 💰)'
-                  : `Crediti insufficienti (${profile?.credits ?? 0}/300)`}
+                  ? home.freezeOffer.freezeButton
+                  : home.freezeOffer.insufficientCredits(profile?.credits ?? 0)}
               </button>
             </div>
           </div>
@@ -211,11 +212,11 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Zap size={15} className="text-[var(--red)]" />
-              <span className="text-sm font-medium text-gray-300">Calorie bruciate oggi</span>
+              <span className="text-sm font-medium text-gray-300">{home.dailyCalorieGoal.title}</span>
             </div>
             <span className="font-bebas text-lg text-white">
               {todayCalories}
-              <span className="text-sm text-gray-500"> / {dailyCalGoal} kcal</span>
+              <span className="text-sm text-gray-500">{home.dailyCalorieGoal.suffix(dailyCalGoal)}</span>
             </span>
           </div>
           <div className="progress-track h-2.5 rounded-full overflow-hidden">
@@ -231,7 +232,7 @@ export default function HomePage() {
             />
           </div>
           {todayCalories >= dailyCalGoal && (
-            <p className="text-xs text-green-400 mt-1">🎉 Obiettivo calorico raggiunto!</p>
+            <p className="text-xs text-green-400 mt-1">{home.dailyCalorieGoal.reached}</p>
           )}
         </div>
       )}
@@ -244,7 +245,7 @@ export default function HomePage() {
           onClick={() => navigate('/calendar')}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-400">Ultima attività</span>
+            <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
             <ChevronRight size={16} className="text-gray-600" />
           </div>
           <div className="flex items-center gap-3">
@@ -257,9 +258,7 @@ export default function HomePage() {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-white">{lastOpt.label}</p>
               <p className="text-xs text-gray-400">
-                {lastActivity.duration_min} min
-                {lastActivity.calories ? ` · ${lastActivity.calories} kcal` : ''}
-                {lastActivity.distance_km ? ` · ${lastActivity.distance_km} km` : ''}
+                {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
               </p>
             </div>
             <p className="text-xs text-gray-500 flex-shrink-0">
@@ -275,12 +274,12 @@ export default function HomePage() {
           >
             🏋️
           </div>
-          <p className="font-bebas text-2xl text-white tracking-wider mb-1">Pronto a sudare?</p>
+          <p className="font-bebas text-2xl text-white tracking-wider mb-1">{home.emptyState.title}</p>
           <p className="text-gray-500 text-sm mb-5 leading-relaxed">
-            Registra la tua prima attività e inizia a costruire la tua streak. Ogni grande atleta ha avuto un giorno zero.
+            {home.emptyState.body}
           </p>
           <button className="btn-primary px-8 py-2.5 text-sm" onClick={() => navigate('/log')}>
-            💪 Inizia ora
+            {home.emptyState.cta}
           </button>
         </div>
       )}
@@ -295,7 +294,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Trophy size={14} className="text-[var(--red)]" />
-              <span className="text-xs text-gray-400">Medaglia più vicina</span>
+              <span className="text-xs text-gray-400">{home.nearestMedal.title}</span>
             </div>
             <ChevronRight size={16} className="text-gray-600" />
           </div>
@@ -337,7 +336,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Users size={14} className="text-[var(--red)]" />
-              <span className="text-xs text-gray-400">Classifica settimanale</span>
+              <span className="text-xs text-gray-400">{home.leaderboard.title}</span>
             </div>
             <ChevronRight size={16} className="text-gray-600" />
           </div>
@@ -349,12 +348,12 @@ export default function HomePage() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
-                    {entry.username}{entry.isMe ? ' (tu)' : ''}
+                    {entry.username}{entry.isMe ? home.leaderboard.youSuffix : ''}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{entry.calories} kcal</p>
-                  <p className="text-xs text-gray-500">{entry.count} sessioni</p>
+                  <p className="text-sm font-semibold text-white">{home.leaderboard.caloriesLabel(entry.calories)}</p>
+                  <p className="text-xs text-gray-500">{home.leaderboard.sessionsLabel(entry.count)}</p>
                 </div>
               </div>
             ))}
@@ -369,8 +368,8 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Users size={22} className="text-gray-700 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-gray-400">Aggiungi amici</p>
-              <p className="text-xs text-gray-600">Sfida i tuoi amici nella classifica settimanale</p>
+              <p className="text-sm font-medium text-gray-400">{home.leaderboard.addFriendsTitle}</p>
+              <p className="text-xs text-gray-600">{home.leaderboard.addFriendsBody}</p>
             </div>
             <ChevronRight size={16} className="text-gray-600 ml-auto flex-shrink-0" />
           </div>
@@ -386,11 +385,11 @@ export default function HomePage() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Target size={14} className="text-[var(--red)]" />
-            <span className="text-xs text-gray-400">Sfide di oggi</span>
+            <span className="text-xs text-gray-400">{home.challengesWidget.title}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-yellow-400">
-              {completedChallenges}/{todayChallenges.length} completate
+              {home.challengesWidget.progress(completedChallenges, todayChallenges.length)}
             </span>
             <ChevronRight size={16} className="text-gray-600" />
           </div>
@@ -410,8 +409,8 @@ export default function HomePage() {
               {claimed
                 ? <CheckCircle2 size={14} className="text-green-400 flex-shrink-0" />
                 : eligible
-                  ? <span className="text-xs font-semibold text-yellow-400 flex-shrink-0">Riscatta +{c.credits} 💰</span>
-                  : <span className="text-xs text-yellow-500 flex-shrink-0">+{c.credits} 💰</span>
+                  ? <span className="text-xs font-semibold text-yellow-400 flex-shrink-0">{home.challengesWidget.claimLabel(c.credits)}</span>
+                  : <span className="text-xs text-yellow-500 flex-shrink-0">{home.challengesWidget.pendingLabel(c.credits)}</span>
               }
             </div>
           ))}
@@ -425,7 +424,7 @@ export default function HomePage() {
         onClick={() => navigate('/log')}
       >
         <Plus size={18} />
-        Registra allenamento
+        {home.cta}
       </button>
 
       {showPushPrompt && user && (

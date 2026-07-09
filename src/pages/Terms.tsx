@@ -1,84 +1,65 @@
 import LegalLayout, { LegalSection } from '../components/LegalLayout'
+import legal from '../lib/i18n/legal'
 
 const CONTACT_EMAIL = 'mattiapisati02@gmail.com'
 
 export default function TermsPage() {
+  const t = legal.terms
   return (
-    <LegalLayout title="TERMINI DI SERVIZIO" updated="7 luglio 2026">
-      <LegalSection title="1. IL SERVIZIO">
+    <LegalLayout title={t.title} updated={t.updated}>
+      <LegalSection title={t.service.heading}>
         <p>
-          PisoZone è un'app gratuita per il tracciamento personale dell'attività fisica, con
-          funzioni social tra amici e meccaniche di gioco (crediti, livelli, medaglie, sfide).
-          Creando un account accetti questi termini e la{' '}
-          <a href="/privacy" className="text-[#F44352] underline">Privacy Policy</a>.
+          {t.service.before}{' '}
+          <a href="/privacy" className="text-[#F44352] underline">{t.service.privacyPolicyLinkText}</a>{t.service.after}
         </p>
       </LegalSection>
 
-      <LegalSection title="2. ACCOUNT">
+      <LegalSection title={t.account.heading}>
         <p>
-          Sei responsabile della custodia delle tue credenziali e di ciò che avviene tramite il tuo
-          account. L'email di recupero è facoltativa, ma senza di essa non è possibile reimpostare
-          la password: in caso di smarrimento l'account non sarà recuperabile.
+          {t.account.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="3. USO CORRETTO E CONTENUTI">
+      <LegalSection title={t.content.heading}>
         <p>
-          Nei contenuti che pubblichi (messaggi, foto profilo, note delle attività, nomi dei gruppi)
-          non sono ammessi materiali illeciti, offensivi, discriminatori o che violino diritti di
-          terzi. Non è consentito usare l'app per spam, molestie o tentativi di accesso a dati di
-          altri utenti. In caso di violazioni l'account può essere sospeso o eliminato.
+          {t.content.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="4. CREDITI E OGGETTI VIRTUALI">
+      <LegalSection title={t.virtualItems.heading}>
         <p>
-          Crediti, livelli, medaglie, temi e cornici sono elementi di gioco puramente virtuali: non
-          hanno valore monetario, non sono acquistabili con denaro reale, non sono trasferibili né
-          rimborsabili, e possono essere modificati o azzerati per esigenze di bilanciamento del
-          gioco.
+          {t.virtualItems.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="5. NON È UN SERVIZIO MEDICO">
+      <LegalSection title={t.notMedical.heading}>
         <p>
-          PisoZone fornisce stime indicative (ad esempio le calorie, calcolate su valori MET medi, o
-          il BMI) che non costituiscono in alcun modo consulenza medica, diagnostica o nutrizionale.
-          Prima di iniziare o modificare un programma di allenamento consulta un medico,
-          specialmente in presenza di condizioni di salute preesistenti.
+          {t.notMedical.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="6. LIMITAZIONE DI RESPONSABILITÀ">
+      <LegalSection title={t.liability.heading}>
         <p>
-          Il servizio è fornito gratuitamente "così com'è", senza garanzie di disponibilità
-          continua, assenza di errori o conservazione perpetua dei dati. Ti consigliamo di
-          esportare periodicamente i tuoi dati dalla pagina Profilo. Nei limiti consentiti dalla
-          legge, il titolare non risponde di danni derivanti dall'uso dell'app o
-          dall'indisponibilità del servizio.
+          {t.liability.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="7. CHIUSURA DELL'ACCOUNT">
+      <LegalSection title={t.accountClosure.heading}>
         <p>
-          Puoi eliminare il tuo account in autonomia in qualsiasi momento dalla pagina Profilo →
-          "Privacy e dati": la cancellazione è immediata e irreversibile. Il titolare si riserva di
-          sospendere o chiudere account che violino questi termini, previa comunicazione ove
-          possibile.
+          {t.accountClosure.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="8. MODIFICHE AI TERMINI">
+      <LegalSection title={t.termsChanges.heading}>
         <p>
-          Questi termini possono essere aggiornati; le modifiche sostanziali saranno segnalate
-          nell'app. L'uso continuato del servizio dopo una modifica ne costituisce accettazione.
+          {t.termsChanges.text}
         </p>
       </LegalSection>
 
-      <LegalSection title="9. LEGGE APPLICABILE E CONTATTI">
+      <LegalSection title={t.lawAndContacts.heading}>
         <p>
-          Questi termini sono regolati dalla legge italiana. Per qualsiasi domanda scrivi a{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#F44352] underline">{CONTACT_EMAIL}</a>.
+          {t.lawAndContacts.before}{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#F44352] underline">{CONTACT_EMAIL}</a>{t.lawAndContacts.after}
         </p>
       </LegalSection>
     </LegalLayout>

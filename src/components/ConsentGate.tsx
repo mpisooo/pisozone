@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react'
 import { useProfile } from '../context/ProfileContext'
 import { useAuth } from '../context/AuthContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import auth from '../lib/i18n/auth'
 
 // Blocco non dismissibile per chi si è registrato prima dell'introduzione di
 // Privacy Policy e Termini di Servizio: profiles.terms_accepted_at resta NULL
@@ -30,7 +31,7 @@ export default function ConsentGate() {
     setError('')
     const { error: err } = await updateProfile({ terms_accepted_at: new Date().toISOString() })
     setSaving(false)
-    if (err) setError('Salvataggio non riuscito. Controlla la connessione e riprova.')
+    if (err) setError(auth.consentGate.saveFailed)
   }
 
   const handleDecline = async () => {
@@ -43,25 +44,23 @@ export default function ConsentGate() {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Accetta le condizioni"
+        aria-label={auth.consentGate.ariaLabel}
         className="w-full max-w-sm rounded-2xl p-5 space-y-4"
         style={{ background: 'var(--grey-dark)', border: '1px solid var(--grey)' }}
       >
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-2xl text-white tracking-wider leading-none">UN ATTIMO!</h2>
+          <h2 className="font-bebas text-2xl text-white tracking-wider leading-none">{auth.consentGate.heading}</h2>
         </div>
 
         <p className="text-sm text-gray-300 leading-relaxed">
-          PisoZone ora ha una <strong>Privacy Policy</strong> e dei <strong>Termini di Servizio</strong>:
-          spiegano quali dati raccogliamo, come li proteggiamo e i tuoi diritti (esportazione e
-          cancellazione inclusi). Per continuare a usare l'app devi accettarli.
+          {auth.consentGate.intro.before}<strong>{auth.legalLinks.privacyPolicy}</strong>{auth.consentGate.intro.middle}<strong>{auth.legalLinks.termsOfService}</strong>{auth.consentGate.intro.after}
         </p>
 
         {/* target=_blank: le pagine si aprono a parte, il blocco resta attivo */}
         <div className="flex gap-4 text-sm">
-          <a href="/privacy" target="_blank" rel="noopener" className="text-[var(--red)] underline">Privacy Policy</a>
-          <a href="/termini" target="_blank" rel="noopener" className="text-[var(--red)] underline">Termini di Servizio</a>
+          <a href="/privacy" target="_blank" rel="noopener" className="text-[var(--red)] underline">{auth.legalLinks.privacyPolicy}</a>
+          <a href="/termini" target="_blank" rel="noopener" className="text-[var(--red)] underline">{auth.legalLinks.termsOfService}</a>
         </div>
 
         <label className="flex items-start gap-2.5 cursor-pointer">
@@ -72,7 +71,7 @@ export default function ConsentGate() {
             className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--red)]"
           />
           <span className="text-xs text-gray-400 leading-relaxed">
-            Ho letto e accetto la Privacy Policy e i Termini di Servizio
+            {auth.consentGate.checkboxLabel}
           </span>
         </label>
 
@@ -88,14 +87,14 @@ export default function ConsentGate() {
           disabled={!checked || saving}
           className="btn-primary w-full disabled:opacity-40"
         >
-          {saving ? 'Salvataggio…' : 'Accetto e continuo'}
+          {saving ? auth.consentGate.accepting : auth.consentGate.accept}
         </button>
         <button
           type="button"
           onClick={handleDecline}
           className="w-full text-xs text-gray-500 hover:text-gray-300 transition-colors"
         >
-          Non accetto — esci dall'account
+          {auth.consentGate.decline}
         </button>
       </div>
     </div>

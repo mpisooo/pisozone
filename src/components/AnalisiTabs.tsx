@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
 import { CalendarDays, BarChart2 } from 'lucide-react'
+import stats from '../lib/i18n/stats'
 
 const TABS = [
-  { to: '/calendar', icon: CalendarDays, label: 'Calendario' },
-  { to: '/stats',    icon: BarChart2,    label: 'Statistiche' },
+  { to: '/calendar', icon: CalendarDays, label: stats.tabs.calendar },
+  { to: '/stats',    icon: BarChart2,    label: stats.tabs.stats },
 ]
 
 export default function AnalisiTabs() {

@@ -3,6 +3,8 @@ import { AlertTriangle, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import common from '../lib/i18n/common'
+import profileText from '../lib/i18n/profile'
 
 interface Props {
   onClose: () => void
@@ -27,7 +29,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
     if (!token) {
-      setError('Sessione scaduta: fai di nuovo il login e riprova.')
+      setError(profileText.deleteAccount.sessionExpired)
       setDeleting(false)
       return
     }
@@ -39,7 +41,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
     } catch {
-      setError('Eliminazione non riuscita. Controlla la connessione e riprova.')
+      setError(profileText.deleteAccount.deleteFailed)
       setDeleting(false)
       return
     }
@@ -59,7 +61,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Elimina account"
+        aria-label={profileText.deleteAccount.ariaLabel}
         className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
         style={{ background: 'var(--grey-dark)' }}
         onClick={(e) => e.stopPropagation()}
@@ -70,8 +72,8 @@ export default function DeleteAccountModal({ onClose }: Props) {
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="font-bebas text-2xl text-[var(--red)] tracking-wider">ELIMINA ACCOUNT</span>
-          <button type="button" onClick={onClose} aria-label="Chiudi" className="p-1 text-gray-500 hover:text-white">
+          <span className="font-bebas text-2xl text-[var(--red)] tracking-wider">{profileText.deleteAccount.title}</span>
+          <button type="button" onClick={onClose} aria-label={common.close} className="p-1 text-gray-500 hover:text-white">
             <X size={20} />
           </button>
         </div>
@@ -82,19 +84,17 @@ export default function DeleteAccountModal({ onClose }: Props) {
         >
           <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[var(--red)]" />
           <p className="text-gray-300">
-            Questa azione è <strong className="text-[var(--red)]">definitiva e irreversibile</strong>: verranno
-            eliminati profilo, attività, statistiche, medaglie, crediti, messaggi, amicizie e foto.
-            Nessun dato potrà essere recuperato.
+            {profileText.deleteAccount.warningBefore}<strong className="text-[var(--red)]">{profileText.deleteAccount.warningEmphasis}</strong>{profileText.deleteAccount.warningAfter}
           </p>
         </div>
 
         <p className="text-xs text-gray-500">
-          Vuoi prima una copia dei tuoi dati? Chiudi questa finestra e usa "Esporta i miei dati".
+          {profileText.deleteAccount.exportHint}
         </p>
 
         <div>
           <label className="block text-xs text-gray-400 mb-1.5">
-            Per confermare, scrivi il tuo username: <strong className="text-white">{username}</strong>
+            {profileText.deleteAccount.confirmLabelPrefix}<strong className="text-white">{username}</strong>
           </label>
           <input
             value={confirmText}
@@ -119,7 +119,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
             className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all active:scale-95"
             style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
           >
-            Annulla
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -128,7 +128,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-[white] transition-all active:scale-95 disabled:opacity-40 bg-[var(--red)]"
           >
             <Trash2 size={15} />
-            {deleting ? 'Eliminazione…' : 'Elimina per sempre'}
+            {deleting ? profileText.deleteAccount.deleting : profileText.deleteAccount.confirmButton}
           </button>
         </div>
       </div>

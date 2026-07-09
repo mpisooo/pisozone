@@ -4,6 +4,7 @@ import { Bell, Loader2 } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { useProfile } from '../hooks/useProfile'
 import { subscribeToPush } from '../lib/push'
+import shell from '../lib/i18n/shell'
 
 interface Props {
   userId: string
@@ -43,7 +44,7 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Attiva le notifiche"
+        aria-label={shell.pushPrompt.dialogAriaLabel}
         className="w-full max-h-[80vh] overflow-y-auto rounded-t-2xl p-5 space-y-4"
         style={{ background: 'var(--grey-dark)' }}
         onClick={(e) => e.stopPropagation()}
@@ -60,10 +61,9 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
           >
             <Bell size={26} className="text-[var(--red)]" />
           </div>
-          <h2 className="font-bebas text-2xl text-white tracking-wider">ATTIVA LE NOTIFICHE</h2>
+          <h2 className="font-bebas text-2xl text-white tracking-wider">{shell.pushPrompt.title}</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
-            Ricevi un promemoria se non ti alleni entro le 22:00, e un avviso per nuovi messaggi e
-            richieste di amicizia — anche ad app chiusa.
+            {shell.pushPrompt.body}
           </p>
         </div>
 
@@ -71,10 +71,10 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
           <>
             <p className="text-xs text-[var(--red)] text-center px-1">{error}</p>
             <p className="text-xs text-gray-500 text-center">
-              Potrai riprovare quando vuoi da Profilo → Notifiche.
+              {shell.pushPrompt.retryHint}
             </p>
             <button type="button" onClick={onDone} className="btn-primary w-full">
-              Ho capito
+              {shell.pushPrompt.understood}
             </button>
           </>
         ) : (
@@ -86,7 +86,7 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
                 disabled={working}
                 className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-400 border border-gray-600 disabled:opacity-50"
               >
-                Non ora
+                {shell.pushPrompt.notNow}
               </button>
               <button
                 type="button"
@@ -95,11 +95,11 @@ export default function PushNotificationPrompt({ userId, onDone }: Props) {
                 className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               >
                 {working ? <Loader2 size={16} className="animate-spin" /> : <Bell size={16} />}
-                {working ? 'Attivazione...' : 'Attiva'}
+                {working ? shell.pushPrompt.enabling : shell.pushPrompt.enable}
               </button>
             </div>
             <p className="text-xs text-gray-500 text-center">
-              Potrai disattivarle o riattivarle quando vuoi da Profilo → Notifiche.
+              {shell.pushPrompt.toggleHint}
             </p>
           </>
         )}

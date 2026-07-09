@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import shell from '../lib/i18n/shell'
 
 // Foto a schermo intero (feed). Stesso pattern accessibile di ActivityEditModal:
 // focus trap, Esc, role="dialog"; chiude anche col tap sullo sfondo.
@@ -25,7 +26,7 @@ export default function PhotoLightbox({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Chiudi"
+        aria-label={shell.photoLightbox.close}
         className="absolute right-4 p-2.5 rounded-full text-gray-300 hover:text-white"
         style={{ background: 'rgba(255,255,255,0.12)', top: 'calc(env(safe-area-inset-top) + 12px)' }}
       >

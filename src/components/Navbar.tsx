@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, PlusCircle, CalendarDays, Users, Target } from 'lucide-react'
 import { useUnread } from '../context/UnreadContext'
+import shell from '../lib/i18n/shell'
 
 type NavItem = {
   to: string
@@ -10,11 +11,11 @@ type NavItem = {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/',           icon: Home,         label: 'Home' },
-  { to: '/log',        icon: PlusCircle,   label: 'Registra' },
-  { to: '/calendar',   icon: CalendarDays, label: 'Analisi', matchPaths: ['/calendar', '/stats'] },
-  { to: '/challenges', icon: Target,       label: 'Sfide' },
-  { to: '/social',     icon: Users,        label: 'Social' },
+  { to: '/',           icon: Home,         label: shell.navbar.home },
+  { to: '/log',        icon: PlusCircle,   label: shell.navbar.log },
+  { to: '/calendar',   icon: CalendarDays, label: shell.navbar.analysis, matchPaths: ['/calendar', '/stats'] },
+  { to: '/challenges', icon: Target,       label: shell.navbar.challenges },
+  { to: '/social',     icon: Users,        label: shell.navbar.social },
 ]
 
 export default function Navbar() {

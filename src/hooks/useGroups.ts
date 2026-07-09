@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { isRateLimitError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 
 export interface Group {
   id: string
@@ -46,7 +47,7 @@ export function useGroups() {
       .select('group_id, role')
       .eq('user_id', user.id)
 
-    if (membershipsError) showError('Errore nel caricamento dei gruppi. Riprova.')
+    if (membershipsError) showError(social.groups.errors.loadFailed)
 
     if (!memberships || memberships.length === 0) {
       setGroups([])
@@ -62,7 +63,7 @@ export function useGroups() {
       supabase.from('group_members').select('group_id').in('group_id', groupIds),
     ])
 
-    if (groupsError) showError('Errore nel caricamento dei gruppi. Riprova.')
+    if (groupsError) showError(social.groups.errors.loadFailed)
 
     const countMap = new Map<string, number>()
     for (const m of memberCounts ?? []) {
@@ -122,7 +123,7 @@ export function useGroups() {
       .eq('group_id', groupId)
       .order('created_at', { ascending: true })
       .limit(100)
-    if (error) showError('Errore nel caricamento dei messaggi del gruppo. Riprova.')
+    if (error) showError(social.chat.errors.groupMessagesLoadFailed)
     return (data ?? []).map((m: any) => ({
       id: m.id,
       group_id: m.group_id,
@@ -142,7 +143,7 @@ export function useGroups() {
       .select('id, group_id, sender_id, content, created_at')
       .single()
     if (error || !data) {
-      if (isRateLimitError(error)) showError('Stai inviando messaggi troppo in fretta. Attendi un momento e riprova.')
+      if (isRateLimitError(error)) showError(social.chat.errors.rateLimited)
       return null
     }
     return { ...data, sender_username: '', sender_photo: null }
@@ -153,7 +154,7 @@ export function useGroups() {
       .from('group_members')
       .select('role, user_id, profile:profiles!user_id(id, username, photo_url, level)')
       .eq('group_id', groupId)
-    if (error) showError('Errore nel caricamento dei membri del gruppo. Riprova.')
+    if (error) showError(social.groups.errors.membersLoadFailed)
     return (data ?? []).map((m: any) => ({
       id: m.user_id,
       username: m.profile?.username ?? 'Utente',

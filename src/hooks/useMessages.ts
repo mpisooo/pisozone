@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { isRateLimitError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 
 export interface Message {
   id: string
@@ -39,7 +40,7 @@ export function useMessages() {
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
-    if (error) showError('Errore nel caricamento delle conversazioni. Riprova.')
+    if (error) showError(social.chat.errors.conversationsLoadFailed)
     if (!data) { setLoadingConvs(false); return }
 
     const convMap = new Map<string, { lastMessage: string; lastAt: string; unread: number }>()
@@ -84,7 +85,7 @@ export function useMessages() {
         `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
       )
       .order('created_at', { ascending: true })
-    if (error) showError('Errore nel caricamento dei messaggi. Riprova.')
+    if (error) showError(social.chat.errors.messagesLoadFailed)
     return (data as Message[]) ?? []
   }
 
@@ -96,7 +97,7 @@ export function useMessages() {
       .select()
       .single()
     if (error) {
-      if (isRateLimitError(error)) showError('Stai inviando messaggi troppo in fretta. Attendi un momento e riprova.')
+      if (isRateLimitError(error)) showError(social.chat.errors.rateLimited)
       return null
     }
     return data as Message

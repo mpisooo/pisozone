@@ -25,6 +25,8 @@ import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
 import DeleteAccountModal from '../components/DeleteAccountModal'
+import common from '../lib/i18n/common'
+import profileText from '../lib/i18n/profile'
 
 type FormValues = {
   name: string
@@ -43,10 +45,10 @@ function calcBMI(weight: number, height: number) {
 function bmiCategory(bmi: number): { label: string; color: string } {
   // Colori semantici della scala BMI (blu/verde/giallo/rosso): NON seguono il
   // tema — "Obeso" deve restare rosso anche con accento verde/blu/viola.
-  if (bmi < 18.5) return { label: 'Sottopeso', color: '#60a5fa' }
-  if (bmi < 25)   return { label: 'Normale',   color: '#4ade80' }
-  if (bmi < 30)   return { label: 'Sovrappeso', color: '#facc15' }
-  return             { label: 'Obeso',       color: '#F44352' }
+  if (bmi < 18.5) return { label: profileText.account.bmiUnderweight, color: '#60a5fa' }
+  if (bmi < 25)   return { label: profileText.account.bmiNormal,      color: '#4ade80' }
+  if (bmi < 30)   return { label: profileText.account.bmiOverweight,  color: '#facc15' }
+  return             { label: profileText.account.bmiObese,           color: '#F44352' }
 }
 
 export default function ProfilePage() {
@@ -132,7 +134,7 @@ export default function ProfilePage() {
   const handleLogWeight = async () => {
     if (!weight) return
     if (weight <= 20 || weight >= 400) {
-      setWeightLogError('Il peso deve essere tra 20 e 400 kg.')
+      setWeightLogError(profileText.weight.outOfRange)
       setTimeout(() => setWeightLogError(''), 3500)
       return
     }
@@ -141,7 +143,7 @@ export default function ProfilePage() {
     const { error } = await addWeightLog(weight)
     setLoggingWeight(false)
     if (error) {
-      setWeightLogError('Salvataggio non riuscito. Controlla la connessione e riprova.')
+      setWeightLogError(profileText.weight.saveFailed)
       setTimeout(() => setWeightLogError(''), 3500)
     }
   }
@@ -157,7 +159,7 @@ export default function ProfilePage() {
       .from('avatars')
       .upload(path, file, { upsert: true, contentType: file.type })
     if (error) {
-      setUploadError('Errore upload: ' + error.message)
+      setUploadError(profileText.account.avatarUploadError(error.message))
     } else {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
       const newUrl = data.publicUrl + `?t=${Date.now()}`
@@ -180,7 +182,7 @@ export default function ProfilePage() {
       const data = await buildUserDataExport(user)
       downloadAsJson(data, `pisozone-dati-${format(new Date(), 'yyyy-MM-dd')}.json`)
     } catch {
-      setExportError('Esportazione non riuscita. Controlla la connessione e riprova.')
+      setExportError(profileText.privacy.exportFailed)
       setTimeout(() => setExportError(''), 3500)
     }
     setExporting(false)
@@ -191,8 +193,8 @@ export default function ProfilePage() {
     setShopWorking(true)
     const { data, error } = await supabase.rpc('unlock_next_level', { p_user_id: user.id })
     setShopWorking(false)
-    if (error) { showShopMsg('Errore: ' + error.message); return }
-    if (!data.success) { showShopMsg(data.error ?? 'Crediti insufficienti'); return }
+    if (error) { showShopMsg(profileText.level.errorWithMessage(error.message)); return }
+    if (!data.success) { showShopMsg(data.error ?? profileText.level.insufficientCredits); return }
     const newLevelDef = getLevelDef(data.new_level)
     setLevelUpCelebration({ emoji: newLevelDef.emoji, level: data.new_level, title: newLevelDef.title })
     await refetchProfile()
@@ -207,10 +209,10 @@ export default function ProfilePage() {
       p_cost: cost,
     })
     setShopWorking(false)
-    if (error) { showShopMsg('Errore: ' + error.message); return }
-    if (!data.success) { showShopMsg(data.error ?? 'Errore acquisto'); return }
+    if (error) { showShopMsg(profileText.level.errorWithMessage(error.message)); return }
+    if (!data.success) { showShopMsg(data.error ?? profileText.level.purchaseError); return }
     setTheme(themeId as ThemeId)
-    showShopMsg('Tema sbloccato e attivato!')
+    showShopMsg(profileText.level.themeUnlockedActivated)
     await refetchProfile()
   }
 
@@ -250,7 +252,7 @@ export default function ProfilePage() {
   return (
     <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
       <div className="pt-2">
-        <span className="font-bebas text-4xl text-white tracking-widest">PROFILO</span>
+        <span className="font-bebas text-4xl text-white tracking-widest">{profileText.pageTitle}</span>
         <div className="header-accent" />
       </div>
 
@@ -263,7 +265,7 @@ export default function ProfilePage() {
           {username.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500">Username</p>
+          <p className="text-xs text-gray-500">{profileText.account.usernameLabel}</p>
           <p className="font-semibold text-white">@{username}</p>
         </div>
         <div className="flex flex-col items-end gap-0.5">
@@ -271,7 +273,7 @@ export default function ProfilePage() {
             className="font-bebas text-lg leading-none"
             style={{ color: levelDef.color }}
           >
-            LV.{currentLevel} {levelDef.emoji}
+            {profileText.account.levelPrefix}{currentLevel} {levelDef.emoji}
           </span>
           <span className="text-xs" style={{ color: levelDef.color }}>{levelDef.title}</span>
         </div>
@@ -303,26 +305,26 @@ export default function ProfilePage() {
             <Camera size={22} className="text-white" />
           </div>
         </div>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Carica foto profilo" onChange={handlePhotoChange} />
-        {uploading && <p className="text-xs text-gray-400">Caricamento...</p>}
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label={profileText.account.avatarUploadAriaLabel} onChange={handlePhotoChange} />
+        {uploading && <p className="text-xs text-gray-400">{common.loading}</p>}
         {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
         {!uploading && !uploadError && (
-          <p className="text-xs text-gray-500">Tocca per cambiare foto</p>
+          <p className="text-xs text-gray-500">{profileText.account.changePhotoHint}</p>
         )}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Dati personali */}
         <div className="card space-y-4">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">DATI PERSONALI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.formTitle}</h2>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Nome (opzionale)</label>
-            <input {...register('name')} className="input-dark" placeholder="Il tuo nome" />
+            <label className="block text-xs text-gray-400 mb-1">{profileText.account.nameLabel}</label>
+            <input {...register('name')} className="input-dark" placeholder={profileText.account.namePlaceholder} />
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-2">Sesso</label>
+            <label className="block text-xs text-gray-400 mb-2">{profileText.account.genderLabel}</label>
             <div className="grid grid-cols-2 gap-2">
               {(['male', 'female'] as const).map((g) => (
                 <button
@@ -336,20 +338,20 @@ export default function ProfilePage() {
                   }`}
                   style={{ background: gender === g ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
-                  {g === 'male' ? '♂ Maschio' : '♀ Femmina'}
+                  {g === 'male' ? profileText.account.genderMale : profileText.account.genderFemale}
                 </button>
               ))}
             </div>
             <p className="text-xs text-gray-600 mt-1.5">
-              Usato per stimare meglio le calorie bruciate
+              {profileText.account.genderHint}
             </p>
           </div>
 
           <div className="min-w-0">
             <label className="block text-xs text-gray-400 mb-1">
-              Data di nascita
+              {profileText.account.birthDateLabel}
               {age !== null && age >= 0 && (
-                <span className="ml-2 text-[var(--red)]">{age} anni</span>
+                <span className="ml-2 text-[var(--red)]">{profileText.account.ageSuffix(age)}</span>
               )}
             </label>
             <input type="date" {...register('birth_date')} className="input-dark w-full" />
@@ -357,13 +359,13 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="profile-height" className="block text-xs text-gray-400 mb-1">Altezza (cm)</label>
+              <label htmlFor="profile-height" className="block text-xs text-gray-400 mb-1">{profileText.account.heightLabel}</label>
               <input
                 id="profile-height"
                 type="number"
                 {...register('height_cm', {
-                  min: { value: 50, message: 'Valore troppo basso' },
-                  max: { value: 250, message: 'Valore troppo alto' },
+                  min: { value: 50, message: profileText.account.valueTooLow },
+                  max: { value: 250, message: profileText.account.valueTooHigh },
                 })}
                 className="input-dark"
                 placeholder="175"
@@ -373,14 +375,14 @@ export default function ProfilePage() {
               {errors.height_cm && <p className="text-xs text-red-400 mt-1">{errors.height_cm.message}</p>}
             </div>
             <div>
-              <label htmlFor="profile-weight" className="block text-xs text-gray-400 mb-1">Peso (kg)</label>
+              <label htmlFor="profile-weight" className="block text-xs text-gray-400 mb-1">{profileText.account.weightLabel}</label>
               <input
                 id="profile-weight"
                 type="number"
                 step="0.1"
                 {...register('weight_kg', {
-                  min: { value: 20, message: 'Valore troppo basso' },
-                  max: { value: 400, message: 'Valore troppo alto' },
+                  min: { value: 20, message: profileText.account.valueTooLow },
+                  max: { value: 400, message: profileText.account.valueTooHigh },
                 })}
                 className="input-dark"
                 placeholder="75"
@@ -393,12 +395,12 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Obiettivo settimanale</label>
+              <label className="block text-xs text-gray-400 mb-1">{profileText.account.weeklyGoalLabel}</label>
               <input type="number" {...register('weekly_goal')} className="input-dark" placeholder="3" min={1} max={14} />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Calorie/giorno (kcal)</label>
-              <input type="number" {...register('daily_calorie_goal')} className="input-dark" placeholder="opzionale" min={100} max={5000} />
+              <label className="block text-xs text-gray-400 mb-1">{profileText.account.dailyCalorieGoalLabel}</label>
+              <input type="number" {...register('daily_calorie_goal')} className="input-dark" placeholder={profileText.account.dailyCalorieGoalPlaceholder} min={100} max={5000} />
             </div>
           </div>
         </div>
@@ -406,7 +408,7 @@ export default function ProfilePage() {
         {/* BMI */}
         {bmi !== null && bmiInfo && (
           <div className="card count-up" style={{ borderColor: bmiInfo.color }}>
-            <h2 className="font-bebas text-xl tracking-wider mb-3" style={{ color: bmiInfo.color }}>BMI</h2>
+            <h2 className="font-bebas text-xl tracking-wider mb-3" style={{ color: bmiInfo.color }}>{profileText.account.bmiTitle}</h2>
             <div className="flex items-end gap-3">
               <span className="font-bebas text-5xl" style={{ color: bmiInfo.color }}>{bmi.toFixed(1)}</span>
               <span className="text-sm text-gray-300 mb-1">{bmiInfo.label}</span>
@@ -432,10 +434,10 @@ export default function ProfilePage() {
         {/* Sport preferiti */}
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">SPORT PREFERITI</h2>
-            <span className="text-xs text-gray-500">{sportPreferiti.length}/3 selezionati</span>
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.sportTitle}</h2>
+            <span className="text-xs text-gray-500">{profileText.account.sportSelectedCount(sportPreferiti.length)}</span>
           </div>
-          <p className="text-xs text-gray-500">Scegli fino a 3 attività che pratichi di più</p>
+          <p className="text-xs text-gray-500">{profileText.account.sportHint}</p>
           <div className="grid grid-cols-5 gap-2">
             {ACTIVITY_OPTIONS.map((opt) => {
               const isSelected = sportPreferiti.includes(opt.value)
@@ -477,11 +479,11 @@ export default function ProfilePage() {
 
         <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2" disabled={saving}>
           {saved ? (
-            <span className="count-up">✅ Salvato!</span>
+            <span className="count-up">{profileText.account.saved}</span>
           ) : (
             <>
               <Save size={18} />
-              {saving ? 'Salvataggio...' : 'Salva profilo'}
+              {saving ? profileText.account.saving : profileText.account.save}
             </>
           )}
         </button>
@@ -490,8 +492,8 @@ export default function ProfilePage() {
       {/* ── LIVELLO ──────────────────────────────────────────────────────── */}
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>IL TUO LIVELLO</h2>
-          <span className="text-sm font-medium text-gray-400">{credits} 💎 crediti</span>
+          <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>{profileText.level.title}</h2>
+          <span className="text-sm font-medium text-gray-400">{profileText.level.creditsLabel(credits)}</span>
         </div>
 
         {/* Level progress row */}
@@ -540,7 +542,7 @@ export default function ProfilePage() {
             <p className="font-bebas text-2xl leading-none" style={{ color: levelDef.color }}>
               {levelDef.title}
             </p>
-            <p className="text-xs text-gray-400">Livello {currentLevel} di 10</p>
+            <p className="text-xs text-gray-400">{profileText.level.levelOfTen(currentLevel)}</p>
           </div>
         </div>
 
@@ -549,10 +551,10 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400">
-                Prossimo: <span style={{ color: nextLevel.color }}>{nextLevel.emoji} {nextLevel.title}</span>
+                {profileText.level.nextPrefix}<span style={{ color: nextLevel.color }}>{nextLevel.emoji} {nextLevel.title}</span>
               </span>
               <span className={`font-medium ${credits >= nextLevel.costToUnlock ? 'text-green-400' : 'text-gray-500'}`}>
-                {nextLevel.costToUnlock} 💎
+                {profileText.creditsAmount(nextLevel.costToUnlock)}
               </span>
             </div>
             <div className="h-2 rounded-full bg-[var(--grey)] overflow-hidden">
@@ -577,14 +579,14 @@ export default function ProfilePage() {
             >
               <ChevronRight size={16} />
               {credits >= nextLevel.costToUnlock
-                ? `Sali a Lv.${nextLevel.level} — ${nextLevel.costToUnlock} 💎`
-                : `Servono ${nextLevel.costToUnlock - credits} 💎 in più`}
+                ? profileText.level.upgradeButton(nextLevel.level, nextLevel.costToUnlock)
+                : profileText.level.needMoreCredits(nextLevel.costToUnlock - credits)}
             </button>
           </div>
         ) : (
           <div className="text-center py-2">
-            <p className="font-bebas text-xl" style={{ color: levelDef.color }}>👑 LIVELLO MASSIMO RAGGIUNTO</p>
-            <p className="text-xs text-gray-500 mt-1">Sei tra i migliori atleti di PisoZone</p>
+            <p className="font-bebas text-xl" style={{ color: levelDef.color }}>{profileText.level.maxLevelTitle}</p>
+            <p className="text-xs text-gray-500 mt-1">{profileText.level.maxLevelSubtitle}</p>
           </div>
         )}
 
@@ -597,7 +599,7 @@ export default function ProfilePage() {
 
       {/* ── TEMI ─────────────────────────────────────────────────────────── */}
       <div className="card space-y-4">
-        <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>TEMI</h2>
+        <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>{profileText.theme.title}</h2>
         <div className="grid grid-cols-2 gap-3">
           {THEME_DEFINITIONS.map((td) => {
             const isUnlocked = td.free || unlockedThemes.includes(td.id)
@@ -632,7 +634,7 @@ export default function ProfilePage() {
                 {isActive ? (
                   <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'var(--red)' }}>
                     <Check size={13} />
-                    Attivo
+                    {profileText.theme.active}
                   </div>
                 ) : isUnlocked ? (
                   <button
@@ -642,7 +644,7 @@ export default function ProfilePage() {
                     className="w-full text-xs py-1.5 rounded-lg font-medium transition-all"
                     style={{ background: 'var(--grey-light)', color: 'var(--color-text)' }}
                   >
-                    Attiva
+                    {profileText.theme.activate}
                   </button>
                 ) : (
                   <button
@@ -657,7 +659,7 @@ export default function ProfilePage() {
                     }
                   >
                     {canAfford ? <></> : <Lock size={11} />}
-                    {canAfford ? `Sblocca ${td.cost} 💎` : `${td.cost} 💎`}
+                    {canAfford ? profileText.theme.unlock(td.cost) : profileText.creditsAmount(td.cost)}
                   </button>
                 )}
               </div>
@@ -671,7 +673,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Scale size={16} className="text-[var(--red)]" />
-            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">STORICO PESO</h2>
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.weight.title}</h2>
           </div>
           {weight && (
             <button
@@ -681,7 +683,7 @@ export default function ProfilePage() {
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] transition-all active:scale-95 disabled:opacity-50 bg-[var(--red)]"
             >
               <TrendingUp size={13} />
-              {loggingWeight ? '...' : `Salva ${weight} kg`}
+              {loggingWeight ? profileText.weight.saveButtonSaving : profileText.weight.saveButton(weight)}
             </button>
           )}
         </div>
@@ -695,8 +697,8 @@ export default function ProfilePage() {
         {chartData.length < 2 ? (
           <p className="text-sm text-gray-500 text-center py-4">
             {chartData.length === 0
-              ? 'Nessuna pesata registrata. Inserisci il tuo peso e clicca "Salva peso".'
-              : 'Registra almeno 2 pesate per vedere il grafico.'}
+              ? profileText.weight.emptyHint
+              : profileText.weight.needMoreEntries}
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={160}>
@@ -719,7 +721,7 @@ export default function ProfilePage() {
                 contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: chartTick }}
                 itemStyle={{ color: 'var(--red)' }}
-                formatter={(v) => [`${v} kg`, 'Peso']}
+                formatter={(v) => [profileText.weight.tooltipValue(v), profileText.weight.tooltipLabel]}
               />
               <Line
                 type="monotone"
@@ -735,7 +737,7 @@ export default function ProfilePage() {
 
         {chartData.length > 0 && (
           <p className="text-xs text-gray-600 text-center">
-            {chartData.length} {chartData.length === 1 ? 'pesata' : 'pesate'} registrate
+            {profileText.weight.entriesCount(chartData.length)}
           </p>
         )}
       </div>
@@ -744,15 +746,14 @@ export default function ProfilePage() {
       <div className="card space-y-3">
         <div className="flex items-center gap-2">
           <ShieldCheck size={16} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">PRIVACY E DATI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.privacy.title}</h2>
         </div>
         <p className="text-xs text-gray-500 leading-relaxed">
-          I tuoi dati ti appartengono: puoi scaricarne una copia completa in formato JSON o
-          eliminare definitivamente l'account con tutto ciò che contiene.
+          {profileText.privacy.body}
         </p>
         <div className="flex gap-4 text-xs">
-          <Link to="/privacy" className="text-[var(--red)] underline">Privacy Policy</Link>
-          <Link to="/termini" className="text-[var(--red)] underline">Termini di Servizio</Link>
+          <Link to="/privacy" className="text-[var(--red)] underline">{profileText.privacy.privacyPolicyLink}</Link>
+          <Link to="/termini" className="text-[var(--red)] underline">{profileText.privacy.termsLink}</Link>
         </div>
         {exportError && (
           <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
@@ -767,7 +768,7 @@ export default function ProfilePage() {
           style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
         >
           <Download size={15} />
-          {exporting ? 'Preparazione del file…' : 'Esporta i miei dati (JSON)'}
+          {exporting ? profileText.privacy.exportingButton : profileText.privacy.exportButton}
         </button>
         <button
           type="button"
@@ -776,7 +777,7 @@ export default function ProfilePage() {
           style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
         >
           <Trash2 size={15} />
-          Elimina account
+          {profileText.privacy.deleteAccountButton}
         </button>
       </div>
 
@@ -785,8 +786,8 @@ export default function ProfilePage() {
       {levelUpCelebration && (
         <CelebrationOverlay
           icon={levelUpCelebration.emoji}
-          title={`LIVELLO ${levelUpCelebration.level}!`}
-          subtitle={`Nuovo titolo: ${levelUpCelebration.title}`}
+          title={profileText.level.celebrationTitle(levelUpCelebration.level)}
+          subtitle={profileText.level.celebrationSubtitle(levelUpCelebration.title)}
           onDone={() => setLevelUpCelebration(null)}
         />
       )}

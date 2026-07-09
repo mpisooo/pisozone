@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { getLevelDef, type ThemeId } from '../lib/levels'
 import CreditsInfoModal from './CreditsInfoModal'
+import shell from '../lib/i18n/shell'
 
 export default function TopBar() {
   const { user, signOut } = useAuth()
@@ -57,7 +58,7 @@ export default function TopBar() {
         <div className="hidden sm:flex items-center gap-1.5">
           <span className="text-base leading-none">{levelDef.emoji}</span>
           <span className="text-xs font-medium" style={{ color: levelDef.color }}>
-            Lv.{currentLevel} {levelDef.title}
+            {shell.topBar.levelPrefix}{currentLevel} {levelDef.title}
           </span>
         </div>
       )}
@@ -68,7 +69,7 @@ export default function TopBar() {
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-2 focus:outline-none"
-          aria-label="Menu profilo"
+          aria-label={shell.topBar.profileMenuLabel}
         >
           {/* Level pill (mobile) */}
           {profile && (
@@ -76,7 +77,7 @@ export default function TopBar() {
               className="sm:hidden text-[10px] font-bold px-1.5 py-0.5 rounded-full"
               style={{ background: levelDef.color + '33', color: levelDef.color }}
             >
-              Lv.{currentLevel}
+              {shell.topBar.levelPrefix}{currentLevel}
             </span>
           )}
           <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-[var(--red)] flex-shrink-0" style={{ border: '2px solid var(--red)' }}>
@@ -91,7 +92,7 @@ export default function TopBar() {
         {open && (
           <div
             ref={dropdownRef}
-            aria-label="Menu profilo"
+            aria-label={shell.topBar.profileMenuLabel}
             className="topbar-dropdown absolute right-0 top-11 w-52 rounded-xl overflow-hidden shadow-xl"
           >
             {/* Level info in dropdown */}
@@ -101,15 +102,15 @@ export default function TopBar() {
                   <span className="text-xl">{levelDef.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold" style={{ color: levelDef.color }}>
-                      Lv.{currentLevel} — {levelDef.title}
+                      {shell.topBar.levelPrefix}{currentLevel} — {levelDef.title}
                     </p>
-                    <p className="text-[11px] text-gray-500">{profile.credits} 💎 crediti</p>
+                    <p className="text-[11px] text-gray-500">{profile.credits} 💎 {shell.topBar.creditsSuffix}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setOpen(false); setShowCreditsInfo(true) }}
                     className="p-1 text-gray-500 hover:text-[var(--red)] transition-colors"
-                    aria-label="Come guadagnare crediti"
+                    aria-label={shell.topBar.creditsInfoLabel}
                   >
                     <Info size={16} />
                   </button>
@@ -123,7 +124,7 @@ export default function TopBar() {
               onClick={() => { setOpen(false); navigate('/profile') }}
             >
               <User size={16} className="text-gray-400" />
-              Impostazioni profilo
+              {shell.topBar.profileSettings}
             </button>
             <div className="h-px bg-[var(--grey)]" />
             <button
@@ -132,7 +133,7 @@ export default function TopBar() {
               onClick={() => { setOpen(false); signOut() }}
             >
               <LogOut size={16} />
-              Esci
+              {shell.topBar.signOut}
             </button>
           </div>
         )}

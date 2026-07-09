@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import profileText from './i18n/profile'
 import type { User } from '@supabase/supabase-js'
 
 const FAKE_EMAIL_SUFFIX = '@pisozone.local'
@@ -26,7 +27,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   const entries = await Promise.all(
     Object.entries(queries).map(async ([key, query]) => {
       const { data, error } = await query
-      if (error) throw new Error(`Export di "${key}" non riuscito: ${error.message}`)
+      if (error) throw new Error(profileText.export.fieldFailed(key, error.message))
       return [key, data] as const
     }),
   )

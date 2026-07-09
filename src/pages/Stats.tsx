@@ -19,24 +19,25 @@ import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
+import stats from '../lib/i18n/stats'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 
 const PERIODS: { value: Period; label: string }[] = [
-  { value: 'today',  label: 'Oggi'     },
-  { value: 'week',   label: 'Settimana' },
-  { value: 'month',  label: 'Mese'     },
-  { value: 'year',   label: 'Anno'     },
-  { value: 'all',    label: 'Sempre'   },
+  { value: 'today',  label: stats.periods.today     },
+  { value: 'week',   label: stats.periods.week       },
+  { value: 'month',  label: stats.periods.month      },
+  { value: 'year',   label: stats.periods.year       },
+  { value: 'all',    label: stats.periods.all        },
 ]
 
 type Metric = 'minutes' | 'sessions' | 'calories' | 'km'
 
 const METRICS: { value: Metric; label: string; unit: string }[] = [
-  { value: 'minutes',  label: 'Minuti',   unit: ' min'  },
-  { value: 'sessions', label: 'Sessioni', unit: ''      },
-  { value: 'calories', label: 'Calorie',  unit: ' kcal' },
-  { value: 'km',       label: 'Km',       unit: ' km'   },
+  { value: 'minutes',  label: stats.metrics.minutes.label,  unit: stats.metrics.minutes.unit  },
+  { value: 'sessions', label: stats.metrics.sessions.label, unit: stats.metrics.sessions.unit },
+  { value: 'calories', label: stats.metrics.calories.label, unit: stats.metrics.calories.unit },
+  { value: 'km',       label: stats.metrics.km.label,       unit: stats.metrics.km.unit       },
 ]
 
 // Sfumature derivate dall'accento del tema attivo (rosso, blu, verde o viola):
@@ -79,10 +80,6 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
       {sub && <p className="text-xs text-[var(--red)]">{sub}</p>}
     </div>
   )
-}
-
-function fmtMinutes(min: number): string {
-  return min >= 60 ? `${Math.floor(min / 60)}h ${min % 60}min` : `${min}min`
 }
 
 export default function StatsPage() {
@@ -219,22 +216,22 @@ export default function StatsPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Sessioni" value={totalSessions} />
+        <StatCard label={stats.cards.sessions} value={totalSessions} />
         <StatCard
-          label="Minuti totali"
+          label={stats.cards.totalMinutes}
           value={totalMin >= 60 ? `${Math.floor(totalMin / 60)}h ${totalMin % 60}m` : `${totalMin}m`}
         />
-        <StatCard label="Calorie" value={totalCal > 0 ? `${totalCal.toLocaleString()} kcal` : '—'} />
-        <StatCard label="Km percorsi" value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'} />
+        <StatCard label={stats.cards.calories} value={totalCal > 0 ? `${totalCal.toLocaleString()} kcal` : stats.cards.emptyValue} />
+        <StatCard label={stats.cards.km} value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : stats.cards.emptyValue} />
       </div>
 
       {topOpt && (
         <div className="card flex items-center gap-3">
           <span className="text-4xl">{topOpt.emoji}</span>
           <div>
-            <p className="text-xs text-gray-400">Attività più frequente</p>
+            <p className="text-xs text-gray-400">{stats.topActivity.label}</p>
             <p className="font-bebas text-2xl text-white">{topOpt.label}</p>
-            <p className="text-xs text-[var(--red)]">{topActivity[1]} sessioni</p>
+            <p className="text-xs text-[var(--red)]">{stats.topActivity.sessionsCount(topActivity[1])}</p>
           </div>
         </div>
       )}
@@ -242,7 +239,7 @@ export default function StatsPage() {
       {/* Andamento nel tempo */}
       {trendData.length > 1 && filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-2">ANDAMENTO</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-2">{stats.trend.heading}</h2>
           <div className="flex gap-1.5 mb-3 overflow-x-auto">
             {availableMetrics.map(({ value, label }) => (
               <button
@@ -288,7 +285,7 @@ export default function StatsPage() {
       {/* Abitudini: giorni della settimana (solo su finestre multi-settimana) */}
       {(period === 'month' || period === 'year' || period === 'all') && filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">IN QUALI GIORNI TI ALLENI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{stats.weekdays.heading}</h2>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={weekdayData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid stroke={chartGrid} vertical={false} />
@@ -299,7 +296,7 @@ export default function StatsPage() {
                 labelStyle={{ color: tooltipText }}
                 itemStyle={{ color: 'var(--red)' }}
               />
-              <Bar dataKey="sessions" fill="var(--red)" radius={[4, 4, 0, 0]} name="Sessioni" />
+              <Bar dataKey="sessions" fill="var(--red)" radius={[4, 4, 0, 0]} name={stats.weekdays.seriesName} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -308,9 +305,9 @@ export default function StatsPage() {
       {/* Obiettivo vs reale — finestra fissa: ultime 8 settimane */}
       {activities.length > 0 && filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">OBIETTIVO VS REALE</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.goal.heading}</h2>
           <p className="text-xs text-gray-400 mb-3">
-            Obiettivo raggiunto in <span className="text-[var(--red)] font-semibold">{weeksMet}</span> delle ultime 8 settimane
+            {stats.goal.reachedBefore}<span className="text-[var(--red)] font-semibold">{weeksMet}</span>{stats.goal.reachedAfter}
           </p>
           <ResponsiveContainer width="100%" height={170}>
             <BarChart data={goalData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
@@ -327,15 +324,15 @@ export default function StatsPage() {
                 contentStyle={tooltipStyle}
                 labelStyle={{ color: tooltipText }}
                 itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [`${value} su ${weeklyGoal}`, 'Sessioni']}
+                formatter={(value) => [stats.goal.tooltipValue(value, weeklyGoal), stats.goal.tooltipName]}
               />
               <ReferenceLine
                 y={weeklyGoal}
                 stroke={chartTick}
                 strokeDasharray="6 3"
-                label={{ value: `Obiettivo: ${weeklyGoal}`, position: 'insideTopRight', fill: chartTick, fontSize: 10 }}
+                label={{ value: stats.goal.referenceLabel(weeklyGoal), position: 'insideTopRight', fill: chartTick, fontSize: 10 }}
               />
-              <Bar dataKey="sessions" radius={[4, 4, 0, 0]} name="Sessioni">
+              <Bar dataKey="sessions" radius={[4, 4, 0, 0]} name={stats.goal.tooltipName}>
                 {goalData.map((w) => (
                   <Cell key={w.key} fill={w.met ? 'var(--red)' : 'rgba(var(--accent-rgb),0.35)'} />
                 ))}
@@ -348,7 +345,7 @@ export default function StatsPage() {
       {/* Pie chart */}
       {pieData.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">DISTRIBUZIONE ATTIVITÀ</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{stats.pie.heading}</h2>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
@@ -377,11 +374,11 @@ export default function StatsPage() {
       {/* Peso e allenamento: due grafici impilati sullo stesso asse settimanale */}
       {weightPoints >= 2 && filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">PESO E ALLENAMENTO</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.weightTraining.heading}</h2>
           <p className="text-xs text-gray-400 mb-3">
-            Peso medio e minuti di allenamento, settimana per settimana (ultime 12)
+            {stats.weightTraining.subtitle}
           </p>
-          <p className="text-xs text-gray-400 mb-1">Peso (kg)</p>
+          <p className="text-xs text-gray-400 mb-1">{stats.weightTraining.weightLabel}</p>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={weightData} syncId="pesoAllenamento" margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid stroke={chartGrid} vertical={false} />
@@ -391,7 +388,7 @@ export default function StatsPage() {
                 contentStyle={tooltipStyle}
                 labelStyle={{ color: tooltipText }}
                 itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [`${value} kg`, 'Peso medio']}
+                formatter={(value) => [stats.weightTraining.weightTooltipValue(value), stats.weightTraining.weightSeriesName]}
               />
               <Line
                 type="monotone"
@@ -400,11 +397,11 @@ export default function StatsPage() {
                 strokeWidth={2}
                 dot={{ r: 3, fill: 'var(--red)', strokeWidth: 0 }}
                 connectNulls
-                name="Peso medio"
+                name={stats.weightTraining.weightSeriesName}
               />
             </LineChart>
           </ResponsiveContainer>
-          <p className="text-xs text-gray-400 mb-1 mt-2">Minuti di allenamento</p>
+          <p className="text-xs text-gray-400 mb-1 mt-2">{stats.weightTraining.trainingLabel}</p>
           <ResponsiveContainer width="100%" height={110}>
             <BarChart data={weightData} syncId="pesoAllenamento" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid stroke={chartGrid} vertical={false} />
@@ -414,9 +411,9 @@ export default function StatsPage() {
                 contentStyle={tooltipStyle}
                 labelStyle={{ color: tooltipText }}
                 itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [`${value} min`, 'Allenamento']}
+                formatter={(value) => [stats.weightTraining.trainingTooltipValue(value), stats.weightTraining.trainingTooltipName]}
               />
-              <Bar dataKey="minutes" fill="rgba(var(--accent-rgb),0.55)" radius={[4, 4, 0, 0]} name="Minuti" />
+              <Bar dataKey="minutes" fill="rgba(var(--accent-rgb),0.55)" radius={[4, 4, 0, 0]} name={stats.weightTraining.trainingSeriesName} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -425,11 +422,11 @@ export default function StatsPage() {
       {/* Records */}
       {(longestSession || mostCalories) && (
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">RECORD PERSONALI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.records.heading}</h2>
           {longestSession && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Sessione più lunga</p>
+                <p className="text-xs text-gray-400">{stats.records.longestSession}</p>
                 <p className="text-white font-medium">
                   {Math.floor(longestSession.duration_min / 60)}h {longestSession.duration_min % 60}min
                 </p>
@@ -440,7 +437,7 @@ export default function StatsPage() {
           {mostCalories && (mostCalories.calories ?? 0) > 0 && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Più calorie bruciate</p>
+                <p className="text-xs text-gray-400">{stats.records.mostCalories}</p>
                 <p className="text-white font-medium">{mostCalories.calories} kcal</p>
               </div>
               <span className="text-2xl">🔥</span>
@@ -449,7 +446,7 @@ export default function StatsPage() {
           {longestDistance && (longestDistance.distance_km ?? 0) > 0 && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Distanza più lunga</p>
+                <p className="text-xs text-gray-400">{stats.records.longestDistance}</p>
                 <p className="text-white font-medium">{longestDistance.distance_km} km</p>
               </div>
               <span className="text-2xl">📏</span>
@@ -458,9 +455,9 @@ export default function StatsPage() {
           {busiestDay && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400">Giorno più attivo</p>
+                <p className="text-xs text-gray-400">{stats.records.busiestDay}</p>
                 <p className="text-white font-medium">
-                  {format(parseISO(busiestDay.date), 'd MMMM yyyy', { locale: it })} · {fmtMinutes(busiestDay.minutes)}
+                  {format(parseISO(busiestDay.date), 'd MMMM yyyy', { locale: it })} · {stats.records.busiestDayDuration(busiestDay.minutes)}
                 </p>
               </div>
               <span className="text-2xl">📆</span>
@@ -472,12 +469,12 @@ export default function StatsPage() {
       {/* Export CSV */}
       {filtered.length > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">ESPORTA I DATI</h2>
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.export.heading}</h2>
           <p className="text-xs text-gray-400 mb-3">
-            Scarica le attività del periodo selezionato in formato CSV, pronto per Excel o Google Sheets.
+            {stats.export.description}
           </p>
           <button type="button" className="btn-primary w-full py-2 text-sm" onClick={handleExportCsv}>
-            📄 Scarica CSV ({filtered.length} attività)
+            {stats.export.button(filtered.length)}
           </button>
         </div>
       )}
@@ -491,15 +488,15 @@ export default function StatsPage() {
             {activities.length === 0 ? '🚀' : '🔍'}
           </div>
           <p className="font-bebas text-2xl text-white tracking-wider mb-1">
-            {activities.length === 0 ? 'Niente ancora!' : 'Nessun dato qui'}
+            {activities.length === 0 ? stats.emptyState.titleNoActivities : stats.emptyState.titleNoDataInPeriod}
           </p>
           <p className="text-gray-500 text-sm mb-5 leading-relaxed">
             {activities.length === 0
-              ? 'Registra la tua prima attività per vedere le statistiche prendere vita.'
-              : 'Non hai attività in questo periodo. Prova a cambiare filtro o registra un allenamento.'}
+              ? stats.emptyState.descriptionNoActivities
+              : stats.emptyState.descriptionNoDataInPeriod}
           </p>
           <button type="button" className="btn-primary px-6 py-2 text-sm" onClick={() => navigate('/log')}>
-            {activities.length === 0 ? '🏃 Prima attività' : '+ Registra allenamento'}
+            {activities.length === 0 ? stats.emptyState.ctaFirstActivity : stats.emptyState.ctaLogActivity}
           </button>
         </div>
       )}

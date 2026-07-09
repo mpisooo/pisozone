@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { generateDailyChallenges } from '../lib/challenges'
+import challengesCopy from '../lib/i18n/challenges'
 import type { Activity, DailyChallengeCompletion, EnrichedChallenge } from '../types'
 
 export function useDailyChallenges(activities: Activity[], streak: number) {
@@ -33,7 +34,7 @@ export function useDailyChallenges(activities: Activity[], streak: number) {
       .eq('user_id', user.id)
       .eq('challenge_date', today)
       .then(({ data, error }) => {
-        if (error) showError('Errore nel caricamento delle sfide. Riprova.')
+        if (error) showError(challengesCopy.errors.loadFailed)
         setCompletions((data as DailyChallengeCompletion[]) ?? [])
         setLoading(false)
       })

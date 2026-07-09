@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { MEDALS, TIER_CREDITS } from '../lib/constants'
+import medals from '../lib/i18n/medals'
 import type { Achievement, AchievementStats, MedalTier } from '../types'
 
 export interface NewlyUnlockedMedal {
@@ -30,7 +31,7 @@ export function useAchievements(stats: AchievementStats) {
       .select('*')
       .eq('user_id', user.id)
       .then(({ data, error }) => {
-        if (error) showError('Errore nel caricamento delle medaglie. Riprova.')
+        if (error) showError(medals.errors.loadFailed)
         setRecorded((data as Achievement[]) ?? [])
       })
   }, [user?.id, showError])
@@ -66,7 +67,7 @@ export function useAchievements(stats: AchievementStats) {
     setClaimingKey(null)
 
     if (error || !data || data.length === 0) {
-      showError('Riscatto medaglia non riuscito. Riprova.')
+      showError(medals.errors.claimFailed)
       return false
     }
 

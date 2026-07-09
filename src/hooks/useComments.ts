@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 import { isRateLimitError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 
 export interface ActivityComment {
   id: string
@@ -54,8 +55,8 @@ export function useComments() {
       .select('id, activity_id, user_id, content, created_at')
       .single()
     if (error || !data) {
-      if (isRateLimitError(error)) showError('Stai commentando troppo in fretta. Attendi un momento e riprova.')
-      else showError('Commento non inviato. Riprova.')
+      if (isRateLimitError(error)) showError(social.feed.comments.errors.rateLimited)
+      else showError(social.feed.comments.errors.sendFailed)
       return null
     }
     return {
@@ -67,7 +68,7 @@ export function useComments() {
 
   const deleteComment = async (commentId: string): Promise<boolean> => {
     const { error } = await supabase.from('activity_comments').delete().eq('id', commentId)
-    if (error) showError('Eliminazione non riuscita. Riprova.')
+    if (error) showError(social.feed.comments.errors.deleteFailed)
     return !error
   }
 

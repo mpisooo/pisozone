@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import legal from '../lib/i18n/legal'
 
 interface Props {
   title: string
@@ -23,10 +24,10 @@ export default function LegalLayout({ title, updated, children }: Props) {
           className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors mb-6"
         >
           <ArrowLeft size={16} />
-          Torna a PisoZone
+          {legal.layout.backLink}
         </Link>
         <h1 className="font-bebas text-4xl tracking-widest text-[#F44352]">{title}</h1>
-        <p className="text-xs text-gray-500 mt-1 mb-8">Ultimo aggiornamento: {updated}</p>
+        <p className="text-xs text-gray-500 mt-1 mb-8">{legal.layout.updatedPrefix} {updated}</p>
         <div className="space-y-7 pb-10">{children}</div>
       </div>
     </div>

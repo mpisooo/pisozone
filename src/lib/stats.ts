@@ -6,6 +6,7 @@ import { it } from 'date-fns/locale'
 import type { Activity } from '../types'
 import type { WeightLog } from '../types'
 import { ACTIVITY_OPTIONS } from './constants'
+import statsI18n from './i18n/stats'
 
 // Aggregazioni pure per la pagina Statistiche. Tutte le funzioni accettano
 // `now` come parametro per poter essere testate con date fisse.
@@ -74,15 +75,13 @@ export function buildTrendSeries(
 // tutti e 7 i giorni, in ordine fisso).
 export interface WeekdayPoint { label: string; sessions: number }
 
-const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-
 export function buildWeekdayDistribution(activities: Activity[]): WeekdayPoint[] {
   const counts = new Array(7).fill(0)
   for (const a of activities) {
     // getDay: 0 = domenica → riportato su indice 0 = lunedì
     counts[(parseISO(a.date).getDay() + 6) % 7]++
   }
-  return WEEKDAY_LABELS.map((label, i) => ({ label, sessions: counts[i] }))
+  return statsI18n.weekdayLabels.map((label, i) => ({ label, sessions: counts[i] }))
 }
 
 // Ultime N settimane (lunedì→domenica) con conteggio sessioni e flag
@@ -176,7 +175,7 @@ export function buildWeightTrainingSeries(
 // Export CSV pensato per Excel/Sheets in italiano: separatore ";" e
 // decimali con la virgola (il locale it usa ";" come separatore di lista).
 export function activitiesToCsv(activities: Activity[]): string {
-  const header = ['Data', 'Ora', 'Attività', 'Durata (min)', 'Calorie', 'Distanza (km)', 'Crediti', 'Note']
+  const header = statsI18n.csv.header
   const labelOf = new Map(ACTIVITY_OPTIONS.map((o) => [o.value, o.label]))
 
   const escape = (value: string) =>

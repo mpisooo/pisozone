@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import shell from '../lib/i18n/shell'
 
 type Phase = 'logo' | 'crossfade' | 'text' | 'exit'
 
@@ -72,7 +73,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           {(phase === 'text' || phase === 'exit') && (
             <>
               <div className="splash-line" />
-              <p className="splash-tagline">ALLENATI · CRESCI · DOMINA</p>
+              <p className="splash-tagline">{shell.splash.tagline}</p>
             </>
           )}
         </div>

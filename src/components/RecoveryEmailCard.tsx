@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Mail, ShieldCheck, Loader2, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import profileText from '../lib/i18n/profile'
 
 const FAKE_EMAIL_SUFFIX = '@pisozone.local'
 
@@ -30,12 +31,12 @@ export default function RecoveryEmailCard() {
     if (err) {
       setError(
         err.message.toLowerCase().includes('already')
-          ? "Questa email è già associata a un altro account."
-          : 'Invio non riuscito. Controlla l\'indirizzo e riprova.'
+          ? profileText.recoveryEmail.alreadyAssociated
+          : profileText.recoveryEmail.sendFailed
       )
       return
     }
-    setInfo('Codice inviato! Controlla la tua email e inseriscilo qui sotto.')
+    setInfo(profileText.recoveryEmail.codeSentInfo)
     setStep('code')
   }
 
@@ -50,7 +51,7 @@ export default function RecoveryEmailCard() {
     })
     setVerifying(false)
     if (err) {
-      setError('Codice non valido o scaduto. Riprova.')
+      setError(profileText.recoveryEmail.invalidCode)
       return
     }
     setInfo('')
@@ -70,19 +71,18 @@ export default function RecoveryEmailCard() {
     <div className="card space-y-3">
       <div className="flex items-center gap-2">
         <ShieldCheck size={16} className="text-[var(--red)]" />
-        <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">EMAIL DI RECUPERO</h2>
+        <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.recoveryEmail.title}</h2>
       </div>
 
       {realEmail ? (
         <div className="flex items-center gap-2 text-sm text-green-400">
           <CheckCircle2 size={16} className="flex-shrink-0" />
-          <span className="break-all">{realEmail} verificata</span>
+          <span className="break-all">{profileText.recoveryEmail.verifiedSuffix(realEmail)}</span>
         </div>
       ) : step === 'idle' ? (
         <>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Aggiungi e verifica un'email per poter recuperare l'accesso se dimentichi la password.
-            Senza un'email verificata il reset password non è possibile.
+            {profileText.recoveryEmail.introHint}
           </p>
           <div className="flex gap-2">
             <input
@@ -90,9 +90,9 @@ export default function RecoveryEmailCard() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-dark flex-1 min-w-0"
-              placeholder="la-tua-email@esempio.com"
+              placeholder={profileText.recoveryEmail.emailPlaceholder}
               autoComplete="email"
-              aria-label="Email di recupero"
+              aria-label={profileText.recoveryEmail.emailAriaLabel}
             />
             <button
               type="button"
@@ -101,7 +101,7 @@ export default function RecoveryEmailCard() {
               className="btn-primary px-4 text-sm whitespace-nowrap disabled:opacity-50 flex items-center gap-1.5"
             >
               {sending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
-              <span>Invia codice</span>
+              <span>{profileText.recoveryEmail.sendCodeButton}</span>
             </button>
           </div>
         </>
@@ -113,10 +113,10 @@ export default function RecoveryEmailCard() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="input-dark flex-1 min-w-0"
-              placeholder="Codice a 6 cifre"
+              placeholder={profileText.recoveryEmail.codePlaceholder}
               inputMode="numeric"
               maxLength={6}
-              aria-label="Codice di verifica"
+              aria-label={profileText.recoveryEmail.codeAriaLabel}
             />
             <button
               type="button"
@@ -124,11 +124,11 @@ export default function RecoveryEmailCard() {
               disabled={verifying || !code.trim()}
               className="btn-primary px-4 text-sm whitespace-nowrap disabled:opacity-50"
             >
-              {verifying ? <Loader2 size={14} className="animate-spin" /> : 'Verifica'}
+              {verifying ? <Loader2 size={14} className="animate-spin" /> : profileText.recoveryEmail.verifyButton}
             </button>
           </div>
           <button type="button" onClick={handleChangeEmail} className="text-xs text-gray-500 underline">
-            Cambia email / invia di nuovo
+            {profileText.recoveryEmail.changeEmailButton}
           </button>
         </>
       )}

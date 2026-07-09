@@ -17,6 +17,8 @@ import { useBlocks } from '../hooks/useBlocks'
 import { getLevelDef } from '../lib/levels'
 import { isRateLimitError } from '../lib/errors'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import common from '../lib/i18n/common'
+import social from '../lib/i18n/social'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
 import PhotoLightbox from '../components/PhotoLightbox'
@@ -48,7 +50,7 @@ function Av({ photo, name, size = 40 }: { photo: string | null; name: string; si
 
 // ── Action Sheet (Portal) ─────────────────────────────────────────────────────
 // Stesso pattern di accessibilità di ActivityEditModal: focus trap, Esc, dialog
-function ActionSheet({ onClose, label = 'Azioni', children }: { onClose: () => void; label?: string; children: React.ReactNode }) {
+function ActionSheet({ onClose, label = social.shared.actionSheetDefaultLabel, children }: { onClose: () => void; label?: string; children: React.ReactNode }) {
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
   return createPortal(
@@ -160,7 +162,7 @@ function DmChatView({
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
-        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <button type="button" onClick={onBack} aria-label={common.back} className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
         <Av photo={photo} name={username} size={36} />
         <p className="font-semibold text-white">{username}</p>
       </div>
@@ -170,7 +172,7 @@ function DmChatView({
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-500">
             <MessageCircle size={32} className="opacity-30" />
-            <p className="text-sm">Inizia la conversazione</p>
+            <p className="text-sm">{social.chat.dm.emptyState}</p>
           </div>
         )}
         {messages.map(msg => {
@@ -190,7 +192,7 @@ function DmChatView({
               >
                 {msg.content}
                 {msg.edited_at && (
-                  <span className="block text-[9px] opacity-55 mt-0.5">modificato</span>
+                  <span className="block text-[9px] opacity-55 mt-0.5">{social.chat.dm.editedLabel}</span>
                 )}
               </div>
               {msg.failed && (
@@ -199,7 +201,7 @@ function DmChatView({
                   onClick={() => handleRetry(msg)}
                   className="flex items-center gap-1 text-[10px] text-[var(--red)] mt-0.5 px-1"
                 >
-                  ⚠ Non inviato · Riprova
+                  {social.chat.sendFailedRetry}
                 </button>
               )}
             </div>
@@ -213,22 +215,22 @@ function DmChatView({
         <div className="border-t border-[var(--grey)]">
           <div className="flex items-center gap-2 px-4 py-1.5 border-b border-[var(--grey)]" style={{ background: 'rgba(var(--accent-rgb),0.07)' }}>
             <Edit2 size={12} className="text-[var(--red)] flex-shrink-0" />
-            <span className="text-xs text-[var(--red)]">Modifica messaggio</span>
-            <button type="button" onClick={() => { setEditingId(null); setEditText('') }} aria-label="Annulla modifica" className="ml-auto text-gray-500 hover:text-white">
+            <span className="text-xs text-[var(--red)]">{social.chat.dm.editMessageLabel}</span>
+            <button type="button" onClick={() => { setEditingId(null); setEditText('') }} aria-label={social.chat.dm.cancelEditAria} className="ml-auto text-gray-500 hover:text-white">
               <X size={14} />
             </button>
           </div>
           <div className="px-4 py-3 flex gap-2">
             <input
               className="flex-1 input-dark text-sm py-2"
-              aria-label="Modifica messaggio"
-              placeholder="Modifica messaggio..."
+              aria-label={social.chat.dm.editMessageLabel}
+              placeholder={social.chat.dm.editMessagePlaceholder}
               value={editText}
               onChange={e => setEditText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit() } }}
               autoFocus
             />
-            <button type="button" onClick={handleSaveEdit} disabled={!editText.trim()} aria-label="Salva" className="btn-primary px-3 py-2 disabled:opacity-40">
+            <button type="button" onClick={handleSaveEdit} disabled={!editText.trim()} aria-label={common.save} className="btn-primary px-3 py-2 disabled:opacity-40">
               <Check size={16} />
             </button>
           </div>
@@ -237,12 +239,12 @@ function DmChatView({
         <div className="px-4 py-3 border-t border-[var(--grey)] flex gap-2">
           <input
             className="flex-1 input-dark text-sm py-2"
-            placeholder="Scrivi un messaggio..."
+            placeholder={social.chat.messageInputPlaceholder}
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
           />
-          <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label="Invia" className="btn-primary px-3 py-2 disabled:opacity-40">
+          <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label={social.chat.sendAria} className="btn-primary px-3 py-2 disabled:opacity-40">
             <Send size={16} />
           </button>
         </div>
@@ -250,9 +252,9 @@ function DmChatView({
 
       {/* Message action sheet */}
       {selectedMsg && (
-        <ActionSheet onClose={() => setSelectedMsg(null)} label="Azioni sul messaggio">
+        <ActionSheet onClose={() => setSelectedMsg(null)} label={social.chat.dm.messageActionsLabel}>
           <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
-            <p className="text-xs text-gray-500 mb-1">Messaggio</p>
+            <p className="text-xs text-gray-500 mb-1">{social.chat.dm.messagePreviewHeading}</p>
             <p className="text-sm text-gray-300 line-clamp-2">{selectedMsg.content}</p>
           </div>
           <div className="py-1">
@@ -266,7 +268,7 @@ function DmChatView({
                 className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
               >
                 <Edit2 size={18} className="text-[var(--red)] flex-shrink-0" />
-                <span className="text-white font-medium">Modifica messaggio</span>
+                <span className="text-white font-medium">{social.chat.dm.editMessageLabel}</span>
               </button>
             )}
             <button
@@ -274,7 +276,7 @@ function DmChatView({
               className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
             >
               <Trash2 size={18} className="text-red-400 flex-shrink-0" />
-              <span className="text-red-400 font-medium">Elimina messaggio</span>
+              <span className="text-red-400 font-medium">{social.chat.dm.deleteMessageLabel}</span>
             </button>
           </div>
           <div className="px-4 pt-1 pb-2">
@@ -283,7 +285,7 @@ function DmChatView({
               className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
               style={{ background: 'var(--grey)' }}
             >
-              Annulla
+              {common.cancel}
             </button>
           </div>
         </ActionSheet>
@@ -316,7 +318,7 @@ function GroupChatView({
         const m = p.new
         if (m.sender_id === myId) return
         const sender = membersRef.current.find(mem => mem.id === m.sender_id)
-        setMessages(prev => [...prev, { ...m, sender_username: sender?.username ?? 'Utente', sender_photo: sender?.photo_url ?? null }])
+        setMessages(prev => [...prev, { ...m, sender_username: sender?.username ?? social.shared.unknownUser, sender_photo: sender?.photo_url ?? null }])
       })
       .subscribe()
     return () => { supabase.removeChannel(ch) }
@@ -355,12 +357,12 @@ function GroupChatView({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
-        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <button type="button" onClick={onBack} aria-label={common.back} className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-white truncate">{groupName}</p>
-          <p className="text-xs text-gray-500">{members.length} membri</p>
+          <p className="text-xs text-gray-500">{members.length} {social.groups.memberPlural}</p>
         </div>
-        <button type="button" onClick={() => setShowMembers(v => !v)} aria-label="Mostra membri" className={`p-1 transition-colors ${showMembers ? 'text-[var(--red)]' : 'text-gray-400 hover:text-white'}`}>
+        <button type="button" onClick={() => setShowMembers(v => !v)} aria-label={social.chat.group.showMembersAria} className={`p-1 transition-colors ${showMembers ? 'text-[var(--red)]' : 'text-gray-400 hover:text-white'}`}>
           <Users size={18} />
         </button>
       </div>
@@ -380,7 +382,7 @@ function GroupChatView({
           </div>
           {myRole !== 'admin' && (
             <button onClick={async () => { await leaveGroup(groupId); onBack() }} className="text-xs text-red-400 mt-1">
-              Lascia gruppo
+              {social.groups.leaveGroupButton}
             </button>
           )}
         </div>
@@ -403,7 +405,7 @@ function GroupChatView({
                     onClick={() => handleRetry(msg)}
                     className="flex items-center gap-1 text-[10px] text-[var(--red)] mt-0.5 px-1"
                   >
-                    ⚠ Non inviato · Riprova
+                    {social.chat.sendFailedRetry}
                   </button>
                 )}
               </div>
@@ -416,12 +418,12 @@ function GroupChatView({
       <div className="px-4 py-3 border-t border-[var(--grey)] flex gap-2">
         <input
           className="flex-1 input-dark text-sm py-2"
-          placeholder="Scrivi un messaggio..."
+          placeholder={social.chat.messageInputPlaceholder}
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
         />
-        <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label="Invia" className="btn-primary px-3 py-2 disabled:opacity-40">
+        <button type="button" onClick={handleSend} disabled={!text.trim() || sending} aria-label={social.chat.sendAria} className="btn-primary px-3 py-2 disabled:opacity-40">
           <Send size={16} />
         </button>
       </div>
@@ -455,7 +457,7 @@ function FriendProfileView({
     const { error } = await onBlock(userId)
     setActing(false)
     if (error) {
-      setModMsg('Blocco non riuscito. Riprova.')
+      setModMsg(social.friends.profile.blockFailedMsg)
       setConfirmBlock(false)
       setTimeout(() => setModMsg(''), 3000)
       return
@@ -466,7 +468,7 @@ function FriendProfileView({
   const handleReport = async (reason: string) => {
     setShowReportSheet(false)
     const { error } = await onReport(userId, reason)
-    setModMsg(error ? 'Segnalazione non inviata. Riprova.' : 'Segnalazione inviata, grazie. La esamineremo al più presto.')
+    setModMsg(error ? social.friends.profile.reportFailedMsg : social.friends.profile.reportSentMsg)
     setTimeout(() => setModMsg(''), 3500)
   }
 
@@ -490,8 +492,8 @@ function FriendProfileView({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
-        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
-        <p className="font-bebas text-xl text-white tracking-wider">PROFILO</p>
+        <button type="button" onClick={onBack} aria-label={common.back} className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <p className="font-bebas text-xl text-white tracking-wider">{social.friends.profile.title}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -506,7 +508,7 @@ function FriendProfileView({
             <p className="font-bold text-white text-lg">@{username}</p>
             {remoteProfile?.name && <p className="text-sm text-gray-400">{remoteProfile.name}</p>}
             <p className="text-sm font-semibold mt-1" style={{ color: ld.color }}>
-              {ld.emoji} Lv.{remoteProfile?.level ?? 1} — {ld.title}
+              {ld.emoji} {social.shared.levelPrefix}{remoteProfile?.level ?? 1} — {ld.title}
             </p>
           </div>
           <button
@@ -520,13 +522,13 @@ function FriendProfileView({
               : { background: 'var(--red)', color: '#fff' }
             }
           >
-            {isFriend ? 'Rimuovi amico' : isPendingSent ? '⏳ In attesa' : isPendingReceived ? '✓ Accetta richiesta' : '+ Aggiungi amico'}
+            {isFriend ? social.friends.profile.removeFriendButton : isPendingSent ? social.friends.profile.pendingSentButton : isPendingReceived ? social.friends.profile.acceptRequestButton : social.friends.profile.addFriendButton}
           </button>
         </div>
 
         {sports.length > 0 && (
           <div className="card">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Sport preferiti</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{social.friends.profile.favoriteSportsHeading}</p>
             <div className="flex gap-4">
               {sports.map((s: any) => (
                 <div key={s.value} className="flex flex-col items-center gap-1">
@@ -553,7 +555,7 @@ function FriendProfileView({
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
               style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
             >
-              <Flag size={13} /> Segnala
+              <Flag size={13} /> {social.friends.profile.reportButton}
             </button>
             <button
               type="button"
@@ -566,23 +568,22 @@ function FriendProfileView({
                 background: confirmBlock ? 'rgba(var(--accent-rgb),0.15)' : 'transparent',
               }}
             >
-              <Ban size={13} /> {confirmBlock ? 'Confermi il blocco?' : 'Blocca'}
+              <Ban size={13} /> {confirmBlock ? social.friends.profile.confirmBlockButton : social.friends.profile.blockButton}
             </button>
           </div>
           <p className="text-[10px] text-gray-600 leading-relaxed">
-            Bloccando @{username} l'amicizia viene rimossa e non potrà più scriverti,
-            mandarti richieste né vedere le tue attività.
+            {social.friends.profile.blockWarning(username)}
           </p>
         </div>
       </div>
 
       {showReportSheet && (
-        <ActionSheet onClose={() => setShowReportSheet(false)} label="Segnala utente">
+        <ActionSheet onClose={() => setShowReportSheet(false)} label={social.friends.profile.reportSheetLabel}>
           <div className="px-4 pt-4 pb-2 border-b border-[var(--grey)]">
-            <p className="text-sm font-semibold text-white">Perché vuoi segnalare @{username}?</p>
-            <p className="text-xs text-gray-500 mt-0.5">La segnalazione è anonima e verrà esaminata.</p>
+            <p className="text-sm font-semibold text-white">{social.friends.profile.reportSheetQuestion(username)}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{social.friends.profile.reportSheetHint}</p>
           </div>
-          {['Spam', 'Contenuti inappropriati', 'Comportamento offensivo', 'Profilo falso'].map(r => (
+          {social.friends.profile.reportReasons.map(r => (
             <button
               key={r}
               type="button"
@@ -640,9 +641,9 @@ function FeedComments({
   return (
     <div className="space-y-2.5 pt-2 border-t border-[var(--grey)]">
       {loading ? (
-        <p className="text-xs text-gray-500">Carico i commenti…</p>
+        <p className="text-xs text-gray-500">{social.feed.comments.loading}</p>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-gray-500">Nessun commento — scrivi il primo!</p>
+        <p className="text-xs text-gray-500">{social.feed.comments.empty}</p>
       ) : (
         comments.map(c => (
           <div key={c.id} className="flex items-start gap-2">
@@ -658,7 +659,7 @@ function FeedComments({
               <button
                 type="button"
                 onClick={() => handleDelete(c.id)}
-                aria-label="Elimina commento"
+                aria-label={social.feed.comments.deleteAria}
                 className="p-1 text-gray-600 hover:text-[var(--red)] flex-shrink-0"
               >
                 <Trash2 size={13} />
@@ -673,14 +674,14 @@ function FeedComments({
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSend() }}
           maxLength={500}
-          placeholder="Scrivi un commento…"
+          placeholder={social.feed.comments.inputPlaceholder}
           className="input-dark flex-1 text-sm"
         />
         <button
           type="button"
           onClick={handleSend}
           disabled={!text.trim() || sending}
-          aria-label="Invia commento"
+          aria-label={social.feed.comments.sendAria}
           className="p-2.5 rounded-lg bg-[var(--red)] text-[white] disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
         >
           <Send size={15} />
@@ -711,26 +712,26 @@ function CreateGroupView({
     if (gid) {
       onCreate(gid, name.trim())
     } else {
-      setCreateError('Creazione fallita. Controlla la connessione e riprova.')
+      setCreateError(social.groups.create.errors.createFailed)
     }
   }
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--grey)]">
-        <button type="button" onClick={onBack} aria-label="Indietro" className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
-        <p className="font-bebas text-xl text-white tracking-wider">NUOVO GRUPPO</p>
+        <button type="button" onClick={onBack} aria-label={common.back} className="p-1 -ml-1 text-gray-400 hover:text-white"><ArrowLeft size={20} /></button>
+        <p className="font-bebas text-xl text-white tracking-wider">{social.groups.create.title}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Nome del gruppo</label>
-          <input className="input-dark" placeholder="Nome gruppo..." value={name} onChange={e => setName(e.target.value)} />
+          <label className="block text-xs text-gray-400 mb-1">{social.groups.create.nameLabel}</label>
+          <input className="input-dark" placeholder={social.groups.create.namePlaceholder} value={name} onChange={e => setName(e.target.value)} />
         </div>
         <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Aggiungi amici ({selected.length} selezionati)</p>
+          <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">{social.groups.create.addFriendsHeading(selected.length)}</p>
           {friends.length === 0 ? (
-            <p className="text-sm text-gray-500">Aggiungi amici prima di creare un gruppo</p>
+            <p className="text-sm text-gray-500">{social.groups.create.noFriendsHint}</p>
           ) : (
             <div className="space-y-2">
               {friends.map(f => {
@@ -761,7 +762,7 @@ function CreateGroupView({
       <div className="p-4 border-t border-[var(--grey)]">
         {createError && <p className="text-xs text-red-400 mb-2 text-center">{createError}</p>}
         <button type="button" onClick={handleCreate} disabled={!name.trim() || creating} className="btn-primary w-full disabled:opacity-50">
-          {creating ? 'Creazione...' : `Crea gruppo${selected.length > 0 ? ` (${selected.length + 1})` : ''}`}
+          {creating ? social.groups.create.creatingLabel : social.groups.create.submitLabel(selected.length)}
         </button>
       </div>
     </div>
@@ -820,8 +821,8 @@ export default function SocialPage() {
     if (result?.error) {
       setFriendActionError(
         isRateLimitError(result.error)
-          ? 'Troppe richieste in poco tempo. Riprova più tardi.'
-          : 'Operazione non riuscita. Riprova.'
+          ? social.friends.errors.rateLimited
+          : social.friends.errors.actionFailed
       )
       setTimeout(() => setFriendActionError(''), 3000)
     }
@@ -869,7 +870,7 @@ export default function SocialPage() {
     if (convPressTimer.current) { clearTimeout(convPressTimer.current); convPressTimer.current = null }
   }
 
-  const myUsername = profile?.username ?? user?.user_metadata?.username ?? 'Tu'
+  const myUsername = profile?.username ?? user?.user_metadata?.username ?? social.shared.selfFallbackName
   const myPhoto = profile?.photo_url ?? null
 
   // ── Sub-view overlay
@@ -915,18 +916,18 @@ export default function SocialPage() {
   return (
     <div className="page-enter pb-24 max-w-lg mx-auto">
       <div className="px-4 pt-5 pb-1">
-        <span className="font-bebas text-4xl text-white tracking-widest">SOCIAL</span>
+        <span className="font-bebas text-4xl text-white tracking-widest">{social.pageTitle}</span>
         <div className="header-accent" />
       </div>
 
       {/* Tab bar */}
       <div className="flex border-b border-[var(--grey)] px-2 mb-4">
         {([
-          { id: 'feed' as Tab, label: 'Feed', badge: 0 },
-          { id: 'classifica' as Tab, label: 'Classifica', badge: 0 },
-          { id: 'friends' as Tab, label: 'Amici', badge: pendingBadge },
-          { id: 'chat' as Tab, label: 'Chat', badge: unreadBadge },
-          { id: 'groups' as Tab, label: 'Gruppi', badge: 0 },
+          { id: 'feed' as Tab, label: social.feed.tabLabel, badge: 0 },
+          { id: 'classifica' as Tab, label: social.leaderboard.tabLabel, badge: 0 },
+          { id: 'friends' as Tab, label: social.friends.tabLabel, badge: pendingBadge },
+          { id: 'chat' as Tab, label: social.chat.tabLabel, badge: unreadBadge },
+          { id: 'groups' as Tab, label: social.groups.tabLabel, badge: 0 },
         ]).map(({ id, label, badge }) => (
           <button key={id} onClick={() => setTab(id)}
             className={`relative flex-1 py-2.5 text-xs font-semibold transition-colors ${tab === id ? 'text-[var(--red)] border-b-2 border-[var(--red)]' : 'text-gray-500'}`}
@@ -956,8 +957,8 @@ export default function SocialPage() {
                 >
                   🏃
                 </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">FEED VUOTO</p>
-                <p className="text-sm text-gray-500">Aggiungi amici per vedere le loro attività qui</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.feed.emptyTitle}</p>
+                <p className="text-sm text-gray-500">{social.feed.emptyHint}</p>
               </div>
             ) : (
               feed.map(a => {
@@ -971,7 +972,7 @@ export default function SocialPage() {
                         <Av photo={a.user_photo} name={a.username} size={36} />
                         <div className="flex-1 min-w-0 text-left">
                           <p className="font-semibold text-white text-sm">{a.username}</p>
-                          <p className="text-[10px]" style={{ color: ld.color }}>{ld.emoji} Lv.{a.user_level} {ld.title}</p>
+                          <p className="text-[10px]" style={{ color: ld.color }}>{ld.emoji} {social.shared.levelPrefix}{a.user_level} {ld.title}</p>
                         </div>
                       </button>
                       <span className="text-xs text-gray-500 flex-shrink-0">{ago}</span>
@@ -986,20 +987,20 @@ export default function SocialPage() {
                       <div className="flex-1">
                         <p className="font-semibold text-white text-sm">{opt?.label ?? a.type}</p>
                         <p className="text-xs text-gray-400">
-                          {a.duration_min} min{a.calories ? ` · ${a.calories} kcal` : ''}{a.distance_km ? ` · ${a.distance_km} km` : ''}
+                          {a.duration_min} {social.shared.units.min}{a.calories ? ` · ${a.calories} ${social.shared.units.kcal}` : ''}{a.distance_km ? ` · ${a.distance_km} ${social.shared.units.km}` : ''}
                         </p>
                       </div>
                     </div>
                     {a.photo_url && (
                       <button
                         type="button"
-                        onClick={() => setLightboxPhoto({ url: a.photo_url!, alt: `Foto dell'attività di ${a.username}` })}
-                        aria-label="Apri la foto a schermo intero"
+                        onClick={() => setLightboxPhoto({ url: a.photo_url!, alt: social.feed.activityPhotoAlt(a.username) })}
+                        aria-label={social.feed.openPhotoAria}
                         className="block w-full"
                       >
                         <img
                           src={a.photo_url}
-                          alt={`Foto dell'attività di ${a.username}`}
+                          alt={social.feed.activityPhotoAlt(a.username)}
                           loading="lazy"
                           className="w-full max-h-80 object-cover rounded-xl"
                         />
@@ -1010,7 +1011,7 @@ export default function SocialPage() {
                       <button
                         type="button"
                         onClick={() => toggleLike(a.id)}
-                        aria-label={a.liked_by_me ? 'Togli like' : 'Metti like'}
+                        aria-label={a.liked_by_me ? social.feed.unlikeAria : social.feed.likeAria}
                         className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.liked_by_me ? 'text-[var(--red)]' : 'text-gray-500'}`}
                       >
                         <Heart
@@ -1023,7 +1024,7 @@ export default function SocialPage() {
                       <button
                         type="button"
                         onClick={() => setOpenCommentsId(prev => prev === a.id ? null : a.id)}
-                        aria-label={openCommentsId === a.id ? 'Chiudi commenti' : 'Mostra commenti'}
+                        aria-label={openCommentsId === a.id ? social.feed.closeCommentsAria : social.feed.showCommentsAria}
                         aria-expanded={openCommentsId === a.id}
                         className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${openCommentsId === a.id ? 'text-[var(--red)]' : 'text-gray-500'}`}
                       >
@@ -1051,7 +1052,7 @@ export default function SocialPage() {
           <>
             {/* Toggle Amici / Globale */}
             <div className="flex rounded-xl overflow-hidden border border-[var(--grey)]">
-              {([['friends', 'Amici'], ['global', 'Globale']] as const).map(([scope, label]) => (
+              {([['friends', social.leaderboard.scopeFriendsLabel], ['global', social.leaderboard.scopeGlobalLabel]] as const).map(([scope, label]) => (
                 <button
                   key={scope}
                   type="button"
@@ -1074,17 +1075,17 @@ export default function SocialPage() {
                   🏆
                 </div>
                 <p className="font-bebas text-2xl text-white tracking-wider mb-1">
-                  {lbScope === 'friends' ? 'NESSUN AMICO' : 'ANCORA NESSUNO'}
+                  {lbScope === 'friends' ? social.leaderboard.emptyFriendsTitle : social.leaderboard.emptyGlobalTitle}
                 </p>
                 <p className="text-sm text-gray-500">
                   {lbScope === 'friends'
-                    ? 'Aggiungi amici per vedere la classifica settimanale'
-                    : 'Nessuna attività registrata questa settimana'}
+                    ? social.leaderboard.emptyFriendsHint
+                    : social.leaderboard.emptyGlobalHint}
                 </p>
               </div>
             ) : (
               <div className="card">
-                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">Questa settimana</p>
+                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">{social.leaderboard.weekHeading}</p>
                 <div className="divide-y divide-[var(--grey)]">
                   {lbEntries.map((entry, i) => (
                     <div key={entry.user_id} className="flex items-center gap-3 py-2.5">
@@ -1096,11 +1097,11 @@ export default function SocialPage() {
                       <Av photo={entry.photo_url} name={entry.username} size={36} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium truncate ${entry.isMe ? 'text-[var(--red)]' : 'text-white'}`}>
-                          {entry.username}{entry.isMe ? ' (tu)' : ''}
+                          {entry.username}{entry.isMe ? social.leaderboard.meSuffix : ''}
                         </p>
-                        <p className="text-xs text-gray-500">{entry.count} {entry.count === 1 ? 'sessione' : 'sessioni'} · {entry.minutes} min</p>
+                        <p className="text-xs text-gray-500">{entry.count} {entry.count === 1 ? social.leaderboard.sessionSingular : social.leaderboard.sessionPlural} · {entry.minutes} {social.shared.units.min}</p>
                       </div>
-                      <p className="text-sm font-semibold text-white flex-shrink-0">{entry.calories} kcal</p>
+                      <p className="text-sm font-semibold text-white flex-shrink-0">{entry.calories} {social.shared.units.kcal}</p>
                     </div>
                   ))}
                 </div>
@@ -1118,19 +1119,19 @@ export default function SocialPage() {
                 <Search size={16} className="text-gray-500 flex-shrink-0" />
                 <input
                   className="flex-1 min-w-0 bg-transparent py-[0.625rem] text-sm outline-none placeholder-[#888]"
-                  placeholder="Cerca per username…"
+                  placeholder={social.friends.searchPlaceholder}
                   value={searchQuery}
                   onChange={e => handleSearch(e.target.value)}
                 />
                 {searchQuery && (
-                  <button type="button" onClick={() => { setSearchQuery(''); setSearchResults([]) }} aria-label="Cancella ricerca" className="text-gray-500">
+                  <button type="button" onClick={() => { setSearchQuery(''); setSearchResults([]) }} aria-label={social.friends.clearSearchAria} className="text-gray-500">
                     <X size={14} />
                   </button>
                 )}
               </div>
               {(searchResults.length > 0 || searching) && (
                 <div className="search-dropdown absolute z-10 w-full mt-1 rounded-xl overflow-hidden shadow-xl">
-                  {searching && <div className="px-4 py-3 text-sm text-gray-500">Ricerca…</div>}
+                  {searching && <div className="px-4 py-3 text-sm text-gray-500">{social.friends.searchingLabel}</div>}
                   {searchResults.map(r => {
                     const isFr = friendsMap.has(r.id)
                     const sentId = pendingSentMap.get(r.id)
@@ -1147,20 +1148,20 @@ export default function SocialPage() {
                         </button>
                         {isFr ? (
                           <span className="text-xs bg-green-400/10 text-green-400 border border-green-400/25 rounded-full px-2.5 py-0.5 flex items-center gap-1 flex-shrink-0">
-                            <Check size={11} /> Amico
+                            <Check size={11} /> {social.friends.friendBadge}
                           </span>
                         ) : isRecv ? (
                           <button disabled={busy} className="text-xs bg-[var(--red)] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
                             onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await runFriendAction(() => acceptRequest(fid)); await refetchFriends(); setActionLoading(null) } }}>
-                            Accetta
+                            {social.friends.acceptLabel}
                           </button>
                         ) : sentId ? (
                           <button disabled={busy} className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0"
                             onClick={async () => { setActionLoading(r.id); await runFriendAction(() => rejectOrRemove(sentId)); await refetchFriends(); setActionLoading(null) }}>
-                            <Clock size={12} /> Annulla
+                            <Clock size={12} /> {common.cancel}
                           </button>
                         ) : (
-                          <button disabled={busy} aria-label="Aggiungi amico" className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
+                          <button disabled={busy} aria-label={social.friends.addFriendAria} className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
                             onClick={async () => { setActionLoading(r.id); await runFriendAction(() => sendRequest(r.id)); await refetchFriends(); setActionLoading(null) }}>
                             <UserPlus size={16} />
                           </button>
@@ -1175,7 +1176,7 @@ export default function SocialPage() {
             {/* Richieste ricevute */}
             {pendingReceived.length > 0 && (
               <div className="card">
-                <p className="text-xs text-[var(--red)] font-semibold mb-3 uppercase tracking-wider">Richieste ricevute ({pendingReceived.length})</p>
+                <p className="text-xs text-[var(--red)] font-semibold mb-3 uppercase tracking-wider">{social.friends.receivedRequestsHeading(pendingReceived.length)}</p>
                 <div className="divide-y divide-[var(--grey)]">
                   {pendingReceived.map(f => (
                     <div key={f.friendship_id} className="flex items-center gap-3 py-2.5">
@@ -1187,8 +1188,8 @@ export default function SocialPage() {
                         </div>
                       </button>
                       <div className="flex gap-2 flex-shrink-0">
-                        <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label="Accetta" className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80"><Check size={16} /></button>
-                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label="Rifiuta" className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label={social.friends.acceptLabel} className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80"><Check size={16} /></button>
+                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.rejectAria} className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
                       </div>
                     </div>
                   ))}
@@ -1198,7 +1199,7 @@ export default function SocialPage() {
 
             {/* Lista amici */}
             <div className="card">
-              <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">I tuoi amici ({friends.length})</p>
+              <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">{social.friends.yourFriendsHeading(friends.length)}</p>
               {friendsLoading ? (
                 <div className="space-y-3">{[1, 2].map(i => <SkeletonRow key={i} />)}</div>
               ) : friends.length === 0 ? (
@@ -1209,8 +1210,8 @@ export default function SocialPage() {
                   >
                     🤝
                   </div>
-                  <p className="font-bebas text-xl text-white tracking-wider mb-1">Nessun amico ancora</p>
-                  <p className="text-gray-500 text-sm">Cerca un username per aggiungere amici</p>
+                  <p className="font-bebas text-xl text-white tracking-wider mb-1">{social.friends.emptyTitle}</p>
+                  <p className="text-gray-500 text-sm">{social.friends.emptyHint}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--grey)]">
@@ -1231,15 +1232,15 @@ export default function SocialPage() {
             {/* Richieste inviate */}
             {pendingSent.length > 0 && (
               <div className="card">
-                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">Richieste inviate ({pendingSent.length})</p>
+                <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">{social.friends.sentRequestsHeading(pendingSent.length)}</p>
                 <div className="divide-y divide-[var(--grey)]">
                   {pendingSent.map(f => (
                     <div key={f.friendship_id} className="flex items-center gap-3 py-2.5">
                       <Av photo={f.photo_url} name={f.username} />
                       <p className="flex-1 text-white font-medium truncate">{f.username}</p>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="flex items-center gap-1 text-xs text-gray-500"><Clock size={12} /> In attesa</span>
-                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label="Annulla richiesta" className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
+                        <span className="flex items-center gap-1 text-xs text-gray-500"><Clock size={12} /> {social.friends.pendingLabel}</span>
+                        <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.cancelRequestAria} className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
                       </div>
                     </div>
                   ))}
@@ -1255,7 +1256,7 @@ export default function SocialPage() {
             {/* Shortcuts to friends */}
             {friends.length > 0 && (
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Scrivi a un amico</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{social.chat.writeToFriendHeading}</p>
                 <div className="flex gap-4 overflow-x-auto pb-1">
                   {friends.map(f => (
                     <button key={f.user_id} onClick={() => setActiveView({ type: 'dm', userId: f.user_id, username: f.username, photo: f.photo_url })} className="flex flex-col items-center gap-1 min-w-[52px]">
@@ -1277,8 +1278,8 @@ export default function SocialPage() {
                 >
                   💬
                 </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN MESSAGGIO</p>
-                <p className="text-sm text-gray-500">Scrivi a un amico per iniziare una chat</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.chat.emptyTitle}</p>
+                <p className="text-sm text-gray-500">{social.chat.emptyHint}</p>
               </div>
             ) : (
               <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
@@ -1322,7 +1323,7 @@ export default function SocialPage() {
           <>
             <button onClick={() => setActiveView({ type: 'create-group' })} className="btn-primary w-full flex items-center justify-center gap-2">
               <Plus size={18} />
-              Crea nuovo gruppo
+              {social.groups.createButton}
             </button>
 
             {groupsLoading ? (
@@ -1335,8 +1336,8 @@ export default function SocialPage() {
                 >
                   👥
                 </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">NESSUN GRUPPO</p>
-                <p className="text-sm text-gray-500">Crea un gruppo con i tuoi amici</p>
+                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.groups.emptyTitle}</p>
+                <p className="text-sm text-gray-500">{social.groups.emptyHint}</p>
               </div>
             ) : (
               <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
@@ -1348,7 +1349,7 @@ export default function SocialPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white truncate">{g.name}</p>
-                      <p className="text-xs text-gray-500">{g.memberCount} {g.memberCount === 1 ? 'membro' : 'membri'} · {g.role === 'admin' ? 'Admin' : 'Membro'}</p>
+                      <p className="text-xs text-gray-500">{g.memberCount} {g.memberCount === 1 ? social.groups.memberSingular : social.groups.memberPlural} · {g.role === 'admin' ? social.groups.adminRole : social.groups.memberRole}</p>
                     </div>
                     <Users size={16} className="text-gray-500 flex-shrink-0" />
                   </button>
@@ -1369,10 +1370,10 @@ export default function SocialPage() {
 
       {/* Conversation action sheet */}
       {selectedConv && (
-        <ActionSheet onClose={() => setSelectedConv(null)} label="Azioni sulla conversazione">
+        <ActionSheet onClose={() => setSelectedConv(null)} label={social.chat.conversationActionsLabel}>
           <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
             <p className="text-sm font-semibold text-white">@{selectedConv.username}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Eliminando la conversazione i messaggi verranno rimossi per entrambi</p>
+            <p className="text-xs text-gray-500 mt-0.5">{social.chat.deleteConversationHint}</p>
           </div>
           <div className="py-1">
             <button
@@ -1384,7 +1385,7 @@ export default function SocialPage() {
               className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-[var(--grey)] transition-colors"
             >
               <Trash2 size={18} className="text-red-400 flex-shrink-0" />
-              <span className="text-red-400 font-medium">Elimina conversazione</span>
+              <span className="text-red-400 font-medium">{social.chat.deleteConversationLabel}</span>
             </button>
           </div>
           <div className="px-4 pt-1 pb-2">
@@ -1393,7 +1394,7 @@ export default function SocialPage() {
               className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
               style={{ background: 'var(--grey)' }}
             >
-              Annulla
+              {common.cancel}
             </button>
           </div>
         </ActionSheet>

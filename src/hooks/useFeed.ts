@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 import type { ActivityType } from '../types'
 
 export interface FeedActivity {
@@ -39,7 +40,7 @@ export function useFeed() {
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
       .eq('status', 'accepted')
 
-    if (friendshipsError) showError('Errore nel caricamento del feed. Riprova.')
+    if (friendshipsError) showError(social.feed.errors.loadFailed)
 
     const friendIds = (friendships ?? []).map(f =>
       f.requester_id === user.id ? f.addressee_id : f.requester_id
@@ -52,7 +53,7 @@ export function useFeed() {
       supabase.from('profiles').select('id, username, photo_url, level').in('id', allIds),
     ])
 
-    if (activitiesError) showError('Errore nel caricamento del feed. Riprova.')
+    if (activitiesError) showError(social.feed.errors.loadFailed)
     if (!activities) { setLoading(false); return }
 
     const activityIds = activities.map(a => a.id)

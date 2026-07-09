@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import social from '../lib/i18n/social'
 import type { Friendship, FriendProfile } from '../types'
 
 export interface UserSearchResult {
@@ -28,7 +29,7 @@ export function useFriends() {
       .select('*')
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
 
-    if (friendshipsError) showError('Errore nel caricamento degli amici. Riprova.')
+    if (friendshipsError) showError(social.friends.errors.loadFailed)
 
     if (!friendships || friendships.length === 0) {
       setFriends([])
@@ -50,7 +51,7 @@ export function useFriends() {
         .from('profiles')
         .select('id, username, name, photo_url')
         .in('id', [...idsNeeded])
-      if (profilesError) showError('Errore nel caricamento dei profili amici. Riprova.')
+      if (profilesError) showError(social.friends.errors.profilesLoadFailed)
       if (profiles) {
         for (const p of profiles) profilesMap[p.id] = p
       }

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
 import { useToast } from './ToastContext'
+import profileText from '../lib/i18n/profile'
 import type { Profile } from '../types'
 
 interface ProfileCtx {
@@ -30,7 +31,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('id', user.id)
       .single()
-    if (error) showError('Errore nel caricamento del profilo. Riprova.')
+    if (error) showError(profileText.errors.profileLoadFailed)
     else setProfile(data as Profile | null)
     setLoading(false)
   }, [user, showError])
