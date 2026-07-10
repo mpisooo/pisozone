@@ -16,6 +16,7 @@ import { useComments, type ActivityComment } from '../hooks/useComments'
 import { useBlocks } from '../hooks/useBlocks'
 import { getLevelDef } from '../lib/levels'
 import { isRateLimitError } from '../lib/errors'
+import { haptic } from '../lib/haptics'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import common from '../lib/i18n/common'
 import social from '../lib/i18n/social'
@@ -55,13 +56,13 @@ function ActionSheet({ onClose, label = social.shared.actionSheetDefaultLabel, c
   useFocusTrap(panelRef, true, onClose)
   return createPortal(
     <>
-      <div className="fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
+      <div className="overlay-fade fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="fixed bottom-0 left-0 right-0 z-[71] rounded-t-2xl overflow-hidden"
+        className="sheet-up fixed bottom-0 left-0 right-0 z-[71] rounded-t-2xl overflow-hidden"
         style={{ background: 'var(--grey-dark)', paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
       >
         {children}
@@ -143,7 +144,7 @@ function DmChatView({
 
   const startPress = (msg: Message) => () => {
     pressTimer.current = setTimeout(() => {
-      if ('vibrate' in navigator) navigator.vibrate(50)
+      haptic('light')
       setSelectedMsg(msg)
       pressTimer.current = null
     }, 500)
@@ -861,7 +862,7 @@ export default function SocialPage() {
   const startConvPress = (conv: { userId: string; username: string }) => () => {
     convPressTimer.current = setTimeout(() => {
       convLongPressed.current = true
-      if ('vibrate' in navigator) navigator.vibrate(50)
+      haptic('light')
       setSelectedConv(conv)
       convPressTimer.current = null
     }, 500)

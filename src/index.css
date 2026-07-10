@@ -59,6 +59,18 @@ html.light {
   --shadow-chrome-up: 0 -2px 14px rgba(20, 18, 22, 0.12);
 }
 
+/* ── Linguaggio del movimento (roadmap v2, pilastro 01 punto 4): durate ed
+   easing condivisi, così ogni animazione nuova parla la stessa lingua. La
+   "molla" (--ease-spring) è la firma dei momenti che appaiono; --ease-out
+   per ciò che scivola o scompare. ── */
+:root {
+  --dur-fast: 0.2s;
+  --dur-base: 0.3s;
+  --dur-slow: 0.5s;
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* ── Base ── */
 * { box-sizing: border-box; }
 
@@ -216,7 +228,29 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-.page-enter { animation: page-in 0.3s ease-out forwards; }
+.page-enter { animation: page-in var(--dur-base) ease-out forwards; }
+
+/* ── Movimento dei modali: il backdrop sfuma, il pannello entra con la molla
+   (centrato: .modal-pop) o risale dal bordo (bottom sheet: .sheet-up). Le
+   schermate full-screen (ActivityEditModal, WorkoutTrackingOverlay) restano
+   su .page-enter: sono pagine, non popup. ── */
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.overlay-fade { animation: overlay-fade-in var(--dur-fast) ease forwards; }
+
+@keyframes modal-pop-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-pop { animation: modal-pop-in var(--dur-base) var(--ease-spring) forwards; }
+
+@keyframes sheet-up-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sheet-up { animation: sheet-up-in var(--dur-base) var(--ease-spring) forwards; }
 
 /* ── Heatmap cells ── */
 .heatmap-0  { background: var(--grey); }
@@ -272,7 +306,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   100% { opacity: 1; transform: scale(1); }
 }
 .celebration-pop {
-  animation: celebration-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: celebration-pop-in var(--dur-slow) var(--ease-spring) forwards;
 }
 @keyframes confetti-fall {
   0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
@@ -309,7 +343,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .medal-celebration-pop {
-  animation: medal-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: medal-pop-in 0.6s var(--ease-spring) forwards;
 }
 
 @keyframes medal-rays-spin {
@@ -363,7 +397,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 .toast-enter {
-  animation: toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: toast-in 0.4s var(--ease-spring) forwards;
 }
 .toast-saved {
   position: fixed;
@@ -409,6 +443,9 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   border-bottom: 1px solid var(--grey-dark);
   height: calc(52px + env(safe-area-inset-top));
   box-shadow: var(--shadow-chrome-down);
+  /* Isola il chrome dalla view transition di root: durante il cambio pagina
+     topbar e navbar restano ferme, solo il contenuto sfuma (vedi Navbar). */
+  view-transition-name: topbar;
 }
 .topbar-dropdown {
   background: var(--grey-dark);
@@ -418,6 +455,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   background: var(--black);
   border-top: 1px solid var(--grey);
   box-shadow: var(--shadow-chrome-up);
+  view-transition-name: navbar;
 }
 .topbar-logo {
   line-height: 1;
@@ -561,4 +599,23 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   height: 56px;
   border-radius: 28px;
   background: transparent;
+}
+
+/* ── Rispetto di prefers-reduced-motion (roadmap v2, pilastro 01 punto 4):
+   chi ha "riduci movimento" attivo vede gli stati finali all'istante — vale
+   per ogni animazione e transizione dell'app, incluse quelle inline (il
+   !important vince sugli style={{}}), e per le View Transitions. I count-up
+   JS (AnimatedNumber) fanno lo stesso controllo via matchMedia. ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

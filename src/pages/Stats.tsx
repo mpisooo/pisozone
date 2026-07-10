@@ -19,6 +19,7 @@ import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
+import AnimatedNumber from '../components/AnimatedNumber'
 import stats from '../lib/i18n/stats'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
@@ -72,7 +73,7 @@ function filterByPeriod(activities: Activity[], period: Period): Activity[] {
   })
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function StatCard({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
     <div className="card text-center count-up">
       <p className="text-xs text-gray-400 mb-1">{label}</p>
@@ -220,13 +221,31 @@ export default function StatsPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label={stats.cards.sessions} value={totalSessions} />
+        <StatCard label={stats.cards.sessions} value={<AnimatedNumber value={totalSessions} />} />
         <StatCard
           label={stats.cards.totalMinutes}
-          value={totalMin >= 60 ? `${Math.floor(totalMin / 60)}h ${totalMin % 60}m` : `${totalMin}m`}
+          value={
+            <AnimatedNumber
+              value={totalMin}
+              format={(n) => {
+                const m = Math.round(n)
+                return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`
+              }}
+            />
+          }
         />
-        <StatCard label={stats.cards.calories} value={totalCal > 0 ? `${totalCal.toLocaleString()} kcal` : stats.cards.emptyValue} />
-        <StatCard label={stats.cards.km} value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : stats.cards.emptyValue} />
+        <StatCard
+          label={stats.cards.calories}
+          value={totalCal > 0
+            ? <AnimatedNumber value={totalCal} format={(n) => `${Math.round(n).toLocaleString()} kcal`} />
+            : stats.cards.emptyValue}
+        />
+        <StatCard
+          label={stats.cards.km}
+          value={totalKm > 0
+            ? <AnimatedNumber value={totalKm} format={(n) => `${n.toFixed(1)} km`} />
+            : stats.cards.emptyValue}
+        />
       </div>
 
       {topOpt && (

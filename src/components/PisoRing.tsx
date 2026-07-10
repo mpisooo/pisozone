@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 export interface PisoRingSegment {
   key: string
@@ -28,6 +28,21 @@ export default function PisoRing({
 }: PisoRingProps) {
   const c = size / 2
 
+  // Riempimento animato all'ingresso: il primo frame disegna gli anelli
+  // vuoti, poi il valore reale arriva e la transition sullo stroke-dashoffset
+  // (già presente sui cerchi) fa il resto. Il doppio rAF garantisce che lo
+  // stato "vuoto" venga davvero dipinto prima del cambio; con "riduci
+  // movimento" la transition è azzerata dal CSS globale, quindi l'anello
+  // appare comunque subito pieno.
+  const [filled, setFilled] = useState(false)
+  useEffect(() => {
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFilled(true))
+    })
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2) }
+  }, [])
+
   return (
     <div style={{ width: size, height: size, position: 'relative', flexShrink: 0 }}>
       <svg
@@ -42,7 +57,7 @@ export default function PisoRing({
           if (r <= 0) return null
           const circumference = 2 * Math.PI * r
           const clamped = Math.min(Math.max(ring.pct, 0), 100)
-          const offset = circumference * (1 - clamped / 100)
+          const offset = circumference * (1 - (filled ? clamped : 0) / 100)
           return (
             <g key={ring.key}>
               <circle cx={c} cy={c} r={r} fill="none" stroke="var(--grey)" strokeWidth={strokeWidth} />

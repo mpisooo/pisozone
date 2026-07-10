@@ -6,8 +6,10 @@ import { useProfile } from '../hooks/useProfile'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { calcStreak } from '../lib/challenges'
+import { haptic } from '../lib/haptics'
 import { useMemo } from 'react'
 import SkeletonCard from '../components/SkeletonCard'
+import AnimatedNumber from '../components/AnimatedNumber'
 import challenges from '../lib/i18n/challenges'
 
 const TIER_COLOR: Record<string, string> = {
@@ -40,7 +42,10 @@ export default function ChallengesPage() {
 
   async function handleClaim(key: string) {
     const ok = await claimChallenge(key)
-    if (ok) refetchProfile()
+    if (ok) {
+      haptic('success')
+      refetchProfile()
+    }
   }
 
   if (loading) {
@@ -73,7 +78,7 @@ export default function ChallengesPage() {
           <Coins size={18} className="text-yellow-400" />
           <span className="text-sm text-gray-300 font-medium">{challenges.creditsBalanceLabel}</span>
         </div>
-        <span className="font-bebas text-3xl text-yellow-400 tracking-wide">{credits}</span>
+        <span className="font-bebas text-3xl text-yellow-400 tracking-wide"><AnimatedNumber value={credits} /></span>
       </div>
 
       {/* Progress */}

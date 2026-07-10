@@ -41,7 +41,7 @@ export default function CreditsInfoModal({ onClose }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end"
+      className="overlay-fade fixed inset-0 z-[100] flex items-end"
       style={{ background: 'rgba(0,0,0,0.75)' }}
       onClick={onClose}
     >
@@ -50,7 +50,7 @@ export default function CreditsInfoModal({ onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={profileText.credits.ariaLabel}
-        className="w-full max-h-[80vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
+        className="sheet-up w-full max-h-[80vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
         style={{ background: 'var(--grey-dark)' }}
         onClick={(e) => e.stopPropagation()}
       >

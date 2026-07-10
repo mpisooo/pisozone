@@ -36,6 +36,7 @@ export default function Navbar() {
             <li key={to} className="flex-1">
               <Link
                 to={to}
+                viewTransition
                 className={`flex flex-col items-center justify-center h-full gap-0.5 text-xs transition-colors duration-200 ${
                   isActive ? 'text-[var(--red)]' : 'text-gray-500 hover:text-gray-300'
                 }`}

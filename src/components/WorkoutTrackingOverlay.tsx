@@ -5,6 +5,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
 import { saveActivityRoute } from '../lib/activityRoutes'
+import { haptic } from '../lib/haptics'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
@@ -97,6 +98,7 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     if (v >= UNLOCK_THRESHOLD) {
       setSliderValue(0)
       setUnlocked(true)
+      haptic('light')
       scheduleRelock()
     } else {
       setSliderValue(v)
@@ -115,6 +117,7 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
   const handlePauseResume = () => {
     if (status === 'paused') resume()
     else pause()
+    haptic('light')
     scheduleRelock()
   }
 
@@ -145,7 +148,7 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     }
     const { error: routeError } = await saveActivityRoute(data.user_id, data.id, s.points)
     setSaving(false)
-    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100])
+    haptic('success')
     if (routeError) onSaveWarning()
     onSaved(data.credits_earned)
   }

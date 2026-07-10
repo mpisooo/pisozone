@@ -6,6 +6,7 @@ import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { uploadActivityPhoto } from '../lib/activityPhotos'
+import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import log from '../lib/i18n/log'
@@ -113,8 +114,7 @@ export default function LogPage() {
     setSaving(false)
     setPhotoFile(null)
 
-    // vibrate on mobile
-    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100])
+    haptic('success')
 
     setCreditsEarned(data?.credits_earned ?? 0)
     if (photoOk) setSaved(true)

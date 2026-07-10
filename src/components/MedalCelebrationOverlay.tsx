@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Coins } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { TIER_LABELS } from '../lib/constants'
+import { haptic } from '../lib/haptics'
 import medals from '../lib/i18n/medals'
 import type { MedalTier } from '../types'
 
@@ -26,7 +27,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
   useFocusTrap(panelRef, true, onDone)
 
   useEffect(() => {
-    if ('vibrate' in navigator) navigator.vibrate([80, 40, 80, 40, 200])
+    haptic('celebrate')
   }, [])
 
   const confetti = useMemo(

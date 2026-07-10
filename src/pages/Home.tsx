@@ -13,10 +13,12 @@ import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { calcStreak } from '../lib/challenges'
 import { getZoneByPercent } from '../lib/zones'
+import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
 import PisoRing from '../components/PisoRing'
+import AnimatedNumber from '../components/AnimatedNumber'
 import home from '../lib/i18n/home'
 
 // Etichetta di capitolo: raggruppa la Home in una storia leggibile scorrendo
@@ -78,7 +80,10 @@ export default function HomePage() {
 
   async function handleFreeze() {
     const result = await freeze(yesterday)
-    if (result.success) refetchProfile()
+    if (result.success) {
+      haptic('success')
+      refetchProfile()
+    }
   }
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -169,7 +174,7 @@ export default function HomePage() {
           center={
             <>
               <span className="font-bebas text-4xl text-white leading-none">
-                {Math.round(weekPctRaw)}<span className="text-lg text-gray-500">%</span>
+                <AnimatedNumber value={weekPctRaw} /><span className="text-lg text-gray-500">%</span>
               </span>
               <span className="text-[10px] text-gray-500 tracking-widest uppercase mt-1">{home.ring.centerLabel}</span>
             </>
@@ -254,7 +259,7 @@ export default function HomePage() {
           <button
             type="button"
             className="card w-full text-left"
-            onClick={() => navigate('/calendar')}
+            onClick={() => navigate('/calendar', { viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
@@ -290,7 +295,7 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm mb-5 leading-relaxed">
               {home.emptyState.body}
             </p>
-            <button className="btn-primary px-8 py-2.5 text-sm" onClick={() => navigate('/log')}>
+            <button className="btn-primary px-8 py-2.5 text-sm" onClick={() => navigate('/log', { viewTransition: true })}>
               {home.emptyState.cta}
             </button>
           </div>
@@ -304,7 +309,7 @@ export default function HomePage() {
           <button
             type="button"
             className="card w-full text-left"
-            onClick={() => navigate('/medals')}
+            onClick={() => navigate('/medals', { viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -349,7 +354,7 @@ export default function HomePage() {
           <button
             type="button"
             className="card w-full text-left"
-            onClick={() => navigate('/social', { state: { tab: 'classifica' } })}
+            onClick={() => navigate('/social', { state: { tab: 'classifica' }, viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -381,7 +386,7 @@ export default function HomePage() {
           <button
             type="button"
             className="card w-full text-left"
-            onClick={() => navigate('/social', { state: { tab: 'friends' } })}
+            onClick={() => navigate('/social', { state: { tab: 'friends' }, viewTransition: true })}
           >
             <div className="flex items-center gap-3">
               <Users size={22} className="text-gray-700 flex-shrink-0" />
@@ -399,7 +404,7 @@ export default function HomePage() {
       <button
         type="button"
         className="card w-full text-left"
-        onClick={() => navigate('/challenges')}
+        onClick={() => navigate('/challenges', { viewTransition: true })}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -440,7 +445,7 @@ export default function HomePage() {
       <button
         type="button"
         className="btn-primary w-full flex items-center justify-center gap-2 text-base"
-        onClick={() => navigate('/log')}
+        onClick={() => navigate('/log', { viewTransition: true })}
       >
         <Plus size={18} />
         {home.cta}

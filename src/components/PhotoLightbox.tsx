@@ -18,7 +18,7 @@ export default function PhotoLightbox({
       role="dialog"
       aria-modal="true"
       aria-label={alt}
-      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      className="overlay-fade fixed inset-0 z-[80] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.92)' }}
       onClick={onClose}
     >
@@ -35,7 +35,7 @@ export default function PhotoLightbox({
       <img
         src={url}
         alt={alt}
-        className="max-w-full max-h-full object-contain rounded-xl"
+        className="modal-pop max-w-full max-h-full object-contain rounded-xl"
         onClick={(e) => e.stopPropagation()}
       />
     </div>,

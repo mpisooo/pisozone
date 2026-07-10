@@ -53,7 +53,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end"
+      className="overlay-fade fixed inset-0 z-50 flex items-end"
       style={{ background: 'rgba(0,0,0,0.75)' }}
       onClick={onClose}
     >
@@ -62,7 +62,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={profileText.deleteAccount.ariaLabel}
-        className="w-full max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
+        className="sheet-up w-full max-h-[88vh] overflow-y-auto rounded-t-2xl p-4 space-y-4"
         style={{ background: 'var(--grey-dark)' }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { haptic } from '../lib/haptics'
 
 interface Props {
   icon: string
@@ -12,7 +13,7 @@ const CONFETTI_COLORS = ['#F44352', '#FF5E63', '#FFD166', '#4ade80', '#60a5fa']
 
 export default function CelebrationOverlay({ icon, title, subtitle, onDone, autoDismissMs = 2800 }: Props) {
   useEffect(() => {
-    if ('vibrate' in navigator) navigator.vibrate([80, 40, 80, 40, 200])
+    haptic('celebrate')
     const t = setTimeout(onDone, autoDismissMs)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onDone() }
     document.addEventListener('keydown', onKey)

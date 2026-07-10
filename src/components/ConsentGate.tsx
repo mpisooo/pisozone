@@ -39,13 +39,13 @@ export default function ConsentGate() {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,0.85)' }}>
+    <div className="overlay-fade fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: 'rgba(0,0,0,0.85)' }}>
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={auth.consentGate.ariaLabel}
-        className="w-full max-w-sm rounded-2xl p-5 space-y-4"
+        className="modal-pop w-full max-w-sm rounded-2xl p-5 space-y-4"
         style={{ background: 'var(--grey-dark)', border: '1px solid var(--grey)' }}
       >
         <div className="flex items-center gap-2">

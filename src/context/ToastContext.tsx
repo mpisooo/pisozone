@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useRef, useCallback, type ReactNode } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { haptic } from '../lib/haptics'
 
 interface ToastCtx {
   showError: (message: string) => void
@@ -15,6 +16,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const showError = useCallback((message: string) => {
     if (timerRef.current) clearTimeout(timerRef.current)
+    haptic('error')
     setError(message)
     timerRef.current = setTimeout(() => setError(null), 3500)
   }, [])
