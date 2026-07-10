@@ -9,6 +9,7 @@ import { uploadActivityPhoto } from '../lib/activityPhotos'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
+import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import log from '../lib/i18n/log'
 import type { ActivityType } from '../types'
@@ -36,6 +37,8 @@ export default function LogPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [tracking, setTracking] = useState(false)
   const [routeWarning, setRouteWarning] = useState(false)
+  const [rpe, setRpe] = useState<number | null>(null)
+  const [mood, setMood] = useState<number | null>(null)
 
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -89,6 +92,8 @@ export default function LogPage() {
       calories: cal,
       distance_km: values.distance_km !== '' ? Number(values.distance_km) : null,
       notes: values.notes || null,
+      rpe,
+      mood,
     })
 
     if (error) {
@@ -114,6 +119,8 @@ export default function LogPage() {
 
     setSaving(false)
     setPhotoFile(null)
+    setRpe(null)
+    setMood(null)
 
     haptic('success')
 
@@ -344,6 +351,8 @@ export default function LogPage() {
             <p className="text-[10px] text-gray-600 mt-1">{log.new.photoHint}</p>
           </div>
         </div>
+
+        <PerceivedMetricsFields rpe={rpe} mood={mood} onRpeChange={setRpe} onMoodChange={setMood} />
 
         <button
           type="submit"

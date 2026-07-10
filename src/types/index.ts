@@ -32,6 +32,12 @@ export interface Activity {
   // Opzionale: esiste solo dopo la migrazione v29. true = registrata con il
   // tracciamento GPS (i punti del percorso vivono in activity_routes).
   gps_tracked?: boolean
+  // Opzionali: esistono solo dopo la migrazione v30. Metriche soggettive,
+  // sempre nullable anche a colonna presente: chi non le compila resta null,
+  // non c'è un default che finga un valore mai inserito. rpe: sforzo
+  // percepito 1-10. mood: umore/energia post-sessione 1-5.
+  rpe?: number | null
+  mood?: number | null
 }
 
 export interface RoutePoint {

@@ -601,6 +601,48 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   background: transparent;
 }
 
+/* ── Slider "a spettro" (metriche percepite, roadmap v2 pilastro 02 punto 2):
+   la traccia È lo spettro Zone (stesso gradiente di .zone-spectrum) invece di
+   una barra di progresso qualunque — scegliere l'RPE diventa scegliere un
+   punto sull'intensità. Il cursore resta neutro (bianco) perché deve
+   contrastare con tutti e 4 i colori dello spettro sottostante, non con il
+   tema attivo. ── */
+.spectrum-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+  outline: none;
+  margin: 0;
+}
+.spectrum-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.spectrum-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.spectrum-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+}
+
 /* ── Rispetto di prefers-reduced-motion (roadmap v2, pilastro 01 punto 4):
    chi ha "riduci movimento" attivo vede gli stati finali all'istante — vale
    per ogni animazione e transizione dell'app, incluse quelle inline (il

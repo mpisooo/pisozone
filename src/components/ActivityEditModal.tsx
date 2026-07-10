@@ -10,6 +10,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import ActivityIcon from './ActivityIcon'
 import PhotoPickerField from './PhotoPickerField'
+import PerceivedMetricsFields from './PerceivedMetricsFields'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
@@ -43,6 +44,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
+  const [rpe, setRpe] = useState<number | null>(activity.rpe ?? null)
+  const [mood, setMood] = useState<number | null>(activity.mood ?? null)
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
 
@@ -123,6 +126,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       calories: cal,
       distance_km: v.distance_km !== '' ? Number(v.distance_km) : null,
       notes: v.notes || null,
+      rpe,
+      mood,
       ...photoUpdates,
     })
     setSaving(false)
@@ -307,6 +312,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             />
           </div>
         </div>
+
+        <PerceivedMetricsFields rpe={rpe} mood={mood} onRpeChange={setRpe} onMoodChange={setMood} />
 
         {errorMsg && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[var(--red)]" style={{ background: 'rgba(var(--accent-rgb),0.12)' }}>

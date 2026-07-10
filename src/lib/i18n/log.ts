@@ -21,6 +21,15 @@ const log = {
     minutesLabel: 'Minuti',
     detailsTitle: 'DETTAGLI',
     distanceLabel: 'Distanza (km)',
+    perceived: {
+      rpeTitle: 'SFORZO PERCEPITO',
+      rpeHint: 'Facoltativo — quanto ti è costata questa sessione?',
+      rpeUnset: 'Non ancora valutato',
+      rpeAriaLabel: (value: number) => `Sforzo percepito: ${value} su 10`,
+      clear: 'Cancella',
+      moodTitle: 'UMORE ED ENERGIA',
+      moodHint: 'Facoltativo — come ti senti dopo l\'allenamento?',
+    },
     validation: {
       hoursNotNegative: 'Non può essere negativa',
       hoursMax: 'Massimo 12 ore',
