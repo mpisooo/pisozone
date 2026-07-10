@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calcCalories, calcCaloriesFromSpeed, MET, ACTIVITY_OPTIONS, GPS_TRACKABLE_TYPES } from './constants'
+import { ACTIVITY_ICON_PATHS } from './activityIconPaths'
 
 describe('calcCalories', () => {
   it('applica la formula MET × kg × ore', () => {
@@ -54,6 +55,12 @@ describe('coerenza costanti attività', () => {
   it('ogni tipo di attività ha il suo valore MET', () => {
     for (const opt of ACTIVITY_OPTIONS) {
       expect(MET[opt.value], `manca il MET per "${opt.value}"`).toBeGreaterThan(0)
+    }
+  })
+
+  it('ogni tipo di attività ha la sua icona (roadmap v2, pilastro 01 punto 3)', () => {
+    for (const opt of ACTIVITY_OPTIONS) {
+      expect(ACTIVITY_ICON_PATHS[opt.value], `manca l'icona per "${opt.value}"`).toBeTruthy()
     }
   })
 })

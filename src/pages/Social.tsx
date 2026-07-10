@@ -22,6 +22,7 @@ import common from '../lib/i18n/common'
 import social from '../lib/i18n/social'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
+import ActivityIcon from '../components/ActivityIcon'
 import PhotoLightbox from '../components/PhotoLightbox'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
@@ -533,7 +534,7 @@ function FriendProfileView({
             <div className="flex gap-4">
               {sports.map((s: any) => (
                 <div key={s.value} className="flex flex-col items-center gap-1">
-                  <span className="text-2xl">{s.emoji}</span>
+                  <ActivityIcon type={s.value} className="text-[var(--red)]" />
                   <span className="text-[10px] text-gray-400">{s.label}</span>
                 </div>
               ))}
@@ -980,10 +981,10 @@ export default function SocialPage() {
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--grey)' }}>
                       <span
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
                         style={{ background: 'rgba(var(--accent-rgb),0.15)' }}
                       >
-                        {opt?.emoji ?? '🏃'}
+                        <ActivityIcon type={opt?.value ?? 'corsa'} size={24} />
                       </span>
                       <div className="flex-1">
                         <p className="font-semibold text-white text-sm">{opt?.label ?? a.type}</p>

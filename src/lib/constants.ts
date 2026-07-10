@@ -1,21 +1,21 @@
 import type { ActivityType, MedalDefinition, AchievementStats } from '../types'
 
-export const ACTIVITY_OPTIONS: { value: ActivityType; label: string; emoji: string; hasDist: boolean }[] = [
-  { value: 'corsa',     label: 'Corsa',     emoji: '🏃', hasDist: true  },
-  { value: 'bici',      label: 'Bici',      emoji: '🚴', hasDist: true  },
-  { value: 'calcio',    label: 'Calcio',    emoji: '⚽', hasDist: false },
-  { value: 'pallavolo', label: 'Pallavolo', emoji: '🏐', hasDist: false },
-  { value: 'basket',    label: 'Basket',    emoji: '🏀', hasDist: false },
-  { value: 'palestra',  label: 'Palestra',  emoji: '🏋️', hasDist: false },
-  { value: 'nuoto',     label: 'Nuoto',     emoji: '🏊', hasDist: true  },
-  { value: 'camminata', label: 'Camminata', emoji: '🚶', hasDist: true  },
-  { value: 'tennis',    label: 'Tennis',    emoji: '🎾', hasDist: false },
-  { value: 'yoga',        label: 'Yoga',        emoji: '🧘', hasDist: false },
-  { value: 'danza',       label: 'Danza',       emoji: '💃', hasDist: false },
-  { value: 'motocross',   label: 'Motocross',   emoji: '🏍️', hasDist: true  },
-  { value: 'golf',        label: 'Golf',        emoji: '⛳', hasDist: false },
-  { value: 'arrampicata', label: 'Arrampicata', emoji: '🧗', hasDist: false },
-  { value: 'padel',       label: 'Padel',       emoji: '🏸', hasDist: false },
+export const ACTIVITY_OPTIONS: { value: ActivityType; label: string; hasDist: boolean }[] = [
+  { value: 'corsa',     label: 'Corsa',     hasDist: true  },
+  { value: 'bici',      label: 'Bici',      hasDist: true  },
+  { value: 'calcio',    label: 'Calcio',    hasDist: false },
+  { value: 'pallavolo', label: 'Pallavolo', hasDist: false },
+  { value: 'basket',    label: 'Basket',    hasDist: false },
+  { value: 'palestra',  label: 'Palestra',  hasDist: false },
+  { value: 'nuoto',     label: 'Nuoto',     hasDist: true  },
+  { value: 'camminata', label: 'Camminata', hasDist: true  },
+  { value: 'tennis',    label: 'Tennis',    hasDist: false },
+  { value: 'yoga',        label: 'Yoga',        hasDist: false },
+  { value: 'danza',       label: 'Danza',       hasDist: false },
+  { value: 'motocross',   label: 'Motocross',   hasDist: true  },
+  { value: 'golf',        label: 'Golf',        hasDist: false },
+  { value: 'arrampicata', label: 'Arrampicata', hasDist: false },
+  { value: 'padel',       label: 'Padel',       hasDist: false },
 ]
 
 // MET values (metabolic equivalent) per activity

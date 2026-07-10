@@ -8,6 +8,7 @@ import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
 import { fetchActivityRoute } from '../lib/activityRoutes'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import ActivityIcon from './ActivityIcon'
 import PhotoPickerField from './PhotoPickerField'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
@@ -187,7 +188,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                   style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
                   <input type="radio" value={opt.value} {...register('type')} className="sr-only" />
-                  <span className="text-2xl">{opt.emoji}</span>
+                  <ActivityIcon type={opt.value} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
                   <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
                 </label>
               )

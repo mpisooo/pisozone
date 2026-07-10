@@ -8,6 +8,7 @@ import { ACTIVITY_OPTIONS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableT
 import { uploadActivityPhoto } from '../lib/activityPhotos'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
+import ActivityIcon from '../components/ActivityIcon'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import log from '../lib/i18n/log'
 import type { ActivityType } from '../types'
@@ -166,7 +167,7 @@ export default function LogPage() {
                     {...register('type')}
                     className="sr-only"
                   />
-                  <span className="text-2xl">{opt.emoji}</span>
+                  <ActivityIcon type={opt.value} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
                   <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
                 </label>
               )

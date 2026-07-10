@@ -19,6 +19,7 @@ import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
 import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
+import ActivityIcon from '../components/ActivityIcon'
 import home from '../lib/i18n/home'
 
 // Etichetta di capitolo: raggruppa la Home in una storia leggibile scorrendo
@@ -267,10 +268,10 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-3">
               <span
-                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
                 style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
               >
-                {lastOpt.emoji}
+                <ActivityIcon type={lastOpt.value} size={24} />
               </span>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-white">{lastOpt.label}</p>
@@ -286,10 +287,10 @@ export default function HomePage() {
         ) : (
           <div className="card text-center py-10">
             <div
-              className="w-28 h-28 rounded-full flex items-center justify-center text-7xl mx-auto mb-4"
+              className="w-28 h-28 rounded-full flex items-center justify-center text-[var(--red)] mx-auto mb-4"
               style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
             >
-              🏋️
+              <ActivityIcon type="palestra" size={56} strokeWidth={1.5} />
             </div>
             <p className="font-bebas text-2xl text-white tracking-wider mb-1">{home.emptyState.title}</p>
             <p className="text-gray-500 text-sm mb-5 leading-relaxed">

@@ -20,6 +20,7 @@ import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
 import AnimatedNumber from '../components/AnimatedNumber'
+import ActivityIcon from '../components/ActivityIcon'
 import stats from '../lib/i18n/stats'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
@@ -151,7 +152,7 @@ export default function StatsPage() {
     Object.entries(typeCounts)
       .map(([type, count]) => {
         const opt = ACTIVITY_OPTIONS.find((o) => o.value === type)
-        return { name: `${opt?.emoji} ${opt?.label}`, value: count }
+        return { name: opt?.label ?? type, value: count }
       })
       .sort((a, b) => b.value - a.value),
     [typeCounts]
@@ -250,7 +251,9 @@ export default function StatsPage() {
 
       {topOpt && (
         <div className="card flex items-center gap-3">
-          <span className="text-4xl">{topOpt.emoji}</span>
+          <span className="text-[var(--red)] flex-shrink-0">
+            <ActivityIcon type={topOpt.value} size={40} strokeWidth={1.5} />
+          </span>
           <div>
             <p className="text-xs text-gray-400">{stats.topActivity.label}</p>
             <p className="font-bebas text-2xl text-white">{topOpt.label}</p>

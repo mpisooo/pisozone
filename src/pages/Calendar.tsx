@@ -12,6 +12,7 @@ import { ACTIVITY_OPTIONS } from '../lib/constants'
 import { calcStreak } from '../lib/challenges'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
+import ActivityIcon from '../components/ActivityIcon'
 import AnalisiTabs from '../components/AnalisiTabs'
 import SkeletonCard from '../components/SkeletonCard'
 import common from '../lib/i18n/common'
@@ -213,7 +214,7 @@ export default function CalendarPage() {
                   className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors hover:brightness-110 active:brightness-90 bg-[var(--grey)]"
                   onClick={() => setEditingActivity(a)}
                 >
-                  <span className="text-2xl">{opt?.emoji ?? '🏃'}</span>
+                  <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="text-[var(--red)] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white">{opt?.label}</p>
                     <p className="text-xs text-gray-400">

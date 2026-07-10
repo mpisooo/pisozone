@@ -21,6 +21,7 @@ import {
 } from '../lib/levels'
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
+import ActivityIcon from '../components/ActivityIcon'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
@@ -457,7 +458,7 @@ export default function ProfilePage() {
                   }`}
                   style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
-                  <span className="text-2xl">{opt.emoji}</span>
+                  <ActivityIcon type={opt.value} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
                   <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
                 </button>
               )
@@ -467,9 +468,11 @@ export default function ProfilePage() {
             <div className="flex gap-2 flex-wrap">
               {sportPreferiti.map((s) => {
                 const opt = ACTIVITY_OPTIONS.find((o) => o.value === s)
+                if (!opt) return null
                 return (
-                  <span key={s} className="text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[var(--red)]">
-                    {opt?.emoji} {opt?.label}
+                  <span key={s} className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[var(--red)]">
+                    <ActivityIcon type={opt.value} size={14} strokeWidth={2} />
+                    {opt.label}
                   </span>
                 )
               })}
