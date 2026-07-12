@@ -290,7 +290,7 @@ export default function HomePage() {
               className="w-28 h-28 rounded-full flex items-center justify-center text-[var(--red)] mx-auto mb-4"
               style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
             >
-              <ActivityIcon type="palestra" size={56} strokeWidth={1.5} />
+              <ActivityIcon type="palestra" size={56} />
             </div>
             <p className="font-bebas text-2xl text-white tracking-wider mb-1">{home.emptyState.title}</p>
             <p className="text-gray-500 text-sm mb-5 leading-relaxed">

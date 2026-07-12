@@ -471,7 +471,7 @@ export default function ProfilePage() {
                 if (!opt) return null
                 return (
                   <span key={s} className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[var(--red)]">
-                    <ActivityIcon type={opt.value} size={14} strokeWidth={2} />
+                    <ActivityIcon type={opt.value} size={14} />
                     {opt.label}
                   </span>
                 )

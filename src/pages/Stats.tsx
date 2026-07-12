@@ -252,7 +252,7 @@ export default function StatsPage() {
       {topOpt && (
         <div className="card flex items-center gap-3">
           <span className="text-[var(--red)] flex-shrink-0">
-            <ActivityIcon type={topOpt.value} size={40} strokeWidth={1.5} />
+            <ActivityIcon type={topOpt.value} size={40} />
           </span>
           <div>
             <p className="text-xs text-gray-400">{stats.topActivity.label}</p>
