@@ -61,10 +61,23 @@ const social = {
     emptyHint: 'Aggiungi amici per vedere le loro attività qui',
     activityPhotoAlt: (username: string) => `Foto dell'attività di ${username}`,
     openPhotoAria: 'Apri la foto a schermo intero',
-    likeAria: 'Metti like',
-    unlikeAria: 'Togli like',
     showCommentsAria: 'Mostra commenti',
     closeCommentsAria: 'Chiudi commenti',
+
+    reactions: {
+      openPickerAria: 'Reagisci all’attività',
+      closePickerAria: 'Chiudi le reazioni',
+      pickerLabel: 'Scegli una reazione',
+      reactWithAria: (label: string) => `Reagisci con ${label}`,
+      removeAria: (label: string) => `Rimuovi la reazione ${label}`,
+      kindLabels: {
+        heart: 'Cuore',
+        muscle: 'Forza',
+        fire: 'Fuoco',
+        clap: 'Applausi',
+        rocket: 'Razzo',
+      },
+    },
 
     comments: {
       loading: 'Carico i commenti…',

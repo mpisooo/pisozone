@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import social from '../lib/i18n/social'
+import { buildReactionSummaries, emptyReactionSummary, withMyReaction } from '../lib/reactions'
+import type { ReactionKind, ReactionSummary } from '../lib/reactions'
 import type { ActivityType } from '../types'
 
 export interface FeedActivity {
@@ -20,8 +22,7 @@ export interface FeedActivity {
   username: string
   user_photo: string | null
   user_level: number
-  like_count: number
-  liked_by_me: boolean
+  reactions: ReactionSummary
 }
 
 export function useFeed() {
@@ -58,30 +59,30 @@ export function useFeed() {
 
     const activityIds = activities.map(a => a.id)
 
-    const { data: likes } = activityIds.length
-      ? await supabase.from('activity_likes').select('activity_id, user_id').in('activity_id', activityIds)
-      : { data: [] }
-
-    const likeMap = new Map<string, { count: number; likedByMe: boolean }>()
-    for (const l of (likes ?? [])) {
-      const entry = likeMap.get(l.activity_id) ?? { count: 0, likedByMe: false }
-      entry.count++
-      if (l.user_id === user.id) entry.likedByMe = true
-      likeMap.set(l.activity_id, entry)
+    // Reazioni (v31). Se la colonna `kind` non esiste ancora (migrazione non
+    // eseguita) la select fallisce: si riprova senza, e ogni riga vale ❤️.
+    let likeRows: { activity_id: string; user_id: string; kind?: string | null }[] = []
+    if (activityIds.length) {
+      const res = await supabase.from('activity_likes').select('activity_id, user_id, kind').in('activity_id', activityIds)
+      if (res.error) {
+        const legacy = await supabase.from('activity_likes').select('activity_id, user_id').in('activity_id', activityIds)
+        likeRows = legacy.data ?? []
+      } else {
+        likeRows = res.data ?? []
+      }
     }
+    const reactionMap = buildReactionSummaries(likeRows, user.id)
 
     const profileMap = new Map((profiles ?? []).map(p => [p.id, p]))
     setFeed(
       activities.map(a => {
         const p = profileMap.get(a.user_id)
-        const l = likeMap.get(a.id) ?? { count: 0, likedByMe: false }
         return {
           ...a,
           username: p?.username ?? 'Utente',
           user_photo: p?.photo_url ?? null,
           user_level: p?.level ?? 1,
-          like_count: l.count,
-          liked_by_me: l.likedByMe,
+          reactions: reactionMap.get(a.id) ?? emptyReactionSummary(),
         }
       })
     )
@@ -90,39 +91,41 @@ export function useFeed() {
 
   useEffect(() => { fetchFeed() }, [fetchFeed])
 
-  const toggleLike = useCallback(async (activityId: string) => {
+  // Reagisce a un'attività: stesso tipo = rimuove, tipo diverso = cambia
+  // (upsert sulla riga unica utente+attività), nessuna reazione = aggiunge.
+  const react = useCallback(async (activityId: string, kind: ReactionKind) => {
     if (!user) return
 
     const current = feed.find(a => a.id === activityId)
     if (!current) return
-    const wasLiked = current.liked_by_me
+    const before = current.reactions
+    const nextMine = before.mine === kind ? null : kind
 
-    // Ottimistic update immediato
-    setFeed(prev => prev.map(a => {
-      if (a.id !== activityId) return a
-      return {
-        ...a,
-        liked_by_me: !a.liked_by_me,
-        like_count: a.liked_by_me ? a.like_count - 1 : a.like_count + 1,
+    // Optimistic update immediato, rollback se la scrittura fallisce
+    setFeed(prev => prev.map(a =>
+      a.id === activityId ? { ...a, reactions: withMyReaction(a.reactions, nextMine) } : a
+    ))
+
+    let error
+    if (nextMine === null) {
+      ({ error } = await supabase.from('activity_likes').delete().eq('activity_id', activityId).eq('user_id', user.id))
+    } else {
+      ({ error } = await supabase
+        .from('activity_likes')
+        .upsert({ activity_id: activityId, user_id: user.id, kind: nextMine }, { onConflict: 'activity_id,user_id' }))
+      if (error && !before.mine) {
+        // Migrazione v31 non ancora eseguita (colonna `kind` assente): si
+        // degrada al like binario di v11 — l'inserimento senza kind resta valido.
+        ({ error } = await supabase.from('activity_likes').insert({ activity_id: activityId, user_id: user.id }))
       }
-    }))
-
-    const { error } = wasLiked
-      ? await supabase.from('activity_likes').delete().eq('activity_id', activityId).eq('user_id', user.id)
-      : await supabase.from('activity_likes').insert({ activity_id: activityId, user_id: user.id })
+    }
 
     if (error) {
-      // rollback: l'operazione è fallita, ripristina lo stato precedente
-      setFeed(prev => prev.map(a => {
-        if (a.id !== activityId) return a
-        return {
-          ...a,
-          liked_by_me: wasLiked,
-          like_count: wasLiked ? a.like_count + 1 : a.like_count - 1,
-        }
-      }))
+      setFeed(prev => prev.map(a =>
+        a.id === activityId ? { ...a, reactions: before } : a
+      ))
     }
   }, [user, feed])
 
-  return { feed, loading, refetch: fetchFeed, toggleLike }
+  return { feed, loading, refetch: fetchFeed, react }
 }

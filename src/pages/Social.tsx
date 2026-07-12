@@ -15,6 +15,7 @@ import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useComments, type ActivityComment } from '../hooks/useComments'
 import { useBlocks } from '../hooks/useBlocks'
 import { getLevelDef } from '../lib/levels'
+import { REACTION_KINDS, REACTION_EMOJI, topKinds } from '../lib/reactions'
 import { isRateLimitError } from '../lib/errors'
 import { haptic } from '../lib/haptics'
 import { useFocusTrap } from '../hooks/useFocusTrap'
@@ -796,13 +797,14 @@ export default function SocialPage() {
   const { friends, pendingReceived, pendingSent, loading: friendsLoading, searchUsers, sendRequest, acceptRequest, rejectOrRemove, refetch: refetchFriends } = useFriends()
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
-  const { feed, loading: feedLoading, toggleLike } = useFeed()
+  const { feed, loading: feedLoading, react } = useFeed()
   const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
   const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
   const { blockedIds, blockUser, reportUser } = useBlocks()
   const { fetchCommentCounts } = useComments()
   const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map())
   const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
+  const [openReactionsId, setOpenReactionsId] = useState<string | null>(null)
   const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; alt: string } | null>(null)
 
   // Conteggi commenti per i badge del feed (i dettagli si caricano all'apertura)
@@ -1010,19 +1012,60 @@ export default function SocialPage() {
                     )}
                     {a.notes && <p className="text-sm text-gray-400 italic">"{a.notes}"</p>}
                     <div className="flex items-center gap-4 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => toggleLike(a.id)}
-                        aria-label={a.liked_by_me ? social.feed.unlikeAria : social.feed.likeAria}
-                        className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.liked_by_me ? 'text-[var(--red)]' : 'text-gray-500'}`}
-                      >
-                        <Heart
-                          size={18}
-                          fill={a.liked_by_me ? 'var(--red)' : 'none'}
-                          stroke={a.liked_by_me ? 'var(--red)' : '#6b7280'}
-                        />
-                        {a.like_count > 0 && <span className="font-medium">{a.like_count}</span>}
-                      </button>
+                      <div className="relative">
+                        {openReactionsId === a.id && (
+                          <>
+                            {/* Chiusura al tocco fuori: velo trasparente sotto la strip */}
+                            <button
+                              type="button"
+                              aria-label={social.feed.reactions.closePickerAria}
+                              onClick={() => setOpenReactionsId(null)}
+                              className="fixed inset-0 z-10 cursor-default"
+                            />
+                            <div
+                              role="group"
+                              aria-label={social.feed.reactions.pickerLabel}
+                              className="modal-pop absolute bottom-full left-0 mb-2 z-20 flex gap-0.5 rounded-full px-1.5 py-1"
+                              style={{ background: 'var(--grey-dark)', boxShadow: 'var(--shadow-lg)' }}
+                            >
+                              {REACTION_KINDS.map(k => (
+                                <button
+                                  key={k}
+                                  type="button"
+                                  onClick={() => { haptic('light'); react(a.id, k); setOpenReactionsId(null) }}
+                                  aria-label={a.reactions.mine === k
+                                    ? social.feed.reactions.removeAria(social.feed.reactions.kindLabels[k])
+                                    : social.feed.reactions.reactWithAria(social.feed.reactions.kindLabels[k])}
+                                  aria-pressed={a.reactions.mine === k}
+                                  className="w-9 h-9 rounded-full text-lg flex items-center justify-center transition-all active:scale-125"
+                                  style={a.reactions.mine === k ? { background: 'rgba(var(--accent-rgb),0.25)' } : undefined}
+                                >
+                                  {REACTION_EMOJI[k]}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setOpenReactionsId(prev => prev === a.id ? null : a.id)}
+                          aria-label={openReactionsId === a.id ? social.feed.reactions.closePickerAria : social.feed.reactions.openPickerAria}
+                          aria-expanded={openReactionsId === a.id}
+                          className={`flex items-center gap-1.5 text-sm transition-all active:scale-110 ${a.reactions.mine ? 'text-[var(--red)]' : 'text-gray-500'}`}
+                        >
+                          {a.reactions.mine
+                            ? <span className="text-lg leading-none">{REACTION_EMOJI[a.reactions.mine]}</span>
+                            : <Heart size={18} stroke="#6b7280" />}
+                          {a.reactions.total > 0 && (
+                            <span className="flex items-center gap-0.5">
+                              {topKinds(a.reactions).filter(k => k !== a.reactions.mine).map(k => (
+                                <span key={k} className="text-sm leading-none">{REACTION_EMOJI[k]}</span>
+                              ))}
+                              <span className="font-medium ml-0.5">{a.reactions.total}</span>
+                            </span>
+                          )}
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setOpenCommentsId(prev => prev === a.id ? null : a.id)}
