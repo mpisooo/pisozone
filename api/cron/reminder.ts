@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { supabaseAdmin, sendToSubscriptions, type PushSubscriptionRow } from '../_lib/push.js'
 import { withSentry } from '../_lib/sentry.js'
-import { getRomeHour, getRomeTodayRange } from '../_lib/time.js'
+import { getRomeHour, getRomeToday, getRomeTodayRange } from '../_lib/time.js'
 import { allowsNotification, type NotificationPrefs } from '../_lib/notificationPrefs.js'
 
 async function handler(req: VercelRequest, res: VercelResponse) {
@@ -19,6 +19,16 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     .lte('date', end)
 
   const activeUserIds = new Set((activitiesToday ?? []).map((a) => a.user_id as string))
+
+  // Chi ha dichiarato un giorno di riposo (recovery_logs, v33) non va
+  // disturbato con "vai ad allenarti": il riposo è parte del percorso.
+  // Tollerante pre-migrazione: tabella assente = data null, nessuno escluso.
+  const { data: restingToday } = await supabaseAdmin
+    .from('recovery_logs')
+    .select('user_id')
+    .eq('day', getRomeToday(now))
+    .eq('rest', true)
+  for (const r of restingToday ?? []) activeUserIds.add(r.user_id as string)
 
   const { data: subs } = await supabaseAdmin
     .from('push_subscriptions')

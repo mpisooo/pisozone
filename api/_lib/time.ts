@@ -15,8 +15,14 @@ function getRomeOffset(date: Date): string {
 
 export function getRomeTodayRange(now: Date) {
   const offset = getRomeOffset(now)
-  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(now)
+  const ymd = getRomeToday(now)
   return { start: `${ymd}T00:00:00${offset}`, end: `${ymd}T23:59:59.999${offset}` }
+}
+
+// La data locale di Roma in yyyy-MM-dd (en-CA usa proprio quel formato):
+// è la chiave `day` di recovery_logs, per il filtro dei giorni di riposo.
+export function getRomeToday(now: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(now)
 }
 
 export function getRomeHour(date: Date): number {

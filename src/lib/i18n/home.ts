@@ -39,6 +39,7 @@ const home = {
   // PisoRing, poi il dettaglio. Niente etichetta per le sfide di oggi: il
   // titolo della card ("Sfide di oggi") la renderebbe ridondante.
   sections: {
+    recovery: 'Recupero',
     recent: 'Attività recente',
     progress: 'Il tuo percorso',
     circle: 'La tua cerchia',

@@ -16,6 +16,11 @@ const calendar = {
   restDayTitle: 'Giornata di riposo',
   restDaySubtitle: 'Nessun allenamento registrato',
 
+  // Giorno di riposo intenzionale (recovery_logs, v33): distinto dal semplice
+  // "nessun allenamento" — qui la streak è protetta.
+  plannedRestBadge: 'Riposo segnato — la streak è al sicuro',
+  restDotAria: 'giorno di riposo',
+
   dayPanel: {
     durationLabel: (min: number) => `${min} min`,
     caloriesSuffix: (cal: number) => ` · ${cal} kcal`,

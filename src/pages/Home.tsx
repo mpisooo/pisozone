@@ -8,6 +8,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useActivities } from '../hooks/useActivities'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
+import { useRecovery } from '../hooks/useRecovery'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
@@ -17,6 +18,7 @@ import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
+import RecoveryCard from '../components/RecoveryCard'
 import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
@@ -40,6 +42,7 @@ export default function HomePage() {
   const { activities, loading: actsLoading } = useActivities()
   const { entries: lbEntries, hasFriends } = useLeaderboard()
   const { frozenDates, freeze, freezing } = useStreakFreeze()
+  const { logs: recoveryLogs, restDates, patchDay } = useRecovery()
   const navigate = useNavigate()
   const [showPushPrompt, setShowPushPrompt] = useState(false)
 
@@ -63,18 +66,24 @@ export default function HomePage() {
   const greeting = home.greeting(hour)
   const todayLabel = format(new Date(), 'EEEE d MMMM', { locale: it })
 
-  const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
+  // I giorni di riposo intenzionali (recovery_logs, v33) proteggono la streak
+  // come i freeze: entrano in calcStreak insieme alle frozenDates.
+  const streak = useMemo(
+    () => calcStreak(activities, [...frozenDates, ...restDates]),
+    [activities, frozenDates, restDates],
+  )
 
-  // Streak freeze offer: yesterday had no activity, not already frozen, and freeze would save a streak
+  // Streak freeze offer: yesterday had no activity, not already frozen or
+  // rest day, and freeze would save a streak
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
   const hasActivityYesterday = activities.some((a) => a.date.startsWith(yesterday))
-  const yesterdayAlreadyFrozen = frozenDates.includes(yesterday)
+  const yesterdayAlreadyProtected = frozenDates.includes(yesterday) || restDates.includes(yesterday)
   const streakSavedByFreeze = useMemo(
     () =>
-      !hasActivityYesterday && !yesterdayAlreadyFrozen
-        ? calcStreak(activities, [...frozenDates, yesterday])
+      !hasActivityYesterday && !yesterdayAlreadyProtected
+        ? calcStreak(activities, [...frozenDates, ...restDates, yesterday])
         : 0,
-    [activities, frozenDates, yesterday, hasActivityYesterday, yesterdayAlreadyFrozen],
+    [activities, frozenDates, restDates, yesterday, hasActivityYesterday, yesterdayAlreadyProtected],
   )
   const showFreezeOffer = streakSavedByFreeze > 0
   const canAffordFreeze = (profile?.credits ?? 0) >= 300
@@ -252,6 +261,17 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Recupero di oggi: riposo, idratazione, sonno (roadmap v2, pilastro 02 punto 5) */}
+      <div className="space-y-2">
+        <SectionLabel>{home.sections.recovery}</SectionLabel>
+        <RecoveryCard
+          todayLog={recoveryLogs.get(todayPrefix)}
+          restDates={restDates}
+          today={todayPrefix}
+          onPatch={(patch) => patchDay(todayPrefix, patch)}
+        />
+      </div>
 
       {/* Attività recente */}
       <div className="space-y-2">

@@ -18,6 +18,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     streak_freezes: supabase.from('streak_freezes').select('*').eq('user_id', uid),
     activity_likes: supabase.from('activity_likes').select('*').eq('user_id', uid),
     exercise_sets: supabase.from('exercise_sets').select('*').eq('user_id', uid),
+    recovery_logs: supabase.from('recovery_logs').select('*').eq('user_id', uid).order('day', { ascending: true }),
     friendships: supabase.from('friendships').select('*').or(`requester_id.eq.${uid},addressee_id.eq.${uid}`),
     messages: supabase.from('messages').select('*').or(`sender_id.eq.${uid},receiver_id.eq.${uid}`),
     group_memberships: supabase.from('group_members').select('*').eq('user_id', uid),
@@ -28,7 +29,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   // Tabelle più recenti dello schema: se la migrazione non è ancora eseguita
   // la tabella può mancare, e non deve far fallire l'intero export —
   // pre-migrazione non c'è comunque alcun dato da restituire.
-  const optionalTables = new Set(['exercise_sets'])
+  const optionalTables = new Set(['exercise_sets', 'recovery_logs'])
 
   const entries = await Promise.all(
     Object.entries(queries).map(async ([key, query]) => {

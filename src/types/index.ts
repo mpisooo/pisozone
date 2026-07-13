@@ -118,6 +118,19 @@ export interface EnrichedChallenge {
   claimed: boolean
 }
 
+// Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
+// riposo intenzionale (protegge la streak, max 2 a settimana lato client);
+// water_ml e sleep_hours restano null finché non tracciati — nessun default
+// che finga un valore mai inserito.
+export interface RecoveryLog {
+  id: string
+  user_id: string
+  day: string
+  rest: boolean
+  water_ml: number | null
+  sleep_hours: number | null
+}
+
 export interface WeightLog {
   id: string
   user_id: string

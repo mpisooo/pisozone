@@ -5,6 +5,7 @@ import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
+import { useRecovery } from '../hooks/useRecovery'
 import { calcStreak } from '../lib/challenges'
 import { haptic } from '../lib/haptics'
 import { useMemo } from 'react'
@@ -29,8 +30,13 @@ export default function ChallengesPage() {
   const { activities, loading: actsLoading } = useActivities()
   const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile()
   const { frozenDates } = useStreakFreeze()
+  const { restDates } = useRecovery()
 
-  const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
+  // Stessa fonte di Home/Calendar: freeze e giorni di riposo proteggono la streak
+  const streak = useMemo(
+    () => calcStreak(activities, [...frozenDates, ...restDates]),
+    [activities, frozenDates, restDates],
+  )
 
   const { challenges: dailyChallenges, loading: challengesLoading, claimingKey, claimChallenge, totalEarnable, totalEarned } =
     useDailyChallenges(activities, streak)

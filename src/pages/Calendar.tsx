@@ -8,6 +8,7 @@ import { it } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Flame, X, Pencil } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
+import { useRecovery } from '../hooks/useRecovery'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import { calcStreak } from '../lib/challenges'
 import type { Activity } from '../types'
@@ -29,6 +30,7 @@ function heatLevel(count: number) {
 export default function CalendarPage() {
   const { activities, loading, updateActivity, deleteActivity } = useActivities()
   const { frozenDates } = useStreakFreeze()
+  const { restDates } = useRecovery()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
@@ -67,12 +69,18 @@ export default function CalendarPage() {
     return map
   }, [activities])
 
-  // Stessa fonte di Home/Challenges: gli streak-freeze contano come giorni attivi
-  const streak = useMemo(() => calcStreak(activities, frozenDates), [activities, frozenDates])
+  // Stessa fonte di Home/Challenges: freeze e giorni di riposo (v33)
+  // contano come giorni attivi
+  const streak = useMemo(
+    () => calcStreak(activities, [...frozenDates, ...restDates]),
+    [activities, frozenDates, restDates],
+  )
+  const restSet = useMemo(() => new Set(restDates), [restDates])
 
   const selectedDayActivities = selectedDay
     ? (actsByDay.get(format(selectedDay, 'yyyy-MM-dd')) ?? [])
     : []
+  const selectedDayIsRest = selectedDay ? restSet.has(format(selectedDay, 'yyyy-MM-dd')) : false
 
   const firstDayOfWeek = days[0].getDay()
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
@@ -135,6 +143,7 @@ export default function CalendarPage() {
             const acts = actsByDay.get(key) ?? []
             const isToday = isSameDay(day, new Date())
             const isSelected = selectedDay ? isSameDay(day, selectedDay) : false
+            const isRest = restSet.has(key)
             const level = heatLevel(acts.length)
 
             return (
@@ -142,7 +151,7 @@ export default function CalendarPage() {
                 key={key}
                 type="button"
                 onClick={() => setSelectedDay(isSelected ? null : day)}
-                aria-label={calendar.dayAriaLabel(format(day, 'd MMMM', { locale: it }), acts.length)}
+                aria-label={`${calendar.dayAriaLabel(format(day, 'd MMMM', { locale: it }), acts.length)}${isRest ? `, ${calendar.restDotAria}` : ''}`}
                 className={`relative aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-150 ${level} ${
                   isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-[#0D0D0D]' : ''
                 } ${isToday ? 'ring-2 ring-[var(--red)]' : ''}`}
@@ -152,6 +161,13 @@ export default function CalendarPage() {
                   <span className="absolute bottom-0.5 right-1 text-[8px] leading-none opacity-70">
                     {acts.length}
                   </span>
+                )}
+                {isRest && (
+                  <span
+                    className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full"
+                    style={{ background: '#A78BFA' }}
+                    aria-hidden="true"
+                  />
                 )}
               </button>
             )
@@ -192,6 +208,16 @@ export default function CalendarPage() {
               <X size={18} />
             </button>
           </div>
+
+          {selectedDayIsRest && (
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
+              style={{ background: 'rgba(167,139,250,0.12)', color: '#A78BFA' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#A78BFA' }} />
+              {calendar.plannedRestBadge}
+            </div>
+          )}
 
           {selectedDayActivities.length === 0 ? (
             <div className="text-center py-4">
