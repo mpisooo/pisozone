@@ -8,7 +8,7 @@ PWA in italiano per il tracciamento dell'attività fisica, con social, gamificat
 
 - **Attività**: registrazione manuale di 15 tipi di sport con durata, calorie (stimate via MET), distanza e note; calendario con heatmap e statistiche approfondite (andamento, obiettivo vs reale, correlazione peso-allenamento, export CSV).
 - **Gamification**: crediti, 10 livelli, 18 medaglie, sfide giornaliere generate in modo deterministico per utente, streak con "freeze" acquistabili.
-- **Social**: amici, messaggi diretti e di gruppo, feed con like, commenti e foto sulle attività, classifica settimanale tra amici o globale, blocco e segnalazione utenti.
+- **Social**: amici, messaggi diretti e di gruppo, feed con reazioni (❤️💪🔥👏🚀), commenti e foto sulle attività, classifica settimanale tra amici o globale, blocco e segnalazione utenti.
 - **Push**: notifiche per messaggi, richieste di amicizia e promemoria serale, via web-push (VAPID).
 - **Personalizzazione**: 6 temi colore e cornici avatar sbloccabili con i crediti.
 - **GDPR**: privacy policy, termini di servizio, export completo dei dati in JSON, cancellazione account.
