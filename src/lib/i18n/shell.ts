@@ -48,14 +48,24 @@ const shell = {
         text: 'Registra ogni allenamento: 15 sport tra cui scegliere, con le calorie calcolate automaticamente in base al tuo profilo.',
       },
       {
+        icon: '🏋️',
+        title: 'REGISTRA COME VUOI',
+        text: 'Corsa, bici e camminata si tracciano col GPS. In palestra segni esercizi, serie e carichi: l\'app riconosce da sola i tuoi record personali.',
+      },
+      {
+        icon: '🎯',
+        title: 'PROGRAMMI DI ALLENAMENTO',
+        text: 'Scegli un obiettivo a più settimane — 5K, 10K, palestra, yoga — e allenati: le sessioni del piano si spuntano da sole.',
+      },
+      {
         icon: '💎',
         title: 'GUADAGNA CREDITI',
         text: 'Ogni attività ti fa guadagnare crediti, e ogni giorno hai 3 sfide personalizzate che ne valgono altri. Completale prima di mezzanotte!',
       },
       {
         icon: '🔥',
-        title: 'STREAK E MEDAGLIE',
-        text: 'Allenati con costanza per far crescere il tuo streak — e se un giorno salti, puoi congelarlo con i crediti. Ti aspettano 18 medaglie e 10 livelli.',
+        title: 'STREAK E RECUPERO',
+        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 18 medaglie e 10 livelli.',
       },
       {
         icon: '🎨',
@@ -65,7 +75,45 @@ const shell = {
       {
         icon: '👥',
         title: 'MEGLIO IN COMPAGNIA',
-        text: 'Nella sezione Amici trovi feed, classifica settimanale, messaggi e gruppi: aggiungi i tuoi amici e sfidatevi.',
+        text: 'Nella sezione Amici trovi feed con reazioni e commenti, classifica settimanale, messaggi e gruppi: aggiungi i tuoi amici e sfidatevi.',
+      },
+    ],
+    guideHint: 'Tutte le funzioni sono spiegate nella Guida: la trovi nel tuo Profilo.',
+  },
+
+  // Annuncio one-shot delle novità per chi usa già l'app (WhatsNewOverlay):
+  // gli item descrivono l'ondata corrente (NEWS_VERSION nel componente).
+  whatsNew: {
+    ariaLabel: 'Novità di PisoZone',
+    title: 'NOVITÀ SU PISOZONE',
+    subtitle: 'Ecco cosa è arrivato dall\'ultima volta:',
+    gotIt: 'Ho capito',
+    openGuide: 'Apri la guida completa',
+    items: [
+      {
+        icon: '🏋️',
+        title: 'Palestra strutturata',
+        text: 'Esercizi con serie, ripetizioni e carico — e i record personali riconosciuti da soli.',
+      },
+      {
+        icon: '🎯',
+        title: 'Programmi di allenamento',
+        text: 'Obiettivi a più settimane (5K, 10K, palestra, yoga): le sessioni si spuntano da sole. Li trovi in Home.',
+      },
+      {
+        icon: '🛌',
+        title: 'Recupero',
+        text: 'Segna un giorno di riposo senza spezzare lo streak, e tieni d\'occhio acqua e sonno dalla Home.',
+      },
+      {
+        icon: '💪',
+        title: 'Sforzo e umore',
+        text: 'Dopo ogni attività puoi segnare quanto ti è costata e come ti senti.',
+      },
+      {
+        icon: '🔥',
+        title: 'Reazioni sul feed',
+        text: 'Non solo ❤️: ora reagisci alle attività degli amici anche con 💪 🔥 👏 🚀.',
       },
     ],
   },

@@ -85,6 +85,10 @@ export interface Profile {
   // Opzionale: esiste solo dopo la migrazione v25. false = nuovo utente che
   // non ha ancora visto il tour di benvenuto; undefined = colonna assente.
   onboarding_seen?: boolean
+  // Opzionale: esiste solo dopo la migrazione v35. Ultima "ondata" di novità
+  // vista (NEWS_VERSION in WhatsNewOverlay); undefined = colonna assente,
+  // annuncio disattivato.
+  news_seen_version?: number
   // Opzionali: esistono solo dopo la migrazione v28. undefined = colonna non
   // ancora creata (tutte le notifiche attive, nessuna fascia di silenzio).
   notif_reminder_enabled?: boolean

@@ -81,6 +81,12 @@ const profile = {
     entriesCount: (n: number) => `${n} ${n === 1 ? 'pesata' : 'pesate'} registrate`,
   },
 
+  guide: {
+    title: 'GUIDA DI PISOZONE',
+    body: 'Tutte le funzioni dell\'app spiegate in un posto solo: allenamenti, GPS, palestra, programmi, recupero, crediti, social…',
+    button: 'Apri la guida',
+  },
+
   privacy: {
     title: 'PRIVACY E DATI',
     body: 'I tuoi dati ti appartengono: puoi scaricarne una copia completa in formato JSON o eliminare definitivamente l\'account con tutto ciò che contiene.',

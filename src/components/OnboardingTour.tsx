@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { useProfile } from '../context/ProfileContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { getZoneByPercent } from '../lib/zones'
+import { NEWS_VERSION } from './WhatsNewOverlay'
 import shell from '../lib/i18n/shell'
 
 const STEPS = shell.onboarding.steps
@@ -24,7 +25,13 @@ export default function OnboardingTour() {
     // Chiudi subito: se il salvataggio fallisce, il tour ricomparirà al
     // prossimo avvio — meglio che bloccare l'utente qui.
     setClosing(true)
-    updateProfile({ onboarding_seen: true })
+    // Il tour copre già tutte le novità: chi lo completa non deve vedere
+    // anche l'annuncio "Novità" (solo se la colonna v35 esiste, altrimenti
+    // l'upsert fallirebbe e non salverebbe nemmeno onboarding_seen).
+    updateProfile({
+      onboarding_seen: true,
+      ...(profile?.news_seen_version !== undefined ? { news_seen_version: NEWS_VERSION } : {}),
+    })
     if (goToLog) navigate('/log')
   }
 
@@ -53,6 +60,9 @@ export default function OnboardingTour() {
           {current.title}
         </h2>
         <p className="text-sm text-gray-300 leading-relaxed min-h-16">{current.text}</p>
+        {isLast && (
+          <p className="text-xs text-gray-500">{shell.onboarding.guideHint}</p>
+        )}
 
         {/* Indicatore di avanzamento: si scalda lungo lo spettro Zone via via
             che si procede, invece del solito pallino rosso fisso. */}

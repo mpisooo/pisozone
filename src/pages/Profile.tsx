@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { differenceInYears, parseISO, format } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2 } from 'lucide-react'
+import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2, BookOpen } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -743,6 +743,23 @@ export default function ProfilePage() {
             {profileText.weight.entriesCount(chartData.length)}
           </p>
         )}
+      </div>
+
+      {/* Guida: la wiki di tutte le funzionalità */}
+      <div className="card space-y-3">
+        <div className="flex items-center gap-2">
+          <BookOpen size={16} className="text-[var(--red)]" />
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.guide.title}</h2>
+        </div>
+        <p className="text-xs text-gray-500 leading-relaxed">{profileText.guide.body}</p>
+        <Link
+          to="/guide"
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95"
+          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+        >
+          <BookOpen size={15} />
+          {profileText.guide.button}
+        </Link>
       </div>
 
       {/* Privacy e dati (GDPR: portabilità + cancellazione) */}

@@ -8,6 +8,7 @@ import { UnreadProvider } from './context/UnreadContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import ConsentGate from './components/ConsentGate'
 import OnboardingTour from './components/OnboardingTour'
+import WhatsNewOverlay from './components/WhatsNewOverlay'
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
 import SplashScreen from './components/SplashScreen'
@@ -26,6 +27,7 @@ const MedalsPage     = lazy(() => import('./pages/Medals'))
 const SocialPage     = lazy(() => import('./pages/Social'))
 const ChallengesPage = lazy(() => import('./pages/Challenges'))
 const PlansPage      = lazy(() => import('./pages/Plans'))
+const GuidePage      = lazy(() => import('./pages/Guide'))
 
 function AppLayout() {
   const location = useLocation()
@@ -47,6 +49,7 @@ function AppLayout() {
                 <Route path="/social"      element={<SocialPage />} />
                 <Route path="/challenges"  element={<ChallengesPage />} />
                 <Route path="/plans"       element={<PlansPage />} />
+                <Route path="/guide"       element={<GuidePage />} />
                 <Route path="*"            element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
@@ -57,6 +60,8 @@ function AppLayout() {
         <ConsentGate />
         {/* Tour di benvenuto al primo accesso (solo nuovi account, v25) */}
         <OnboardingTour />
+        {/* Annuncio one-shot delle novità per chi usa già l'app (v35) */}
+        <WhatsNewOverlay />
       </div>
     </UnreadProvider>
   )
