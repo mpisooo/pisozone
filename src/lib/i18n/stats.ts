@@ -75,6 +75,12 @@ const stats = {
     trainingTooltipValue: (value: unknown) => `${value} min`,
   },
 
+  gymRecords: {
+    heading: 'RECORD PALESTRA',
+    subtitle: 'Il tuo carico massimo di sempre, esercizio per esercizio',
+    weightValue: (kg: number) => `${kg.toLocaleString('it-IT')} kg`,
+  },
+
   records: {
     heading: 'RECORD PERSONALI',
     longestSession: 'Sessione più lunga',

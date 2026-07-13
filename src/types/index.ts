@@ -45,6 +45,20 @@ export interface RoutePoint {
   lng: number
 }
 
+// Riga di exercise_sets (v32): un "blocco" di lavoro di una sessione in
+// palestra — esercizio + serie × ripetizioni allo stesso carico.
+// weight_kg null = corpo libero, non un peso ignoto.
+export interface ExerciseSet {
+  id: string
+  activity_id: string
+  user_id: string
+  seq: number
+  exercise: string
+  sets: number
+  reps: number
+  weight_kg: number | null
+}
+
 export interface Profile {
   id: string
   username: string

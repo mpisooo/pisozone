@@ -30,6 +30,25 @@ const log = {
       moodTitle: 'UMORE ED ENERGIA',
       moodHint: 'Facoltativo — come ti senti dopo l\'allenamento?',
     },
+    gym: {
+      title: 'ESERCIZI',
+      hint: 'Facoltativo — segna esercizi, serie e carichi per seguire progressi e record personali.',
+      exerciseLabel: 'Esercizio',
+      exercisePlaceholder: 'es. Panca piana',
+      setsLabel: 'Serie',
+      repsLabel: 'Ripetizioni',
+      weightLabel: 'Peso (kg)',
+      weightPlaceholder: 'corpo libero',
+      addExercise: 'Aggiungi esercizio',
+      removeAria: (name: string) => name ? `Rimuovi ${name}` : 'Rimuovi esercizio',
+      incompleteRow: 'Completa serie e ripetizioni, o questa riga non verrà salvata',
+      summary: (count: number, volumeKg: number) => {
+        const base = count === 1 ? '1 esercizio' : `${count} esercizi`
+        return volumeKg > 0
+          ? `${base} · volume totale ${volumeKg.toLocaleString('it-IT')} kg`
+          : base
+      },
+    },
     validation: {
       hoursNotNegative: 'Non può essere negativa',
       hoursMax: 'Massimo 12 ore',
@@ -83,6 +102,9 @@ const log = {
       title: 'Attività salvata!',
       credits: (n: number) => `+${n} 💎 crediti guadagnati`,
       noCredits: 'Continua così 💪',
+      pr: (exercise: string, weightKg: number) =>
+        `🏆 Nuovo record: ${exercise} ${weightKg.toLocaleString('it-IT')} kg`,
+      prExtra: (n: number) => n === 1 ? ' e un altro record' : ` e altri ${n} record`,
     },
     errorToast: {
       title: 'Salvataggio non riuscito',
@@ -96,6 +118,10 @@ const log = {
       title: 'Attività salvata, ma percorso non salvato',
       body: 'Durata, distanza e calorie sono corrette',
     },
+    setsWarningToast: {
+      title: 'Attività salvata, ma esercizi non salvati',
+      body: 'Riprova dal calendario, modificando l\'attività',
+    },
   },
 
   edit: {
@@ -107,6 +133,7 @@ const log = {
     saveChanges: 'Salva modifiche',
     photoUploadFailed: 'Caricamento della foto non riuscito. Controlla la connessione e riprova.',
     updateFailed: 'Modifica non riuscita. Controlla la connessione e riprova.',
+    setsUpdateFailed: 'Attività aggiornata, ma esercizi non salvati. Controlla la connessione e salva di nuovo.',
     deleteFailed: 'Eliminazione non riuscita. Controlla la connessione e riprova.',
   },
 

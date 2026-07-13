@@ -8,6 +8,8 @@ import { it } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
 import { useWeightLogs } from '../hooks/useWeightLogs'
+import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import { buildGymRecords } from '../lib/exerciseSets'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
@@ -161,6 +163,11 @@ export default function StatsPage() {
   // Spettro di intensità: minuti per zona (lib/zones.ts), prima applicazione
   // visibile del sistema Zone (roadmap v2, pillar 01)
   const zoneData = useMemo(() => buildZoneDistribution(filtered), [filtered])
+
+  // Record palestra: carico massimo di sempre per esercizio (exercise_sets,
+  // v32) — non segue il filtro periodo, un PR è per definizione all-time
+  const { rows: exerciseHistory } = useExerciseHistory(true)
+  const gymRecords = useMemo(() => buildGymRecords(exerciseHistory), [exerciseHistory])
 
   // Records
   const longestSession = filtered.reduce((best, a) => a.duration_min > (best?.duration_min ?? 0) ? a : best, null as Activity | null)
@@ -511,6 +518,27 @@ export default function StatsPage() {
               <span className="text-2xl">📆</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Record palestra: massimali per esercizio dal log strutturato (v32) */}
+      {gymRecords.length > 0 && filtered.length > 0 && (
+        <div className="card space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.gymRecords.heading}</h2>
+              <p className="text-xs text-gray-400 mt-1">{stats.gymRecords.subtitle}</p>
+            </div>
+            <span className="text-[var(--red)] flex-shrink-0">
+              <ActivityIcon type="palestra" size={28} />
+            </span>
+          </div>
+          {gymRecords.slice(0, 8).map((r) => (
+            <div key={r.exercise} className="flex items-center justify-between gap-3">
+              <p className="text-sm text-white font-medium truncate">{r.exercise}</p>
+              <p className="font-bebas text-xl text-[var(--red)] flex-shrink-0">{stats.gymRecords.weightValue(r.weightKg)}</p>
+            </div>
+          ))}
         </div>
       )}
 

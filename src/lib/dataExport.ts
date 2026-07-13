@@ -17,6 +17,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     daily_challenge_completions: supabase.from('daily_challenge_completions').select('*').eq('user_id', uid),
     streak_freezes: supabase.from('streak_freezes').select('*').eq('user_id', uid),
     activity_likes: supabase.from('activity_likes').select('*').eq('user_id', uid),
+    exercise_sets: supabase.from('exercise_sets').select('*').eq('user_id', uid),
     friendships: supabase.from('friendships').select('*').or(`requester_id.eq.${uid},addressee_id.eq.${uid}`),
     messages: supabase.from('messages').select('*').or(`sender_id.eq.${uid},receiver_id.eq.${uid}`),
     group_memberships: supabase.from('group_members').select('*').eq('user_id', uid),
@@ -24,10 +25,18 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     push_subscriptions: supabase.from('push_subscriptions').select('*').eq('user_id', uid),
   }
 
+  // Tabelle più recenti dello schema: se la migrazione non è ancora eseguita
+  // la tabella può mancare, e non deve far fallire l'intero export —
+  // pre-migrazione non c'è comunque alcun dato da restituire.
+  const optionalTables = new Set(['exercise_sets'])
+
   const entries = await Promise.all(
     Object.entries(queries).map(async ([key, query]) => {
       const { data, error } = await query
-      if (error) throw new Error(profileText.export.fieldFailed(key, error.message))
+      if (error) {
+        if (optionalTables.has(key)) return [key, []] as const
+        throw new Error(profileText.export.fieldFailed(key, error.message))
+      }
       return [key, data] as const
     }),
   )

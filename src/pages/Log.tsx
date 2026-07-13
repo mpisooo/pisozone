@@ -6,10 +6,17 @@ import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { uploadActivityPhoto } from '../lib/activityPhotos'
+import { saveActivityExercises } from '../lib/activityExercises'
+import {
+  draftsToEntries, buildPrMap, detectNewPrs, exerciseSuggestions,
+  type ExerciseDraft, type PrRecord,
+} from '../lib/exerciseSets'
+import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
+import ExerciseSetsFields from '../components/ExerciseSetsFields'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import log from '../lib/i18n/log'
 import type { ActivityType } from '../types'
@@ -37,8 +44,11 @@ export default function LogPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [tracking, setTracking] = useState(false)
   const [routeWarning, setRouteWarning] = useState(false)
+  const [setsWarning, setSetsWarning] = useState(false)
   const [rpe, setRpe] = useState<number | null>(null)
   const [mood, setMood] = useState<number | null>(null)
+  const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>([])
+  const [prRecords, setPrRecords] = useState<PrRecord[]>([])
 
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -67,6 +77,12 @@ export default function LogPage() {
   const selectedActivity = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)
   const showDist = selectedActivity?.hasDist ?? false
   const durationMin = hours * 60 + minutes
+
+  // Storico esercizi: caricato solo quando serve (palestra selezionata),
+  // alimenta i suggerimenti nomi e il confronto per i nuovi PR.
+  const isGym = selectedType === 'palestra'
+  const { rows: exerciseHistory, loaded: historyLoaded, appendLocal } = useExerciseHistory(isGym)
+  const nameSuggestions = useMemo(() => exerciseSuggestions(exerciseHistory), [exerciseHistory])
 
   const autoCalories =
     caloriesInput === '' && durationMin > 0 && profile?.weight_kg
@@ -117,16 +133,38 @@ export default function LogPage() {
       }
     }
 
+    // Anche gli esercizi viaggiano dopo l'insert (serve l'id) e un fallimento
+    // non annulla l'attività. I PR si annunciano solo a storico caricato:
+    // senza confronto, ogni carico sembrerebbe un record.
+    let setsOk = true
+    let newPrs: PrRecord[] = []
+    const entries = values.type === 'palestra' ? draftsToEntries(exerciseDrafts) : []
+    if (entries.length > 0 && data) {
+      const { error: setsError } = await saveActivityExercises(data.user_id, data.id, entries)
+      if (setsError) {
+        setsOk = false
+      } else if (historyLoaded) {
+        newPrs = detectNewPrs(entries, buildPrMap(exerciseHistory))
+          .sort((a, b) => b.weightKg - a.weightKg)
+        appendLocal(entries)
+      }
+    }
+
     setSaving(false)
     setPhotoFile(null)
     setRpe(null)
     setMood(null)
+    setExerciseDrafts([])
 
-    haptic('success')
+    haptic(newPrs.length > 0 ? 'celebrate' : 'success')
 
     setCreditsEarned(data?.credits_earned ?? 0)
-    if (photoOk) setSaved(true)
-    else {
+    setPrRecords(newPrs)
+    if (photoOk && setsOk) setSaved(true)
+    else if (!setsOk) {
+      setSetsWarning(true)
+      setTimeout(() => setSetsWarning(false), 4000)
+    } else {
       setPhotoWarning(true)
       setTimeout(() => setPhotoWarning(false), 4000)
     }
@@ -140,7 +178,8 @@ export default function LogPage() {
       distance_km: '',
       notes: '',
     })
-    setTimeout(() => setSaved(false), 2500)
+    // Con un PR da leggere il toast resta un po' di più
+    setTimeout(() => setSaved(false), newPrs.length > 0 ? 5000 : 2500)
   }
 
   return (
@@ -251,6 +290,16 @@ export default function LogPage() {
             <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
           )}
         </div>
+
+        {/* Log palestra strutturato: esercizi serie×rip×peso */}
+        {isGym && (
+          <ExerciseSetsFields
+            drafts={exerciseDrafts}
+            onChange={setExerciseDrafts}
+            suggestions={nameSuggestions}
+            idPrefix="log"
+          />
+        )}
 
         {/* Calories & Distance */}
         <div className="card space-y-3">
@@ -399,6 +448,12 @@ export default function LogPage() {
             <p className="text-green-400 text-xs">
               {creditsEarned > 0 ? log.new.savedToast.credits(creditsEarned) : log.new.savedToast.noCredits}
             </p>
+            {prRecords.length > 0 && (
+              <p className="text-amber-300 text-xs">
+                {log.new.savedToast.pr(prRecords[0].exercise, prRecords[0].weightKg)}
+                {prRecords.length > 1 && log.new.savedToast.prExtra(prRecords.length - 1)}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -429,6 +484,16 @@ export default function LogPage() {
           <div>
             <p className="text-white font-semibold text-sm">{log.new.routeWarningToast.title}</p>
             <p className="text-[var(--red)] text-xs">{log.new.routeWarningToast.body}</p>
+          </div>
+        </div>
+      )}
+
+      {setsWarning && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">{log.new.setsWarningToast.title}</p>
+            <p className="text-[var(--red)] text-xs">{log.new.setsWarningToast.body}</p>
           </div>
         </div>
       )}

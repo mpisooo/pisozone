@@ -6,11 +6,15 @@ import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
 import { fetchActivityRoute } from '../lib/activityRoutes'
+import { fetchActivityExercises, replaceActivityExercises } from '../lib/activityExercises'
+import { rowsToDrafts, draftsToEntries, exerciseSuggestions, type ExerciseDraft } from '../lib/exerciseSets'
+import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import ActivityIcon from './ActivityIcon'
 import PhotoPickerField from './PhotoPickerField'
 import PerceivedMetricsFields from './PerceivedMetricsFields'
+import ExerciseSetsFields from './ExerciseSetsFields'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
@@ -46,8 +50,25 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
   const [rpe, setRpe] = useState<number | null>(activity.rpe ?? null)
   const [mood, setMood] = useState<number | null>(activity.mood ?? null)
+  // Esercizi (v32): setsLoaded resta false se il fetch iniziale fallisce, e in
+  // quel caso il salvataggio NON tocca exercise_sets — un delete+reinsert a
+  // partire da bozze vuote cancellerebbe set che l'utente non ha mai visto.
+  const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>([])
+  const [setsLoaded, setSetsLoaded] = useState(false)
+  const [hadSets, setHadSets] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchActivityExercises(activity.id).then(({ rows, error }) => {
+      if (cancelled || error) return
+      setExerciseDrafts(rowsToDrafts(rows))
+      setHadSets(rows.length > 0)
+      setSetsLoaded(true)
+    })
+    return () => { cancelled = true }
+  }, [activity.id])
 
   // Sola lettura: il percorso si registra solo dal tracciamento GPS in Log.tsx,
   // qui si mostra soltanto la sagoma se l'attività ne ha uno.
@@ -92,6 +113,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
   const selectedType = watch('type')
   const showDist = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)?.hasDist ?? false
+  const isGym = selectedType === 'palestra'
+  const { rows: exerciseHistory } = useExerciseHistory(isGym)
+  const nameSuggestions = useMemo(() => exerciseSuggestions(exerciseHistory), [exerciseHistory])
 
   const onSubmit = async (v: FormValues) => {
     setSaving(true)
@@ -130,11 +154,26 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       mood,
       ...photoUpdates,
     })
-    setSaving(false)
     if (error) {
+      setSaving(false)
       setErrorMsg(log.edit.updateFailed)
       return
     }
+
+    // Esercizi: delete+reinsert dell'intero blocco. Se il tipo non è più
+    // palestra i set esistenti vanno rimossi (entries vuoto). In caso di
+    // errore la schermata resta aperta: le bozze sono ancora lì e si riprova.
+    const entries = v.type === 'palestra' ? draftsToEntries(exerciseDrafts) : []
+    if (setsLoaded && (entries.length > 0 || hadSets)) {
+      const { error: setsError } = await replaceActivityExercises(activity.user_id, activity.id, entries)
+      if (setsError) {
+        setSaving(false)
+        setErrorMsg(log.edit.setsUpdateFailed)
+        return
+      }
+    }
+
+    setSaving(false)
     if (wantsRemoval) removeActivityPhoto(activity.user_id, activity.id)
     onClose()
   }
@@ -252,6 +291,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
           )}
         </div>
+
+        {/* Log palestra strutturato: esercizi serie×rip×peso */}
+        {isGym && (
+          <ExerciseSetsFields
+            drafts={exerciseDrafts}
+            onChange={setExerciseDrafts}
+            suggestions={nameSuggestions}
+            idPrefix="edit"
+          />
+        )}
 
         {activity.gps_tracked && routePoints.length >= 2 && (
           <div className="card space-y-2">
