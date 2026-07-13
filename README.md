@@ -9,6 +9,7 @@ PWA in italiano per il tracciamento dell'attività fisica, con social, gamificat
 - **Attività**: registrazione manuale di 15 tipi di sport con durata, calorie (stimate via MET), distanza e note; log palestra strutturato (esercizi con serie × ripetizioni × carico, record personali rilevati automaticamente); calendario con heatmap e statistiche approfondite (andamento, obiettivo vs reale, correlazione peso-allenamento, export CSV).
 - **Gamification**: crediti, 10 livelli, 18 medaglie, sfide giornaliere generate in modo deterministico per utente, streak con "freeze" acquistabili.
 - **Recupero**: giorni di riposo intenzionali che non spezzano la streak (max 2 a settimana), idratazione e sonno tracciati con un tocco dalla Home.
+- **Programmi**: piani di allenamento a più settimane (5K, 10K, palestra, yoga...) con sessioni che si spuntano da sole registrando le attività e ricompensa in crediti al traguardo.
 - **Social**: amici, messaggi diretti e di gruppo, feed con reazioni (❤️💪🔥👏🚀), commenti e foto sulle attività, classifica settimanale tra amici o globale, blocco e segnalazione utenti.
 - **Push**: notifiche per messaggi, richieste di amicizia e promemoria serale, via web-push (VAPID).
 - **Personalizzazione**: 6 temi colore e cornici avatar sbloccabili con i crediti.

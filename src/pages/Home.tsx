@@ -9,9 +9,11 @@ import { useActivities } from '../hooks/useActivities'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
+import { useTrainingPlan } from '../hooks/useTrainingPlan'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
+import { getPlanTemplate, computePlanProgress } from '../lib/plans'
 import { calcStreak } from '../lib/challenges'
 import { getZoneByPercent } from '../lib/zones'
 import { haptic } from '../lib/haptics'
@@ -23,6 +25,7 @@ import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import home from '../lib/i18n/home'
+import plansText from '../lib/i18n/plans'
 
 // Etichetta di capitolo: raggruppa la Home in una storia leggibile scorrendo
 // (roadmap v2, pilastro 01 punto 6) invece di una pila indifferenziata di
@@ -43,6 +46,7 @@ export default function HomePage() {
   const { entries: lbEntries, hasFriends } = useLeaderboard()
   const { frozenDates, freeze, freezing } = useStreakFreeze()
   const { logs: recoveryLogs, restDates, patchDay } = useRecovery()
+  const { activeEnrollment } = useTrainingPlan()
   const navigate = useNavigate()
   const [showPushPrompt, setShowPushPrompt] = useState(false)
 
@@ -131,6 +135,15 @@ export default function HomePage() {
   // Stessa fonte della pagina Sfide (hook condiviso): eligibility + riscatti dal DB
   const { challenges: todayChallenges } = useDailyChallenges(activities, streak)
   const completedChallenges = todayChallenges.filter((c) => c.eligible).length
+
+  // Programma di allenamento attivo (v34): avanzamento derivato dalle attività
+  const activePlanTemplate = activeEnrollment ? getPlanTemplate(activeEnrollment.plan_key) : undefined
+  const planProgress = useMemo(
+    () => (activeEnrollment && activePlanTemplate
+      ? computePlanProgress(activePlanTemplate, activeEnrollment.started_on, activities)
+      : null),
+    [activeEnrollment, activePlanTemplate, activities],
+  )
 
   const stats = useMemo(() => computeStats(activities, weeklyGoal), [activities, weeklyGoal])
   const nearestMedal = useMemo(() => {
@@ -323,10 +336,71 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Il tuo percorso: medaglia più vicina */}
-      {nearestMedal && (
-        <div className="space-y-2">
-          <SectionLabel>{home.sections.progress}</SectionLabel>
+      {/* Il tuo percorso: programma di allenamento + medaglia più vicina */}
+      <div className="space-y-2">
+        <SectionLabel>{home.sections.progress}</SectionLabel>
+
+        {activeEnrollment && activePlanTemplate && planProgress ? (
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/plans', { viewTransition: true })}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-400">{plansText.homeWidget.title}</span>
+              <ChevronRight size={16} className="text-gray-600" />
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
+                aria-hidden="true"
+              >
+                {activePlanTemplate.icon}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bebas text-lg text-white leading-tight">{activePlanTemplate.title}</p>
+                <p className="text-xs text-gray-400">
+                  {planProgress.completed
+                    ? plansText.homeWidget.completedHint
+                    : planProgress.expired
+                    ? plansText.homeWidget.expiredHint
+                    : plansText.homeWidget.weekOf(planProgress.currentWeek, activePlanTemplate.weeks)}
+                </p>
+                <div className="progress-track mt-1.5 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(planProgress.doneCount / planProgress.totalCount) * 100}%`,
+                      background: getZoneByPercent((planProgress.doneCount / planProgress.totalCount) * 100).cssVar,
+                      transition: 'width 0.7s',
+                    }}
+                  />
+                </div>
+              </div>
+              <span className="font-bebas text-xl text-[var(--red)] flex-shrink-0">
+                {plansText.homeWidget.sessionsShort(planProgress.doneCount, planProgress.totalCount)}
+              </span>
+            </div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="card w-full text-left"
+            onClick={() => navigate('/plans', { viewTransition: true })}
+          >
+            <div className="flex items-center gap-3">
+              <Target size={22} className="text-gray-700 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-400">{plansText.homeWidget.discoverTitle}</p>
+                <p className="text-xs text-gray-600">{plansText.homeWidget.discoverBody}</p>
+              </div>
+              <ChevronRight size={16} className="text-gray-600 ml-auto flex-shrink-0" />
+            </div>
+          </button>
+        )}
+
+        {nearestMedal && (
           <button
             type="button"
             className="card w-full text-left"
@@ -365,8 +439,8 @@ export default function HomePage() {
               </span>
             </div>
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* La tua cerchia: classifica settimanale */}
       <div className="space-y-2">

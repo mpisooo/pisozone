@@ -118,6 +118,20 @@ export interface EnrichedChallenge {
   claimed: boolean
 }
 
+// Riga di plan_enrollments (v34): iscrizione a un programma del catalogo
+// (PLAN_CATALOG in lib/plans.ts). L'avanzamento non è persistito: si deriva
+// dalle attività con computePlanProgress. Attivo = né completato né abbandonato.
+export interface PlanEnrollment {
+  id: string
+  user_id: string
+  plan_key: string
+  started_on: string
+  completed_at: string | null
+  abandoned_at: string | null
+  credits_earned: number
+  created_at: string
+}
+
 // Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
 // riposo intenzionale (protegge la streak, max 2 a settimana lato client);
 // water_ml e sleep_hours restano null finché non tracciati — nessun default

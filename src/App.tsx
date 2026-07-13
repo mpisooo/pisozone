@@ -25,6 +25,7 @@ const StatsPage      = lazy(() => import('./pages/Stats'))
 const MedalsPage     = lazy(() => import('./pages/Medals'))
 const SocialPage     = lazy(() => import('./pages/Social'))
 const ChallengesPage = lazy(() => import('./pages/Challenges'))
+const PlansPage      = lazy(() => import('./pages/Plans'))
 
 function AppLayout() {
   const location = useLocation()
@@ -45,6 +46,7 @@ function AppLayout() {
                 <Route path="/medals"      element={<MedalsPage />} />
                 <Route path="/social"      element={<SocialPage />} />
                 <Route path="/challenges"  element={<ChallengesPage />} />
+                <Route path="/plans"       element={<PlansPage />} />
                 <Route path="*"            element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
