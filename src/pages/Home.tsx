@@ -10,6 +10,7 @@ import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
 import { useTrainingPlan } from '../hooks/useTrainingPlan'
+import { usePersonalGoals } from '../hooks/usePersonalGoals'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
@@ -21,6 +22,7 @@ import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
 import RecoveryCard from '../components/RecoveryCard'
+import GoalsCard from '../components/GoalsCard'
 import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
@@ -47,6 +49,7 @@ export default function HomePage() {
   const { frozenDates, freeze, freezing } = useStreakFreeze()
   const { logs: recoveryLogs, restDates, patchDay } = useRecovery()
   const { activeEnrollment } = useTrainingPlan()
+  const { goals, working: goalsWorking, addGoal, deleteGoal } = usePersonalGoals()
   const navigate = useNavigate()
   const [showPushPrompt, setShowPushPrompt] = useState(false)
 
@@ -399,6 +402,15 @@ export default function HomePage() {
             </div>
           </button>
         )}
+
+        {/* Obiettivi personali (v36): mete libere con barra di avanzamento */}
+        <GoalsCard
+          goals={goals}
+          activities={activities}
+          working={goalsWorking}
+          onCreate={addGoal}
+          onDelete={deleteGoal}
+        />
 
         {nearestMedal && (
           <button

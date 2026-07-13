@@ -136,6 +136,20 @@ export interface PlanEnrollment {
   created_at: string
 }
 
+// Riga di personal_goals (v36): meta libera scelta dall'utente — metrica
+// (sessions/minutes/km/kcal) + traguardo + sport opzionale (null = tutti) +
+// finestra di date. L'avanzamento si deriva dalle attività (lib/goals.ts).
+export interface PersonalGoal {
+  id: string
+  user_id: string
+  metric: string
+  target: number
+  activity_type: ActivityType | null
+  starts_on: string
+  ends_on: string
+  created_at: string
+}
+
 // Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
 // riposo intenzionale (protegge la streak, max 2 a settimana lato client);
 // water_ml e sleep_hours restano null finché non tracciati — nessun default

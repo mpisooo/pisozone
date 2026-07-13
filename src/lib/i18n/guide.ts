@@ -51,6 +51,15 @@ const guide = {
       ],
     },
     {
+      icon: '🎯',
+      title: 'Obiettivi personali',
+      paragraphs: [
+        'Oltre all\'obiettivo settimanale, in Home puoi fissare mete libere: "100 km di corsa questo mese", "20 sessioni di palestra", "5.000 calorie questa settimana"…',
+        'Scegli cosa contare (sessioni, minuti, chilometri o calorie), un eventuale sport, il traguardo e la scadenza: la barra avanza da sola con le attività che registri.',
+        'Puoi avere fino a 5 obiettivi attivi; si eliminano con due tocchi sul cestino.',
+      ],
+    },
+    {
       icon: '🛌',
       title: 'Recupero: riposo, acqua e sonno',
       paragraphs: [

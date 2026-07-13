@@ -20,6 +20,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     exercise_sets: supabase.from('exercise_sets').select('*').eq('user_id', uid),
     recovery_logs: supabase.from('recovery_logs').select('*').eq('user_id', uid).order('day', { ascending: true }),
     plan_enrollments: supabase.from('plan_enrollments').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
+    personal_goals: supabase.from('personal_goals').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
     friendships: supabase.from('friendships').select('*').or(`requester_id.eq.${uid},addressee_id.eq.${uid}`),
     messages: supabase.from('messages').select('*').or(`sender_id.eq.${uid},receiver_id.eq.${uid}`),
     group_memberships: supabase.from('group_members').select('*').eq('user_id', uid),
@@ -30,7 +31,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   // Tabelle più recenti dello schema: se la migrazione non è ancora eseguita
   // la tabella può mancare, e non deve far fallire l'intero export —
   // pre-migrazione non c'è comunque alcun dato da restituire.
-  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments'])
+  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments', 'personal_goals'])
 
   const entries = await Promise.all(
     Object.entries(queries).map(async ([key, query]) => {

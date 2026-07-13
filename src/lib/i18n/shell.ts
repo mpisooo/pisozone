@@ -101,6 +101,11 @@ const shell = {
         text: 'Obiettivi a più settimane (5K, 10K, palestra, yoga): le sessioni si spuntano da sole. Li trovi in Home.',
       },
       {
+        icon: '🎯',
+        title: 'Obiettivi personali',
+        text: 'Fissa mete libere — "100 km questo mese", "20 sessioni di palestra" — con la loro barra di avanzamento in Home.',
+      },
+      {
         icon: '🛌',
         title: 'Recupero',
         text: 'Segna un giorno di riposo senza spezzare lo streak, e tieni d\'occhio acqua e sonno dalla Home.',
