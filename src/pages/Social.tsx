@@ -480,6 +480,23 @@ function FriendProfileView({
       .then(({ data }) => setRemoteProfile(data))
   }, [userId])
 
+  // Statistiche pubbliche (v37): solo aggregati via RPC security definer,
+  // mai attività grezze. Tollerante pre-migrazione: errore → griglia nascosta.
+  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number } | null>(null)
+  useEffect(() => {
+    supabase.rpc('get_public_profile_stats', { p_user_id: userId }).then(({ data, error }) => {
+      const row = Array.isArray(data) ? data[0] : data
+      if (!error && row) {
+        setPubStats({
+          total_activities: Number(row.total_activities),
+          total_minutes: Number(row.total_minutes),
+          total_km: Number(row.total_km),
+          medals: Number(row.medals),
+        })
+      }
+    })
+  }, [userId])
+
   const ld = getLevelDef(remoteProfile?.level ?? 1)
   const sports = (remoteProfile?.sport_preferiti ?? []).map((s: string) => ACTIVITY_OPTIONS.find(o => o.value === s)).filter(Boolean)
 
@@ -528,6 +545,26 @@ function FriendProfileView({
             {isFriend ? social.friends.profile.removeFriendButton : isPendingSent ? social.friends.profile.pendingSentButton : isPendingReceived ? social.friends.profile.acceptRequestButton : social.friends.profile.addFriendButton}
           </button>
         </div>
+
+        {/* Profilo pubblico presentabile (v37): la card "In numeri" */}
+        {pubStats && pubStats.total_activities > 0 && (
+          <div className="card">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{social.friends.profile.statsHeading}</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {[
+                [String(pubStats.total_activities), social.friends.profile.statActivities],
+                [`${Math.round(pubStats.total_minutes / 60)}h`, social.friends.profile.statHours],
+                [(Math.round(pubStats.total_km * 10) / 10).toLocaleString('it-IT'), social.friends.profile.statKm],
+                [String(pubStats.medals), social.friends.profile.statMedals],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <p className="font-bebas text-2xl text-white leading-none">{value}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {sports.length > 0 && (
           <div className="card">
@@ -800,6 +837,20 @@ export default function SocialPage() {
   const { feed, loading: feedLoading, react } = useFeed()
   const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
   const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
+
+  // Scoperta (v37): suggerimenti di utenti attivi non ancora amici. La RPC
+  // esclude già amici, richieste pendenti e utenti bloccati; errore
+  // pre-migrazione → lista vuota, sezione nascosta.
+  const [suggestions, setSuggestions] = useState<{ user_id: string; username: string; photo_url: string | null; count: number }[]>([])
+  useEffect(() => {
+    supabase.rpc('get_suggested_users').then(({ data, error }) => {
+      if (!error && data) {
+        setSuggestions(data.map((r: { user_id: string; username: string; photo_url: string | null; count: number | string }) => ({
+          user_id: r.user_id, username: r.username, photo_url: r.photo_url, count: Number(r.count),
+        })))
+      }
+    })
+  }, [friends.length])
   const { blockedIds, blockUser, reportUser } = useBlocks()
   const { fetchCommentCounts } = useComments()
   const [commentCounts, setCommentCounts] = useState<Map<string, number>>(new Map())
@@ -1133,7 +1184,14 @@ export default function SocialPage() {
                 <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">{social.leaderboard.weekHeading}</p>
                 <div className="divide-y divide-[var(--grey)]">
                   {lbEntries.map((entry, i) => (
-                    <div key={entry.user_id} className="flex items-center gap-3 py-2.5">
+                    /* Scoperta (v37): ogni riga apre il profilo pubblico */
+                    <button
+                      key={entry.user_id}
+                      type="button"
+                      disabled={entry.isMe}
+                      onClick={() => openProfile(entry.user_id, entry.username, entry.photo_url)}
+                      className="w-full flex items-center gap-3 py-2.5 text-left"
+                    >
                       <span className={`font-bebas text-lg w-6 text-center flex-shrink-0 ${
                         i === 0 ? 'text-[var(--red)]' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-gray-500'
                       }`}>
@@ -1147,7 +1205,7 @@ export default function SocialPage() {
                         <p className="text-xs text-gray-500">{entry.count} {entry.count === 1 ? social.leaderboard.sessionSingular : social.leaderboard.sessionPlural} · {entry.minutes} {social.shared.units.min}</p>
                       </div>
                       <p className="text-sm font-semibold text-white flex-shrink-0">{entry.calories} {social.shared.units.kcal}</p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1217,6 +1275,32 @@ export default function SocialPage() {
                 </div>
               )}
             </div>
+
+            {/* Scoperta (v37): i più attivi del mese non ancora amici.
+                Tollerante pre-migrazione: RPC assente → lista vuota → nascosta. */}
+            {!searchQuery && suggestions.length > 0 && (
+              <div className="card">
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{social.friends.suggestionsHeading}</p>
+                <p className="text-[10px] text-gray-600 mb-2">{social.friends.suggestionsSubtitle}</p>
+                <div className="divide-y divide-[var(--grey)]">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.user_id}
+                      type="button"
+                      onClick={() => openProfile(s.user_id, s.username, s.photo_url)}
+                      className="w-full flex items-center gap-3 py-2.5 text-left"
+                    >
+                      <Av photo={s.photo_url} name={s.username} size={36} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{s.username}</p>
+                        <p className="text-xs text-gray-500">{social.friends.suggestionSessions(s.count)}</p>
+                      </div>
+                      <UserPlus size={16} className="text-[var(--red)] flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Richieste ricevute */}
             {pendingReceived.length > 0 && (

@@ -7,6 +7,32 @@
   "orientation": "portrait",
   "theme_color": "#0D0D0D",
   "background_color": "#0D0D0D",
+  "shortcuts": [
+    {
+      "name": "Registra attività",
+      "short_name": "Registra",
+      "url": "/log",
+      "icons": [{ "src": "/icons/shortcut-log.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Avvia tracciamento GPS",
+      "short_name": "GPS",
+      "url": "/log?gps=1",
+      "icons": [{ "src": "/icons/shortcut-gps.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Sfide di oggi",
+      "short_name": "Sfide",
+      "url": "/challenges",
+      "icons": [{ "src": "/icons/shortcut-challenges.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Statistiche",
+      "short_name": "Statistiche",
+      "url": "/stats",
+      "icons": [{ "src": "/icons/shortcut-stats.png", "sizes": "96x96", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon.svg?v=2",

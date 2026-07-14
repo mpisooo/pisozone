@@ -11,6 +11,7 @@ import { haptic } from '../lib/haptics'
 import { useMemo } from 'react'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedNumber from '../components/AnimatedNumber'
+import DuelsSection from '../components/DuelsSection'
 import challenges from '../lib/i18n/challenges'
 
 const TIER_COLOR: Record<string, string> = {
@@ -182,6 +183,9 @@ export default function ChallengesPage() {
       <p className="text-center text-xs text-gray-600 pb-2">
         {challenges.footerHint}
       </p>
+
+      {/* Sfide 1v1 e di gruppo (v37): sparisce da sola pre-migrazione */}
+      <DuelsSection />
     </div>
   )
 }

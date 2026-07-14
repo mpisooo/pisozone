@@ -31,7 +31,7 @@ describe('dizionario i18n', () => {
     const expected = [
       'common', 'shell', 'auth', 'home', 'log', 'calendar', 'stats',
       'challenges', 'medals', 'profile', 'social', 'legal',
-      'recovery', 'plans', 'guide', 'goals', 'insights', 'wrapped', 'share',
+      'recovery', 'plans', 'guide', 'goals', 'insights', 'wrapped', 'share', 'duels',
     ]
     for (const key of expected) {
       expect(strings, `manca il namespace "${key}"`).toHaveProperty(key)

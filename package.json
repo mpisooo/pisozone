@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "typecheck:api": "tsc --noEmit --ignoreConfig --skipLibCheck --strict --module NodeNext --moduleResolution NodeNext --target ES2022 --esModuleInterop api/account/delete.ts api/webhooks/new-message.ts api/webhooks/new-friend-request.ts api/cron/reminder.ts"
+    "typecheck:api": "tsc --noEmit --ignoreConfig --skipLibCheck --strict --module NodeNext --moduleResolution NodeNext --target ES2022 --esModuleInterop api/account/delete.ts api/webhooks/new-message.ts api/webhooks/new-friend-request.ts api/cron/reminder.ts api/_lib/comeback.ts"
   },
   "devDependencies": {
     "@sentry/vite-plugin": "^5.3.0",

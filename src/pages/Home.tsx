@@ -16,11 +16,13 @@ import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { getPlanTemplate, computePlanProgress } from '../lib/plans'
 import { calcStreak } from '../lib/challenges'
+import { daysSinceLastActivity, isComeback } from '../lib/comeback'
 import { getZoneByPercent } from '../lib/zones'
 import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
+import ComebackCard from '../components/ComebackCard'
 import RecoveryCard from '../components/RecoveryCard'
 import GoalsCard from '../components/GoalsCard'
 import PisoRing from '../components/PisoRing'
@@ -135,6 +137,9 @@ export default function HomePage() {
   const lastActivity = activities[0] ?? null
   const lastOpt = lastActivity ? ACTIVITY_OPTIONS.find((o) => o.value === lastActivity.type) : null
 
+  // Rientro morbido (pilastro 04): da 4 giorni di assenza in su
+  const absenceDays = useMemo(() => daysSinceLastActivity(activities), [activities])
+
   // Stessa fonte della pagina Sfide (hook condiviso): eligibility + riscatti dal DB
   const { challenges: todayChallenges } = useDailyChallenges(activities, streak)
   const completedChallenges = todayChallenges.filter((c) => c.eligible).length
@@ -242,6 +247,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Bentornato: rientro morbido dopo un'assenza (pilastro 04) */}
+      {isComeback(absenceDays) && <ComebackCard days={absenceDays!} />}
 
       {/* Streak freeze offer */}
       {showFreezeOffer && (

@@ -91,19 +91,24 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
+        icon: '⚔️',
+        title: 'Sfide con gli amici',
+        text: 'Duelli a tempo 1 contro 1 o di gruppo — sessioni, minuti, km o calorie. Chi fa di più vince 100 crediti. In fondo alla pagina Sfide.',
+      },
+      {
+        icon: '👤',
+        title: 'Profili pubblici e scoperta',
+        text: 'Tocca chiunque in classifica per vedere il suo profilo con numeri e medaglie; in Amici trovi le persone più attive da scoprire.',
+      },
+      {
         icon: '✨',
-        title: 'I tuoi insight',
-        text: 'In Statistiche l\'app ora ti racconta cosa emerge dai tuoi allenamenti: settimane record, abitudini e ritmi in crescita.',
+        title: 'Insight e Wrapped',
+        text: 'In Statistiche l\'app ti racconta cosa emerge dai tuoi dati, e il Wrapped riassume il tuo mese in stile storia — condivisibile come immagine.',
       },
       {
-        icon: '🎁',
-        title: 'PisoZone Wrapped',
-        text: 'Il riassunto del tuo mese di sport in stile storia, slide dopo slide. Lo trovi in Statistiche quando il mese si chiude.',
-      },
-      {
-        icon: '📸',
-        title: 'Condividi come immagine',
-        text: 'Ogni attività (e il Wrapped) diventa una card con i tuoi numeri, pronta per la chat o le storie.',
+        icon: '🌅',
+        title: 'Rientro morbido',
+        text: 'Se ti assenti qualche giorno, al ritorno ti accoglie una card dedicata — e il promemoria serale smette di martellare.',
       },
     ],
   },

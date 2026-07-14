@@ -132,9 +132,19 @@ const social = {
     emptyTitle: 'Nessun amico ancora',
     emptyHint: 'Cerca un username per aggiungere amici',
 
+    // Scoperta (v37): utenti attivi suggeriti quando la ricerca è vuota
+    suggestionsHeading: 'Persone da scoprire',
+    suggestionsSubtitle: 'I più attivi degli ultimi 30 giorni',
+    suggestionSessions: (n: number) => (n === 1 ? '1 attività nel mese' : `${n} attività nel mese`),
+
     profile: {
       title: 'PROFILO',
       favoriteSportsHeading: 'Sport preferiti',
+      statsHeading: 'In numeri',
+      statActivities: 'Attività',
+      statHours: 'Ore totali',
+      statKm: 'Km percorsi',
+      statMedals: 'Medaglie',
       removeFriendButton: 'Rimuovi amico',
       pendingSentButton: '⏳ In attesa',
       acceptRequestButton: '✓ Accetta richiesta',

@@ -13,6 +13,7 @@ const guide = {
         'Dalla scheda Registra scegli uno dei 15 sport, imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
         'Le calorie si calcolano da sole in base a peso, sesso e intensità dello sport (formula MET): puoi sempre scriverle a mano per sovrascriverle.',
         'Ogni attività si modifica o elimina dal Calendario, toccandola.',
+        'Su Android, tenendo premuta l\'icona dell\'app trovi le scorciatoie rapide: Registra, GPS, Sfide e Statistiche.',
       ],
     },
     {
@@ -82,6 +83,7 @@ const guide = {
       paragraphs: [
         'Ogni giorno ricevi 3 sfide personalizzate (nella pagina Sfide e in Home). Si completano allenandosi e scadono a mezzanotte.',
         'Quando una sfida risulta completata, riscattala per incassare i crediti. Un numerino sulla voce Sfide in basso ti ricorda quante ne hai da riscattare.',
+        'In fondo alla pagina Sfide ci sono le sfide con gli amici: lancia un duello a tempo — sessioni, minuti, chilometri o calorie — a un amico (che deve accettare) o a un tuo gruppo (parte subito per tutti). A finestra chiusa, chi ha fatto di più riscatta 100 crediti; in caso di parità nessun vincitore.',
       ],
     },
     {
@@ -122,7 +124,7 @@ const guide = {
       title: 'Social: amici, feed e classifica',
       paragraphs: [
         'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti.',
-        'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale.',
+        'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese.',
         'Puoi bloccare o segnalare chi si comporta male: chi è bloccato non può scriverti né mandarti richieste.',
       ],
     },
@@ -131,6 +133,7 @@ const guide = {
       title: 'Notifiche',
       paragraphs: [
         'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla.',
+        'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
         'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
       ],
     },

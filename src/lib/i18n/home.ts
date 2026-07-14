@@ -77,6 +77,14 @@ const home = {
     pendingLabel: (credits: number) => `+${credits} 💰`,
   },
 
+  // Incentivi al ritorno (v2, pilastro 04): rientro morbido dopo un'assenza
+  comeback: {
+    title: 'Bentornato!',
+    body: (days: number) => `Sono passati ${days} giorni dall'ultimo allenamento. Nessun problema: si riparte da dove sei, non da zero.`,
+    hint: 'Bastano 15 minuti per rimettere in moto tutto — e le sfide di oggi ti aspettano.',
+    cta: 'Riparti con poco',
+  },
+
   cta: 'Registra allenamento',
 } as const
 

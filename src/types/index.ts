@@ -150,6 +150,23 @@ export interface PersonalGoal {
   created_at: string
 }
 
+// Riga di duels (v37): sfida a tempo tra due amici (opponent_id) o dentro un
+// gruppo (group_id) — una sola delle due valorizzata. L'avanzamento non è
+// persistito: lo calcola la RPC get_duel_progress dalle attività.
+export interface Duel {
+  id: string
+  creator_id: string
+  opponent_id: string | null
+  group_id: string | null
+  metric: string
+  starts_on: string
+  ends_on: string
+  status: 'pending' | 'active' | 'declined' | 'finished'
+  winner_id: string | null
+  credits_earned: number
+  created_at: string
+}
+
 // Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
 // riposo intenzionale (protegge la streak, max 2 a settimana lato client);
 // water_ml e sleep_hours restano null finché non tracciati — nessun default

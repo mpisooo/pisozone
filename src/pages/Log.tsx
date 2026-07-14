@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
 import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle, Satellite } from 'lucide-react'
@@ -55,6 +56,17 @@ export default function LogPage() {
     [photoFile]
   )
   useEffect(() => () => { if (photoPreview) URL.revokeObjectURL(photoPreview) }, [photoPreview])
+
+  // Deep link della scorciatoia PWA "/log?gps=1" (manifest shortcuts, v2
+  // pilastro 05): apre subito il tracciamento GPS col tipo di default (corsa).
+  // Il parametro viene consumato, così chiudere l'overlay non lo riapre.
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get('gps') === '1') {
+      setSearchParams({}, { replace: true })
+      setTracking(true)
+    }
+  }, [searchParams, setSearchParams])
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
