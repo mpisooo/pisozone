@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useChallengesBadge } from '../context/ChallengesBadgeContext'
 import { removeActivityPhoto } from '../lib/activityPhotos'
 import log from '../lib/i18n/log'
 import type { Activity } from '../types'
@@ -9,6 +10,9 @@ import type { Activity } from '../types'
 export function useActivities() {
   const { user } = useAuth()
   const { showError } = useToast()
+  // Ogni mutazione può completare (o s-completare) una sfida di oggi: il
+  // badge sulla Navbar va ricalcolato. No-op fuori dal provider.
+  const { refresh: refreshChallengesBadge } = useChallengesBadge()
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -34,7 +38,10 @@ export function useActivities() {
       .insert({ ...activity, user_id: user.id })
       .select()
       .single()
-    if (!error && data) setActivities((prev) => [data as Activity, ...prev])
+    if (!error && data) {
+      setActivities((prev) => [data as Activity, ...prev])
+      refreshChallengesBadge()
+    }
     return { data, error }
   }
 
@@ -50,6 +57,7 @@ export function useActivities() {
       .single()
     if (!error && data) {
       setActivities((prev) => prev.map((a) => a.id === id ? data as Activity : a))
+      refreshChallengesBadge()
     }
     return { data, error }
   }
@@ -61,6 +69,7 @@ export function useActivities() {
       setActivities((prev) => prev.filter((a) => a.id !== id))
       // La riga nel DB cade, il file nello Storage no: pulizia best effort
       if (target?.photo_url && user) removeActivityPhoto(user.id, id)
+      refreshChallengesBadge()
     }
     return { error }
   }

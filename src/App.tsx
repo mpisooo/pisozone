@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { ProfileProvider } from './context/ProfileContext'
 import { ToastProvider } from './context/ToastContext'
 import { UnreadProvider } from './context/UnreadContext'
+import { ChallengesBadgeProvider } from './context/ChallengesBadgeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import ConsentGate from './components/ConsentGate'
 import OnboardingTour from './components/OnboardingTour'
@@ -33,6 +34,7 @@ function AppLayout() {
   const location = useLocation()
   return (
     <UnreadProvider>
+    <ChallengesBadgeProvider>
       <div className="app-layout">
         <TopBar />
         <main className="app-main">
@@ -63,6 +65,7 @@ function AppLayout() {
         {/* Annuncio one-shot delle novità per chi usa già l'app (v35) */}
         <WhatsNewOverlay />
       </div>
+    </ChallengesBadgeProvider>
     </UnreadProvider>
   )
 }

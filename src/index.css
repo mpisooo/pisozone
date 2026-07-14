@@ -228,7 +228,11 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-.page-enter { animation: page-in var(--dur-base) ease-out forwards; }
+/* Niente `forwards`: lo stato finale coincide con quello naturale, e un
+   transform residuo renderebbe la pagina containing block permanente per i
+   discendenti position:fixed (overlay centrati a metà pagina invece che a
+   schermo). Gli overlay usano comunque createPortal su body per sicurezza. */
+.page-enter { animation: page-in var(--dur-base) ease-out; }
 
 /* ── Movimento dei modali: il backdrop sfuma, il pannello entra con la molla
    (centrato: .modal-pop) o risale dal bordo (bottom sheet: .sheet-up). Le

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertTriangle, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -51,7 +52,9 @@ export default function DeleteAccountModal({ onClose }: Props) {
     window.location.href = '/auth'
   }
 
-  return (
+  // Portal su body: inline dentro Profile (.page-enter, transform residuo) il
+  // fixed si aggancerebbe alla pagina, non al viewport — come le celebrazioni.
+  return createPortal(
     <div
       className="overlay-fade fixed inset-0 z-50 flex items-end"
       style={{ background: 'rgba(0,0,0,0.75)' }}
@@ -132,6 +135,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { haptic } from '../lib/haptics'
 
 interface Props {
@@ -35,7 +36,11 @@ export default function CelebrationOverlay({ icon, title, subtitle, onDone, auto
     []
   )
 
-  return (
+  // Portal su body: renderizzato inline dentro una pagina, il transform
+  // residuo di .page-enter farebbe da containing block per il fixed e la
+  // celebrazione finirebbe centrata a metà dell'altezza della pagina, fuori
+  // dal viewport — non al centro dello schermo.
+  return createPortal(
     <div
       role="status"
       aria-live="polite"
@@ -65,6 +70,7 @@ export default function CelebrationOverlay({ icon, title, subtitle, onDone, auto
         <p className="font-bebas text-4xl text-white tracking-widest">{title}</p>
         {subtitle && <p className="text-sm text-gray-300 mt-2">{subtitle}</p>}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

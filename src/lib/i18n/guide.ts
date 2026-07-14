@@ -81,7 +81,7 @@ const guide = {
       title: 'Sfide giornaliere',
       paragraphs: [
         'Ogni giorno ricevi 3 sfide personalizzate (nella pagina Sfide e in Home). Si completano allenandosi e scadono a mezzanotte.',
-        'Quando una sfida risulta completata, riscattala per incassare i crediti.',
+        'Quando una sfida risulta completata, riscattala per incassare i crediti. Un numerino sulla voce Sfide in basso ti ricorda quante ne hai da riscattare.',
       ],
     },
     {

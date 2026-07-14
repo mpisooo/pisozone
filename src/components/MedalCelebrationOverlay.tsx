@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Coins } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { TIER_LABELS } from '../lib/constants'
@@ -44,7 +45,9 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
     [glow.c1, glow.c2]
   )
 
-  return (
+  // Portal su body: come CelebrationOverlay — inline dentro la pagina, il
+  // transform residuo di .page-enter la centrerebbe a metà pagina, non a schermo.
+  return createPortal(
     <div
       ref={panelRef}
       role="dialog"
@@ -126,6 +129,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

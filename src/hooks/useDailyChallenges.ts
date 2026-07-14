@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useChallengesBadge } from '../context/ChallengesBadgeContext'
 import { generateDailyChallenges } from '../lib/challenges'
 import challengesCopy from '../lib/i18n/challenges'
 import type { Activity, DailyChallengeCompletion, EnrichedChallenge } from '../types'
@@ -10,6 +11,7 @@ import type { Activity, DailyChallengeCompletion, EnrichedChallenge } from '../t
 export function useDailyChallenges(activities: Activity[], streak: number) {
   const { user } = useAuth()
   const { showError } = useToast()
+  const { refresh: refreshChallengesBadge } = useChallengesBadge()
   const today = format(new Date(), 'yyyy-MM-dd')
 
   const [completions, setCompletions] = useState<DailyChallengeCompletion[]>([])
@@ -77,6 +79,8 @@ export function useDailyChallenges(activities: Activity[], streak: number) {
         completed_at: new Date().toISOString(),
       },
     ])
+    // Una sfida riscattata in meno da segnalare sulla Navbar
+    refreshChallengesBadge()
     return true
   }
 

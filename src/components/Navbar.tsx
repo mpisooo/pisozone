@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, PlusCircle, CalendarDays, Users, Target } from 'lucide-react'
 import { useUnread } from '../context/UnreadContext'
+import { useChallengesBadge } from '../context/ChallengesBadgeContext'
 import shell from '../lib/i18n/shell'
 
 type NavItem = {
@@ -21,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Navbar() {
   const { pathname } = useLocation()
   const { totalUnread } = useUnread()
+  const { claimable } = useChallengesBadge()
 
   return (
     <nav className="navbar fixed bottom-0 left-0 right-0 z-50 safe-bottom">
@@ -30,7 +32,9 @@ export default function Navbar() {
             ? matchPaths.some((p) => pathname.startsWith(p))
             : to === '/' ? pathname === '/' : pathname.startsWith(to)
 
-          const isSocial = to === '/social'
+          // Badge numerico: messaggi non letti su Social, sfide completate
+          // ma non ancora riscattate su Sfide (stesso pallino rosso)
+          const badge = to === '/social' ? totalUnread : to === '/challenges' ? claimable : 0
 
           return (
             <li key={to} className="flex-1">
@@ -47,9 +51,9 @@ export default function Navbar() {
                     strokeWidth={isActive ? 2.5 : 1.8}
                     style={isActive ? { filter: 'drop-shadow(0 0 6px var(--red))' } : {}}
                   />
-                  {isSocial && totalUnread > 0 && (
+                  {badge > 0 && (
                     <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 rounded-full bg-[var(--red)] text-[white] text-[9px] font-bold flex items-center justify-center px-1 leading-none">
-                      {totalUnread > 99 ? '99+' : totalUnread}
+                      {badge > 99 ? '99+' : badge}
                     </span>
                   )}
                 </div>
