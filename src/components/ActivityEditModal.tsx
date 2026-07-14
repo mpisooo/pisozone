@@ -2,8 +2,10 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
-import { X, Trash2, Save, AlertTriangle } from 'lucide-react'
+import { X, Trash2, Save, Share2, AlertTriangle } from 'lucide-react'
 import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
+import { buildActivityShareData, shareCardImage } from '../lib/shareCard'
+import { haptic } from '../lib/haptics'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
 import { fetchActivityRoute } from '../lib/activityRoutes'
 import { fetchActivityExercises, replaceActivityExercises } from '../lib/activityExercises'
@@ -18,6 +20,7 @@ import ExerciseSetsFields from './ExerciseSetsFields'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
+import shareText from '../lib/i18n/share'
 import type { Activity, ActivityType, RoutePoint } from '../types'
 
 type FormValues = {
@@ -43,6 +46,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [sharingCard, setSharingCard] = useState(false)
   // Foto: nuovo file selezionato e/o rimozione di quella esistente.
   // La X toglie sempre la foto mostrata: per ripristinare basta chiudere senza salvare.
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -178,6 +182,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     onClose()
   }
 
+  // Condivide l'attività com'è salvata (non le modifiche in bozza nel form):
+  // la card riflette ciò che esiste, non ciò che si sta ancora scrivendo.
+  const handleShareCard = async () => {
+    setSharingCard(true)
+    const outcome = await shareCardImage(buildActivityShareData(activity), `pisozone-${activity.type}.png`)
+    setSharingCard(false)
+    if (outcome === 'failed') setErrorMsg(shareText.error)
+    else if (outcome !== 'cancelled') haptic('success')
+  }
+
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
     setErrorMsg('')
@@ -207,9 +221,20 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)' }}
       >
         <span className="font-bebas text-2xl text-white tracking-wider">{log.editActivityTitle}</span>
-        <button type="button" onClick={onClose} aria-label={common.close} className="p-2 -mr-2 text-gray-400 hover:text-white">
-          <X size={22} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleShareCard}
+            disabled={sharingCard}
+            aria-label={shareText.activityButton}
+            className="p-2 text-gray-400 hover:text-white disabled:opacity-50"
+          >
+            <Share2 size={20} />
+          </button>
+          <button type="button" onClick={onClose} aria-label={common.close} className="p-2 -mr-2 text-gray-400 hover:text-white">
+            <X size={22} />
+          </button>
+        </div>
       </div>
 
       <form

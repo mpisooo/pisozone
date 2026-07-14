@@ -91,34 +91,19 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '🏋️',
-        title: 'Palestra strutturata',
-        text: 'Esercizi con serie, ripetizioni e carico — e i record personali riconosciuti da soli.',
+        icon: '✨',
+        title: 'I tuoi insight',
+        text: 'In Statistiche l\'app ora ti racconta cosa emerge dai tuoi allenamenti: settimane record, abitudini e ritmi in crescita.',
       },
       {
-        icon: '🎯',
-        title: 'Programmi di allenamento',
-        text: 'Obiettivi a più settimane (5K, 10K, palestra, yoga): le sessioni si spuntano da sole. Li trovi in Home.',
+        icon: '🎁',
+        title: 'PisoZone Wrapped',
+        text: 'Il riassunto del tuo mese di sport in stile storia, slide dopo slide. Lo trovi in Statistiche quando il mese si chiude.',
       },
       {
-        icon: '🎯',
-        title: 'Obiettivi personali',
-        text: 'Fissa mete libere — "100 km questo mese", "20 sessioni di palestra" — con la loro barra di avanzamento in Home.',
-      },
-      {
-        icon: '🛌',
-        title: 'Recupero',
-        text: 'Segna un giorno di riposo senza spezzare lo streak, e tieni d\'occhio acqua e sonno dalla Home.',
-      },
-      {
-        icon: '💪',
-        title: 'Sforzo e umore',
-        text: 'Dopo ogni attività puoi segnare quanto ti è costata e come ti senti.',
-      },
-      {
-        icon: '🔥',
-        title: 'Reazioni sul feed',
-        text: 'Non solo ❤️: ora reagisci alle attività degli amici anche con 💪 🔥 👏 🚀.',
+        icon: '📸',
+        title: 'Condividi come immagine',
+        text: 'Ogni attività (e il Wrapped) diventa una card con i tuoi numeri, pronta per la chat o le storie.',
       },
     ],
   },

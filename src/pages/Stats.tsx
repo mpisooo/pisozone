@@ -16,14 +16,19 @@ import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
   buildWeightTrainingSeries, buildZoneDistribution, activitiesToCsv,
+  formatMinutesCompact,
 } from '../lib/stats'
+import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wrapped'
 import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
+import InsightsCard from '../components/InsightsCard'
+import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
+import wrappedText from '../lib/i18n/wrapped'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 
@@ -94,6 +99,7 @@ export default function StatsPage() {
   const { theme } = useTheme()
   const [period, setPeriod] = useState<Period>('week')
   const [metric, setMetric] = useState<Metric>('minutes')
+  const [openWrapped, setOpenWrapped] = useState<WrappedData | null>(null)
 
   const chartGrid   = theme === 'dark' ? '#2a2a2a' : '#E0E0E0'
   const chartTick   = theme === 'dark' ? '#9ca3af' : '#777777'
@@ -164,6 +170,12 @@ export default function StatsPage() {
   // visibile del sistema Zone (roadmap v2, pillar 01)
   const zoneData = useMemo(() => buildZoneDistribution(filtered), [filtered])
 
+  // PisoZone Wrapped: il mese appena concluso e l'anno (quello concluso, o il
+  // corrente da dicembre). null = nessuna attività nel periodo → niente bottone.
+  const wrappedPeriods = useMemo(() => defaultWrappedPeriods(), [])
+  const monthWrapped = useMemo(() => buildWrapped(activities, wrappedPeriods.month), [activities, wrappedPeriods])
+  const yearWrapped = useMemo(() => buildWrapped(activities, wrappedPeriods.year), [activities, wrappedPeriods])
+
   // Record palestra: carico massimo di sempre per esercizio (exercise_sets,
   // v32) — non segue il filtro periodo, un PR è per definizione all-time
   const { rows: exerciseHistory } = useExerciseHistory(true)
@@ -232,15 +244,7 @@ export default function StatsPage() {
         <StatCard label={stats.cards.sessions} value={<AnimatedNumber value={totalSessions} />} />
         <StatCard
           label={stats.cards.totalMinutes}
-          value={
-            <AnimatedNumber
-              value={totalMin}
-              format={(n) => {
-                const m = Math.round(n)
-                return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`
-              }}
-            />
-          }
+          value={<AnimatedNumber value={totalMin} format={formatMinutesCompact} />}
         />
         <StatCard
           label={stats.cards.calories}
@@ -255,6 +259,29 @@ export default function StatsPage() {
             : stats.cards.emptyValue}
         />
       </div>
+
+      {/* Insight personalizzati: finestre temporali proprie, non seguono il filtro */}
+      <InsightsCard activities={activities} weeklyGoal={weeklyGoal} />
+
+      {/* PisoZone Wrapped: recap del mese/anno concluso, da rivivere e condividere */}
+      {(monthWrapped || yearWrapped) && (
+        <div className="card card-hero">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{wrappedText.entry.heading}</h2>
+          <p className="text-xs text-gray-400 mb-3">{wrappedText.entry.description}</p>
+          <div className="flex gap-2">
+            {monthWrapped && (
+              <button type="button" className="btn-primary flex-1 py-2 text-sm" onClick={() => setOpenWrapped(monthWrapped)}>
+                {wrappedText.entry.monthButton(monthWrapped.title)}
+              </button>
+            )}
+            {yearWrapped && (
+              <button type="button" className="btn-primary flex-1 py-2 text-sm" onClick={() => setOpenWrapped(yearWrapped)}>
+                {wrappedText.entry.yearButton(yearWrapped.title)}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {topOpt && (
         <div className="card flex items-center gap-3">
@@ -576,6 +603,8 @@ export default function StatsPage() {
           </button>
         </div>
       )}
+
+      {openWrapped && <WrappedOverlay data={openWrapped} onClose={() => setOpenWrapped(null)} />}
     </div>
   )
 }

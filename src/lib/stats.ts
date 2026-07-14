@@ -205,6 +205,14 @@ export function buildZoneDistribution(activities: Activity[]): ZoneDistributionP
   })
 }
 
+// Formato compatto per durate: "45m" sotto l'ora, "2h 10m" sopra. Usato da
+// Statistiche, insight, Wrapped e card condivisibili — un'unica scrittura
+// perché il formato resti identico ovunque.
+export function formatMinutesCompact(min: number): string {
+  const m = Math.round(min)
+  return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`
+}
+
 // Export CSV pensato per Excel/Sheets in italiano: separatore ";" e
 // decimali con la virgola (il locale it usa ";" come separatore di lista).
 export function activitiesToCsv(activities: Activity[]): string {
