@@ -14,6 +14,7 @@ npm run build               # tsc + build di produzione
 npm test                    # Vitest (vitest.config.ts dedicata; un file: npx vitest run src/lib/challenges.test.ts)
 npm run typecheck           # type-check del client (copre SOLO src/)
 npm run typecheck:api       # type-check delle funzioni /api in NodeNext (intercetta import senza .js)
+npm run build:analyze       # build + stats.html (treemap dei chunk, mai committato/servito)
 ```
 
 CI in `.github/workflows/ci.yml`: typecheck ×2 + test + build a ogni push/PR — è il semaforo da controllare prima del deploy (che resta manuale). Niente lint configurato. `gh` CLI non installata: stato delle run via `curl https://api.github.com/repos/mpisooo/pisozone/actions/runs?per_page=1`.
@@ -66,6 +67,7 @@ Le migrazioni DB (`supabase-schema/supabase-schema-vN.sql`, incrementali, numera
 
 - **GDPR**: pagine pubbliche `/privacy` e `/termini` (fuori da ProtectedRoute); export dati client-side (`lib/dataExport.ts`); cancellazione account in `api/account/delete.ts` (identità dal JWT, mai dal body); `profiles.terms_accepted_at` NULL = ConsentGate bloccante.
 - **Guida in-app** (`/guide`, `pages/Guide.tsx`): la "wiki" di tutte le funzionalità, contenuto statico nel namespace i18n `guide` (sezioni `<details>`/`<summary>` nativi). Raggiungibile dalla card GUIDA nel Profilo e dal link nell'annuncio Novità. **Quando si aggiunge una funzionalità visibile all'utente, aggiornare la sezione corrispondente della guida (o crearne una nuova) fa parte del lavoro.**
+- **Performance & bundle** (roadmap v2, pilastro 05): `vite.config.ts` isola `@supabase/supabase-js` e `recharts` in vendor chunk dedicati via `manualChunks` — senza, Rollup/Rolldown li duplicava per intero dentro OGNI chunk che li importava (es. `dataExport` e `useProfile` pesavano rispettivamente 361kB e 233kB solo per questo, ridotti a 3kB e 32kB). Se una libreria pesante nuova finisce importata da più punti, valutare se merita lo stesso trattamento. `npm run build:analyze` genera `stats.html` (treemap gzip/brotli, mai in `dist/`, gitignored) per verificare la composizione dei chunk prima di aggiungere dipendenze. Sentry (`lib/sentry.ts`) ha anche `browserTracingIntegration` con `tracesSampleRate: 0.2`: cattura i Web Vitals (LCP/CLS/INP/TTFB) sulla transazione di pageload, sample rate basso apposta per non consumare la quota free di sentry.io con le transazioni (gli errori restano sample rate 100%, quelli non si limitano).
 
 ## Convenzioni in `api/`
 
@@ -100,3 +102,5 @@ Le migrazioni DB (`supabase-schema/supabase-schema-vN.sql`, incrementali, numera
 - Il service worker (`public/sw.js`) è cache-first: dopo un deploy l'HTML vecchio può sopravvivere finché la PWA non viene riaperta da zero.
 - RLS su `profiles` permette la SELECT a tutti gli utenti autenticati (serve per la ricerca amici): non mettere dati sensibili in quella tabella senza rivedere le policy.
 - PowerShell 5.1 spezza gli argomenti con virgolette doppie interne passati a git: per i messaggi di commit multilinea usare `git commit -F <file>`.
+- `src/main.tsx` importa `./lib/sentry` come PRIMA riga apposta (registra i global handler prima di ogni altro codice): riordinare gli import lì rompe il monitoraggio errori in produzione senza sintomi visibili in locale (Sentry è no-op senza `VITE_SENTRY_DSN`, quindi il problema non si nota finché non manca un errore reale in produzione).
+- Vite 8 usa Rolldown (non Rollup) come bundler: `build.rollupOptions.output.manualChunks` **deve** essere una funzione `(id) => ...`, non l'oggetto `{ nomeChunk: ['pacchetto'] }` della doc classica di Rollup — quella forma fallisce la build con `TypeError: manualChunks is not a function`.

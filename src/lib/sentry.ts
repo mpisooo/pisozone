@@ -9,8 +9,13 @@ if (dsn) {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
-    // Solo error monitoring (niente tracing/replay): bundle più leggero e
-    // quota free di sentry.io usata solo per gli errori veri.
+    // Niente replay (pesante e non serve): browserTracingIntegration è
+    // già incluso in @sentry/react (nessuna dipendenza nuova) e cattura da
+    // solo i Web Vitals (LCP/CLS/INP/TTFB) sulla transazione di pageload.
+    // tracesSampleRate basso apposta: sono transazioni, non errori, e la
+    // quota free di sentry.io va spesa con parsimonia.
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 0.2,
     sendDefaultPii: false,
   })
 }

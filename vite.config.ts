@@ -2,11 +2,17 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // L'upload delle source map su Sentry (stack trace leggibili in produzione)
 // avviene solo se SENTRY_AUTH_TOKEN è impostato (su Vercel); in locale la
 // build resta identica a prima.
 const uploadSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN)
+
+// Report treemap del bundle, solo su richiesta (npm run build:analyze):
+// stats.html finisce nella root del progetto, MAI in dist/, così non viene
+// mai pubblicato — è uno strumento di analisi locale, non un asset servito.
+const analyzeBundle = Boolean(process.env.ANALYZE)
 
 export default defineConfig({
   plugins: [
@@ -21,10 +27,29 @@ export default defineConfig({
         filesToDeleteAfterUpload: ['dist/**/*.map'],
       },
     }),
+    analyzeBundle && visualizer({
+      filename: 'stats.html',
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap',
+    }),
   ],
   build: {
     // 'hidden' genera le map senza referenziarle nei bundle serviti
     sourcemap: uploadSourceMaps ? 'hidden' : false,
+    rollupOptions: {
+      output: {
+        // @supabase/supabase-js e recharts sono le librerie più pesanti:
+        // senza un chunk dedicato, Rollup le duplica dentro ogni chunk che le
+        // importa (successo prima di questo intervento: due chunk da ~360kB
+        // quasi identici). Isolarle in vendor chunk stabili le fa scaricare
+        // e cachare una sola volta, condivisa da tutte le pagine.
+        manualChunks(id) {
+          if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-recharts'
+        },
+      },
+    },
   },
   // Explicitly embed env vars at build time so Vercel picks them up correctly.
   // trim(): un newline incollato per errore nella env var su Vercel finisce
