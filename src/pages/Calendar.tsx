@@ -5,12 +5,13 @@ import {
   addMonths, subMonths,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Flame, X, Pencil } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flame, X, Pencil, CloudOff } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
 import { ACTIVITY_OPTIONS, activityLabel } from '../lib/constants'
 import { calcStreak } from '../lib/challenges'
+import { isPendingActivityId } from '../lib/offlineQueue'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
 import ActivityIcon from '../components/ActivityIcon'
@@ -233,16 +234,32 @@ export default function CalendarPage() {
           ) : (
             selectedDayActivities.map((a) => {
               const opt = ACTIVITY_OPTIONS.find((o) => o.value === a.type)
+              // Ancora in coda offline (roadmap v2, pilastro 05): non esiste
+              // ancora una riga DB da aprire in modifica, si sincronizza da sola.
+              const pending = isPendingActivityId(a.id)
               return (
                 <button
                   key={a.id}
                   type="button"
-                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors hover:brightness-110 active:brightness-90 bg-[var(--grey)]"
-                  onClick={() => setEditingActivity(a)}
+                  disabled={pending}
+                  className={`w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] ${
+                    pending ? 'opacity-70 cursor-default' : 'hover:brightness-110 active:brightness-90'
+                  }`}
+                  onClick={() => { if (!pending) setEditingActivity(a) }}
                 >
                   <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="text-[var(--red)] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{activityLabel(a.type, a.indoor)}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-white">{activityLabel(a.type, a.indoor)}</p>
+                      {pending && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full text-gray-400 flex items-center gap-1 flex-shrink-0"
+                          style={{ background: 'rgba(148,163,184,0.15)' }}
+                        >
+                          <CloudOff size={9} /> {common.pendingSyncBadge}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-400">
                       {calendar.dayPanel.durationLabel(a.duration_min)}
                       {a.calories ? calendar.dayPanel.caloriesSuffix(a.calories) : ''}
@@ -258,7 +275,9 @@ export default function CalendarPage() {
                       />
                     )}
                   </div>
-                  <Pencil size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                  {pending
+                    ? <CloudOff size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                    : <Pencil size={14} className="text-gray-500 mt-0.5 flex-shrink-0" />}
                 </button>
               )
             })

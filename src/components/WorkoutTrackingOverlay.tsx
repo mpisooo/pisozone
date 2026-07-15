@@ -5,6 +5,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
 import { saveActivityRoute } from '../lib/activityRoutes'
+import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
@@ -146,7 +147,10 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
       setSaveError(log.tracking.saveFailed)
       return
     }
-    const { error: routeError } = await saveActivityRoute(data.user_id, data.id, s.points)
+    // In coda offline (roadmap v2, pilastro 05): niente id reale ancora, il
+    // salvataggio del percorso fallirebbe comunque — non ha senso tentarlo.
+    const pending = isPendingActivityId(data.id)
+    const routeError = pending ? true : (await saveActivityRoute(data.user_id, data.id, s.points)).error
     setSaving(false)
     haptic('success')
     if (routeError) onSaveWarning()

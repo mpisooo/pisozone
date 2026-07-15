@@ -109,6 +109,14 @@ const log = {
         `🏆 Nuovo record: ${exercise} ${weightKg.toLocaleString('it-IT')} kg`,
       prExtra: (n: number) => n === 1 ? ' e un altro record' : ` e altri ${n} record`,
     },
+    // Salvataggio senza rete (roadmap v2, pilastro 05): l'attività resta in
+    // coda sul dispositivo e si sincronizza da sola al ritorno online, senza
+    // che l'utente debba fare nulla.
+    savedOfflineToast: {
+      title: 'Attività salvata, in attesa di rete',
+      body: 'Si sincronizzerà da sola appena torni online',
+      bodyExtrasSkipped: 'Si sincronizzerà da sola appena torni online. Foto ed esercizi non sono stati inclusi: aggiungili di nuovo modificandola in seguito.',
+    },
     errorToast: {
       title: 'Salvataggio non riuscito',
       body: 'Controlla la connessione e riprova',
@@ -179,6 +187,10 @@ const log = {
 
   errors: {
     loadFailed: 'Errore nel caricamento delle attività. Riprova.',
+    // Un'attività in coda offline che al momento della sincronizzazione viene
+    // rifiutata dal server per un motivo NON di rete (validazione, RLS): non
+    // ha senso tenerla in coda per sempre, si avvisa e si scarta.
+    syncFailed: 'Un\'attività in attesa di rete non è stata accettata dal server ed è stata scartata.',
   },
 } as const
 

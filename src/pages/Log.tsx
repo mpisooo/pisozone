@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
-import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle, Satellite } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
@@ -13,6 +13,7 @@ import {
   type ExerciseDraft, type PrRecord,
 } from '../lib/exerciseSets'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
@@ -37,6 +38,8 @@ export default function LogPage() {
   const { addActivity, updateActivity } = useActivities()
   const { profile } = useProfile()
   const [saved, setSaved] = useState(false)
+  const [savedOffline, setSavedOffline] = useState(false)
+  const [savedOfflineExtras, setSavedOfflineExtras] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [photoWarning, setPhotoWarning] = useState(false)
   const [creditsEarned, setCreditsEarned] = useState(0)
@@ -141,11 +144,17 @@ export default function LogPage() {
       return
     }
 
+    // Attività in coda offline (roadmap v2, pilastro 05): non ha ancora un id
+    // reale, quindi foto/esercizi (che viaggiano dopo l'insert) fallirebbero
+    // comunque — tentarli produrrebbe solo un avviso "riprova dal calendario"
+    // fuorviante, dato che una pending non è ancora modificabile da lì.
+    const pending = data ? isPendingActivityId(data.id) : false
+
     // La foto viaggia dopo l'insert (serve l'id per il path stabile). Se
     // fallisce, l'attività resta salvata: si avvisa e si può riprovare dalla
     // modifica — tollera anche bucket/colonna assenti pre-migrazione v27.
     let photoOk = true
-    if (photoFile && data) {
+    if (photoFile && data && !pending) {
       const { url, error: photoError } = await uploadActivityPhoto(data.user_id, data.id, photoFile)
       if (photoError || !url) {
         photoOk = false
@@ -161,7 +170,7 @@ export default function LogPage() {
     let setsOk = true
     let newPrs: PrRecord[] = []
     const entries = values.type === 'palestra' ? draftsToEntries(exerciseDrafts) : []
-    if (entries.length > 0 && data) {
+    if (entries.length > 0 && data && !pending) {
       const { error: setsError } = await saveActivityExercises(data.user_id, data.id, entries)
       if (setsError) {
         setsOk = false
@@ -171,6 +180,10 @@ export default function LogPage() {
         appendLocal(entries)
       }
     }
+
+    // Catturato prima del reset dei campi: se offline, foto/esercizi non sono
+    // stati tentati (vedi sopra) — l'utente va avvisato che vanno riaggiunti.
+    const offlineExtrasSkipped = pending && (Boolean(photoFile) || entries.length > 0)
 
     setSaving(false)
     setPhotoFile(null)
@@ -183,7 +196,11 @@ export default function LogPage() {
 
     setCreditsEarned(data?.credits_earned ?? 0)
     setPrRecords(newPrs)
-    if (photoOk && setsOk) setSaved(true)
+    if (photoOk && setsOk) {
+      // Offline: in coda, non ancora nel DB (roadmap v2, pilastro 05).
+      if (pending) { setSavedOfflineExtras(offlineExtrasSkipped); setSavedOffline(true) }
+      else setSaved(true)
+    }
     else if (!setsOk) {
       setSetsWarning(true)
       setTimeout(() => setSetsWarning(false), 4000)
@@ -203,6 +220,7 @@ export default function LogPage() {
     })
     // Con un PR da leggere il toast resta un po' di più
     setTimeout(() => setSaved(false), newPrs.length > 0 ? 5000 : 2500)
+    setTimeout(() => { setSavedOffline(false); setSavedOfflineExtras(false) }, 4500)
   }
 
   return (
@@ -503,6 +521,18 @@ export default function LogPage() {
                 {prRecords.length > 1 && log.new.savedToast.prExtra(prRecords.length - 1)}
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {savedOffline && (
+        <div className="toast-enter toast-saved flex items-center gap-3">
+          <CloudOff size={22} className="text-green-400 shrink-0" />
+          <div>
+            <p className="text-white font-semibold text-sm">{log.new.savedOfflineToast.title}</p>
+            <p className="text-green-400 text-xs">
+              {savedOfflineExtras ? log.new.savedOfflineToast.bodyExtrasSkipped : log.new.savedOfflineToast.body}
+            </p>
           </div>
         </div>
       )}

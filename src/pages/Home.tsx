@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, subDays, startOfWeek, parseISO, isAfter } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2 } from 'lucide-react'
+import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2, CloudOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -18,6 +18,7 @@ import { getPlanTemplate, computePlanProgress } from '../lib/plans'
 import { calcStreak } from '../lib/challenges'
 import { daysSinceLastActivity, isComeback } from '../lib/comeback'
 import { getZoneByPercent } from '../lib/zones'
+import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
@@ -29,6 +30,7 @@ import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import home from '../lib/i18n/home'
+import common from '../lib/i18n/common'
 import plansText from '../lib/i18n/plans'
 
 // Etichetta di capitolo: raggruppa la Home in una storia leggibile scorrendo
@@ -318,7 +320,17 @@ export default function HomePage() {
                 <ActivityIcon type={lastOpt.value} size={24} />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white">{activityLabel(lastActivity.type, lastActivity.indoor)}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-white">{activityLabel(lastActivity.type, lastActivity.indoor)}</p>
+                  {isPendingActivityId(lastActivity.id) && (
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded-full text-gray-400 flex items-center gap-1 flex-shrink-0"
+                      style={{ background: 'rgba(148,163,184,0.15)' }}
+                    >
+                      <CloudOff size={9} /> {common.pendingSyncBadge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-400">
                   {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
                 </p>

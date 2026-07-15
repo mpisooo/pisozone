@@ -91,19 +91,9 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '🔔',
-        title: 'Centro notifiche',
-        text: 'La campanella in alto raccoglie richieste di amicizia, reazioni, commenti e level-up: una cronologia che resta, non solo push effimere.',
-      },
-      {
-        icon: '🏆',
-        title: 'Eventi stagionali',
-        text: 'In fondo alla pagina Sfide trovi l\'evento del momento: una classifica a tempo aperta a tutta la community. A finestra chiusa il podio riscatta crediti.',
-      },
-      {
-        icon: '🥊',
-        title: '5 nuovi sport',
-        text: 'Beach volley, ping pong, salto con la corda, trekking e boxe — con le loro icone. Il trekking si può anche tracciare col GPS.',
+        icon: '📶',
+        title: 'Nessuna attività persa senza rete',
+        text: 'Registrala anche senza connessione: resta in attesa sul telefono e si sincronizza da sola appena torni online. Utile in montagna o in palestre senza segnale.',
       },
     ],
   },

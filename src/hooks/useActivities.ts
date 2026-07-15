@@ -1,11 +1,38 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useChallengesBadge } from '../context/ChallengesBadgeContext'
 import { removeActivityPhoto } from '../lib/activityPhotos'
+import {
+  mergeWithPending, toPendingActivity, pendingActivityId, isNetworkFailure, isPendingActivityId,
+  type QueuedActivity, type QueuedActivityPayload,
+} from '../lib/offlineQueue'
 import log from '../lib/i18n/log'
 import type { Activity } from '../types'
+
+const QUEUE_STORAGE_KEY = 'pisozone-offline-queue'
+
+// La coda sopravvive a un reload/kill dell'app (comune su iOS sotto pressione
+// di memoria): senza persistenza, un'attività registrata offline e poi
+// "perduta" al riavvio sarebbe esattamente il problema che la coda risolve.
+function loadQueue(): QueuedActivity[] {
+  try {
+    const raw = localStorage.getItem(QUEUE_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function saveQueue(queue: QueuedActivity[]) {
+  try {
+    if (queue.length === 0) localStorage.removeItem(QUEUE_STORAGE_KEY)
+    else localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(queue))
+  } catch {
+    // Storage pieno o non disponibile (Safari in privata): la coda resta solo in memoria per questa sessione
+  }
+}
 
 export function useActivities() {
   const { user } = useAuth()
@@ -13,11 +40,22 @@ export function useActivities() {
   // Ogni mutazione può completare (o s-completare) una sfida di oggi: il
   // badge sulla Navbar va ricalcolato. No-op fuori dal provider.
   const { refresh: refreshChallengesBadge } = useChallengesBadge()
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [serverActivities, setServerActivities] = useState<Activity[]>([])
+  // Attività registrate senza rete, in attesa di sincronizzazione (roadmap v2,
+  // pilastro 05 "offline-first robusto"). Niente Background Sync nel service
+  // worker: su iOS Safari (il dispositivo dell'utente) l'API non esiste affatto
+  // — stesso limite già noto per il GPS "a schermo acceso". Si riprova quando
+  // l'app è davvero aperta: al ritorno online e ad ogni rientro in primo piano.
+  const [queue, setQueue] = useState<QueuedActivity[]>(() => loadQueue())
   const [loading, setLoading] = useState(true)
+  const flushingRef = useRef(false)
+
+  useEffect(() => { saveQueue(queue) }, [queue])
+
+  const activities = mergeWithPending(serverActivities, queue, user?.id ?? '')
 
   const fetchActivities = useCallback(async () => {
-    if (!user) { setLoading(false); return }
+    if (!user) { setServerActivities([]); setLoading(false); return }
     setLoading(true)
     const { data, error } = await supabase
       .from('activities')
@@ -25,21 +63,76 @@ export function useActivities() {
       .eq('user_id', user.id)
       .order('date', { ascending: false })
     if (error) showError(log.errors.loadFailed)
-    else if (data) setActivities(data as Activity[])
+    else if (data) setServerActivities(data as Activity[])
     setLoading(false)
   }, [user, showError])
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 
-  const addActivity = async (activity: Omit<Activity, 'id' | 'user_id' | 'created_at' | 'credits_earned'>) => {
+  const flushQueue = useCallback(async () => {
+    if (!user || flushingRef.current || queue.length === 0) return
+    flushingRef.current = true
+    let synced = 0
+    for (const item of queue) {
+      const { data, error, status } = await supabase
+        .from('activities')
+        .insert({ ...item.payload, user_id: user.id })
+        .select()
+        .single()
+      if (!error && data) {
+        setQueue((prev) => prev.filter((q) => q.localId !== item.localId))
+        setServerActivities((prev) => [data as Activity, ...prev])
+        synced++
+      } else if (error && !isNetworkFailure(status)) {
+        // Errore vero (non di rete): tenerla in coda per sempre non la
+        // risolverebbe, meglio avvisare e scartarla.
+        setQueue((prev) => prev.filter((q) => q.localId !== item.localId))
+        showError(log.errors.syncFailed)
+      }
+      // Fallimento di rete: resta in coda, si riprova al prossimo trigger.
+    }
+    flushingRef.current = false
+    if (synced > 0) refreshChallengesBadge()
+  }, [user, queue, showError, refreshChallengesBadge])
+
+  useEffect(() => {
+    const onOnline = () => { flushQueue() }
+    const onVisible = () => { if (document.visibilityState === 'visible') flushQueue() }
+    window.addEventListener('online', onOnline)
+    document.addEventListener('visibilitychange', onVisible)
+    flushQueue()
+    return () => {
+      window.removeEventListener('online', onOnline)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [flushQueue])
+
+  const enqueueLocally = (activity: QueuedActivityPayload): Activity => {
+    const localId = crypto.randomUUID()
+    const item: QueuedActivity = { localId, payload: activity, queuedAt: new Date().toISOString() }
+    setQueue((prev) => [...prev, item])
+    return toPendingActivity(item, user!.id)
+  }
+
+  const addActivity = async (activity: QueuedActivityPayload) => {
     if (!user) return { data: null, error: new Error('Not authenticated') }
-    const { data, error } = await supabase
+
+    // Offline noto in anticipo: niente fetch da far fallire, si mette subito in coda.
+    if (!navigator.onLine) {
+      return { data: enqueueLocally(activity), error: null }
+    }
+
+    const { data, error, status } = await supabase
       .from('activities')
       .insert({ ...activity, user_id: user.id })
       .select()
       .single()
+
+    if (error && isNetworkFailure(status)) {
+      return { data: enqueueLocally(activity), error: null }
+    }
     if (!error && data) {
-      setActivities((prev) => [data as Activity, ...prev])
+      setServerActivities((prev) => [data as Activity, ...prev])
       refreshChallengesBadge()
     }
     return { data, error }
@@ -49,6 +142,8 @@ export function useActivities() {
     id: string,
     updates: Partial<Omit<Activity, 'id' | 'user_id' | 'created_at' | 'credits_earned'>>
   ) => {
+    // Non ancora sincronizzata: non esiste ancora una riga DB da aggiornare.
+    if (isPendingActivityId(id)) return { data: null, error: new Error('Pending, not yet synced') }
     const { data, error } = await supabase
       .from('activities')
       .update(updates)
@@ -56,17 +151,22 @@ export function useActivities() {
       .select()
       .single()
     if (!error && data) {
-      setActivities((prev) => prev.map((a) => a.id === id ? data as Activity : a))
+      setServerActivities((prev) => prev.map((a) => a.id === id ? data as Activity : a))
       refreshChallengesBadge()
     }
     return { data, error }
   }
 
   const deleteActivity = async (id: string) => {
-    const target = activities.find((a) => a.id === id)
+    // Non ancora sincronizzata: rimuoverla dalla coda locale basta, niente da cancellare sul server.
+    if (isPendingActivityId(id)) {
+      setQueue((prev) => prev.filter((q) => pendingActivityId(q.localId) !== id))
+      return { error: null }
+    }
+    const target = serverActivities.find((a) => a.id === id)
     const { error } = await supabase.from('activities').delete().eq('id', id)
     if (!error) {
-      setActivities((prev) => prev.filter((a) => a.id !== id))
+      setServerActivities((prev) => prev.filter((a) => a.id !== id))
       // La riga nel DB cade, il file nello Storage no: pulizia best effort
       if (target?.photo_url && user) removeActivityPhoto(user.id, id)
       refreshChallengesBadge()
@@ -74,5 +174,5 @@ export function useActivities() {
     return { error }
   }
 
-  return { activities, loading, addActivity, updateActivity, deleteActivity, refetch: fetchActivities }
+  return { activities, loading, addActivity, updateActivity, deleteActivity, refetch: fetchActivities, hasPendingSync: queue.length > 0 }
 }
