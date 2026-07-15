@@ -6,7 +6,8 @@ const notifications = {
   heading: 'NOTIFICHE',
   emptyTitle: 'Tutto tranquillo',
   emptyHint: 'Le richieste di amicizia, reazioni e commenti che ricevi compaiono qui.',
-  seeAll: 'Vedi tutte',
+  deleteAria: (message: string) => `Elimina notifica: ${message}`,
+  deleteAllButton: 'Cancella tutte',
 
   messages: {
     friend_request: (name: string) => `@${name} ti ha inviato una richiesta di amicizia`,

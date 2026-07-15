@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Bell, User, X } from 'lucide-react'
+import { Bell, User, X, Trash2 } from 'lucide-react'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { useNotifications } from '../context/NotificationsContext'
 import { notificationTarget } from '../lib/notifications'
 import { REACTION_EMOJI, type ReactionKind } from '../lib/reactions'
 import { getLevelDef } from '../lib/levels'
+import { haptic } from '../lib/haptics'
 import common from '../lib/i18n/common'
 import notifText from '../lib/i18n/notifications'
 import type { AppNotification } from '../types'
@@ -32,14 +33,18 @@ function messageFor(n: AppNotification): string {
 // schermo invece di restare un piccolo menu vicino all'icona.
 export default function NotificationBell() {
   const navigate = useNavigate()
-  const { notifications, unreadCount, unavailable, markAllRead } = useNotifications()
+  const { notifications, unreadCount, unavailable, markAllRead, deleteNotification, deleteAll } = useNotifications()
   const [open, setOpen] = useState(false)
   // Chi era non letto ALL'APERTURA: markAllRead segna tutto letto subito, ma
   // questo pallino resta finché il pannello non si richiude, per far vedere
   // cos'era nuovo in questa apertura.
   const [openUnreadIds, setOpenUnreadIds] = useState<Set<string>>(new Set())
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useFocusTrap(panelRef, open, () => setOpen(false))
+
+  useEffect(() => () => { if (resetTimer.current) clearTimeout(resetTimer.current) }, [])
 
   // Blocca lo scroll della pagina sottostante finché il pannello è aperto
   // (ha uno scroller interno): stesso pattern di ActivityEditModal/GoalCreateModal.
@@ -62,6 +67,26 @@ export default function NotificationBell() {
     setOpen(false)
     const target = notificationTarget(n.type)
     navigate(target.path, target.tab ? { state: { tab: target.tab }, viewTransition: true } : { viewTransition: true })
+  }
+
+  const handleDelete = (id: string) => {
+    deleteNotification(id)
+    haptic('light')
+  }
+
+  // Doppio tocco di conferma (stesso pattern di GoalsCard): la prima
+  // pressione avvisa, la seconda entro pochi secondi cancella davvero.
+  const handleDeleteAll = () => {
+    if (!confirmDeleteAll) {
+      setConfirmDeleteAll(true)
+      if (resetTimer.current) clearTimeout(resetTimer.current)
+      resetTimer.current = setTimeout(() => setConfirmDeleteAll(false), 3000)
+      return
+    }
+    if (resetTimer.current) clearTimeout(resetTimer.current)
+    setConfirmDeleteAll(false)
+    deleteAll()
+    haptic('light')
   }
 
   return (
@@ -97,9 +122,20 @@ export default function NotificationBell() {
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--grey)] flex-shrink-0">
               <span className="font-bebas text-xl text-white tracking-wider">{notifText.heading}</span>
-              <button type="button" onClick={() => setOpen(false)} aria-label={common.close} className="p-1 -mr-1 text-gray-400 hover:text-white">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-3">
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAll}
+                    className={`text-xs font-medium transition-colors ${confirmDeleteAll ? 'text-[var(--red)]' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    {confirmDeleteAll ? common.confirmQuestion : notifText.deleteAllButton}
+                  </button>
+                )}
+                <button type="button" onClick={() => setOpen(false)} aria-label={common.close} className="p-1 -mr-1 text-gray-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
@@ -109,32 +145,47 @@ export default function NotificationBell() {
                   <p className="text-xs text-gray-600 mt-1">{notifText.emptyHint}</p>
                 </div>
               ) : (
-                notifications.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => handleClick(n)}
-                    className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-[var(--grey)] transition-colors border-b border-[var(--grey)] last:border-b-0"
-                    style={openUnreadIds.has(n.id) ? { background: 'rgba(var(--accent-rgb),0.08)' } : undefined}
-                  >
-                    <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-[var(--grey)] flex-shrink-0 mt-0.5 text-base leading-none">
-                      {n.type === 'level_up' ? (
-                        getLevelDef(Number(n.payload.level) || 1).emoji
-                      ) : n.actor_photo ? (
-                        <img src={n.actor_photo} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={15} className="text-gray-500" />
-                      )}
+                notifications.map((n) => {
+                  const message = messageFor(n)
+                  return (
+                    <div
+                      key={n.id}
+                      className="flex items-stretch border-b border-[var(--grey)] last:border-b-0"
+                      style={openUnreadIds.has(n.id) ? { background: 'rgba(var(--accent-rgb),0.08)' } : undefined}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleClick(n)}
+                        className="flex-1 min-w-0 flex items-start gap-3 px-4 py-3 text-left hover:bg-[var(--grey)] transition-colors"
+                      >
+                        <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-[var(--grey)] flex-shrink-0 mt-0.5 text-base leading-none">
+                          {n.type === 'level_up' ? (
+                            getLevelDef(Number(n.payload.level) || 1).emoji
+                          ) : n.actor_photo ? (
+                            <img src={n.actor_photo} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User size={15} className="text-gray-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-200 leading-snug">{message}</p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">
+                            {formatDistanceToNow(parseISO(n.created_at), { addSuffix: true, locale: it })}
+                          </p>
+                        </div>
+                        {openUnreadIds.has(n.id) && <span className="w-2 h-2 rounded-full bg-[var(--red)] flex-shrink-0 mt-2" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(n.id)}
+                        aria-label={notifText.deleteAria(message)}
+                        className="px-3 flex items-center justify-center text-gray-600 hover:text-[var(--red)] transition-colors flex-shrink-0"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-200 leading-snug">{messageFor(n)}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        {formatDistanceToNow(parseISO(n.created_at), { addSuffix: true, locale: it })}
-                      </p>
-                    </div>
-                    {openUnreadIds.has(n.id) && <span className="w-2 h-2 rounded-full bg-[var(--red)] flex-shrink-0 mt-2" />}
-                  </button>
-                ))
+                  )
+                })
               )}
             </div>
           </div>

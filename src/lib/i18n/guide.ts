@@ -138,7 +138,7 @@ const guide = {
         'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla.',
         'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
         'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
-        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, e i tuoi level-up. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto.',
+        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, e i tuoi level-up. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
       ],
     },
     {

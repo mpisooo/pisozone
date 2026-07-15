@@ -25,13 +25,15 @@ interface NotificationsCtx {
   unavailable: boolean
   refresh: () => void
   markAllRead: () => void
+  deleteNotification: (id: string) => void
+  deleteAll: () => void
 }
 
 // Default no-op: come UnreadContext/ChallengesBadgeContext, usare l'hook
 // fuori dal provider non rompe.
 const NotificationsContext = createContext<NotificationsCtx>({
   notifications: [], unreadCount: 0, loading: false, unavailable: false,
-  refresh: () => {}, markAllRead: () => {},
+  refresh: () => {}, markAllRead: () => {}, deleteNotification: () => {}, deleteAll: () => {},
 })
 export const useNotifications = () => useContext(NotificationsContext)
 
@@ -105,8 +107,24 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     await supabase.from('notifications').update({ read_at: now }).eq('user_id', user.id).is('read_at', null)
   }, [user, unreadCount])
 
+  // Nasconde una singola notifica indesiderata (v41: nessuna logica da
+  // proteggere, a differenza dell'update — cancellare la propria cronologia
+  // è una scelta legittima). Ottimistico: sparisce subito dalla lista.
+  const deleteNotification = useCallback((id: string) => {
+    if (!user) return
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+    supabase.from('notifications').delete().eq('id', id)
+  }, [user])
+
+  const deleteAll = useCallback(() => {
+    if (!user) return
+    setNotifications([])
+    setUnreadCount(0)
+    supabase.from('notifications').delete().eq('user_id', user.id)
+  }, [user])
+
   return (
-    <NotificationsContext.Provider value={{ notifications, unreadCount, loading, unavailable, refresh, markAllRead }}>
+    <NotificationsContext.Provider value={{ notifications, unreadCount, loading, unavailable, refresh, markAllRead, deleteNotification, deleteAll }}>
       {children}
     </NotificationsContext.Provider>
   )
