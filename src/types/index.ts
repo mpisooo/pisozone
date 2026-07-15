@@ -176,6 +176,23 @@ export interface Duel {
   created_at: string
 }
 
+// Riga di seasonal_claims (v39): riscatto one-shot del podio (rank 1-3) di un
+// evento stagionale (SEASONAL_EVENTS in lib/seasonalEvents.ts) a finestra
+// chiusa. rank e credits_earned sono CALCOLATI dal trigger Postgres dai dati
+// reali, mai dal client — quello che il client invia in insert è ignorato.
+export interface SeasonalClaim {
+  id: string
+  event_key: string
+  user_id: string
+  metric: string
+  activity_type: ActivityType | null
+  starts_on: string
+  ends_on: string
+  rank: number
+  credits_earned: number
+  created_at: string
+}
+
 // Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
 // riposo intenzionale (protegge la streak, max 2 a settimana lato client);
 // water_ml e sleep_hours restano null finché non tracciati — nessun default

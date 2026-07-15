@@ -12,6 +12,7 @@ import { useMemo } from 'react'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedNumber from '../components/AnimatedNumber'
 import DuelsSection from '../components/DuelsSection'
+import SeasonalEventSection from '../components/SeasonalEventSection'
 import challenges from '../lib/i18n/challenges'
 
 const TIER_COLOR: Record<string, string> = {
@@ -186,6 +187,9 @@ export default function ChallengesPage() {
 
       {/* Sfide 1v1 e di gruppo (v37): sparisce da sola pre-migrazione */}
       <DuelsSection />
+
+      {/* Eventi stagionali (v39): classifica aperta a tutta la community */}
+      <SeasonalEventSection />
     </div>
   )
 }

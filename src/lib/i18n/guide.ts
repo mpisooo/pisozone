@@ -85,6 +85,7 @@ const guide = {
         'Ogni giorno ricevi 3 sfide personalizzate (nella pagina Sfide e in Home). Si completano allenandosi e scadono a mezzanotte.',
         'Quando una sfida risulta completata, riscattala per incassare i crediti. Un numerino sulla voce Sfide in basso ti ricorda quante ne hai da riscattare.',
         'In fondo alla pagina Sfide ci sono le sfide con gli amici: lancia un duello a tempo — sessioni, minuti, chilometri o calorie — a un amico (che deve accettare) o a un tuo gruppo (parte subito per tutti). A finestra chiusa, chi ha fatto di più riscatta 100 crediti; in caso di parità nessun vincitore.',
+        'Ancora più in fondo trovi l\'evento stagionale del momento: una classifica a tempo aperta a TUTTA la community, non solo agli amici. A finestra chiusa il podio (primi 3) riscatta crediti — di più per il primo posto.',
       ],
     },
     {

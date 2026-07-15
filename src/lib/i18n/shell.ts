@@ -91,6 +91,11 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
+        icon: '🏆',
+        title: 'Eventi stagionali',
+        text: 'In fondo alla pagina Sfide trovi l\'evento del momento: una classifica a tempo aperta a tutta la community. A finestra chiusa il podio riscatta crediti.',
+      },
+      {
         icon: '🥊',
         title: '5 nuovi sport',
         text: 'Beach volley, ping pong, salto con la corda, trekking e boxe — con le loro icone. Il trekking si può anche tracciare col GPS.',
@@ -99,11 +104,6 @@ const shell = {
         icon: '🏠',
         title: 'Dentro o fuori?',
         text: 'Per corsa, bici, camminata, nuoto e arrampicata ora indichi il "dove": al chiuso diventa tapis roulant, cyclette o piscina.',
-      },
-      {
-        icon: '📊',
-        title: 'I tuoi numeri nel Profilo',
-        text: 'La card "In numeri" che gli altri vedono sul tuo profilo ora è anche nel tuo: attività, ore, km e medaglie totali, sotto la foto.',
       },
     ],
   },
