@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { getLevelDef, type ThemeId } from '../lib/levels'
 import CreditsInfoModal from './CreditsInfoModal'
+import NotificationBell from './NotificationBell'
 import shell from '../lib/i18n/shell'
 
 export default function TopBar() {
@@ -63,8 +64,10 @@ export default function TopBar() {
         </div>
       )}
 
-      {/* Profile menu */}
-      <div className="relative" ref={menuRef}>
+      {/* Notifiche + menu profilo, raggruppate perché justify-between vede solo 3 slot */}
+      <div className="flex items-center gap-1">
+        <NotificationBell />
+        <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -137,6 +140,7 @@ export default function TopBar() {
             </button>
           </div>
         )}
+        </div>
       </div>
 
       {showCreditsInfo && <CreditsInfoModal onClose={() => setShowCreditsInfo(false)} />}

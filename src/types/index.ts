@@ -193,6 +193,27 @@ export interface SeasonalClaim {
   created_at: string
 }
 
+export type NotificationType = 'friend_request' | 'friend_accepted' | 'reaction' | 'comment' | 'level_up'
+
+// Riga di notifications (v40): cronologia persistente degli eventi che oggi
+// esistono solo come push effimere o non hanno affatto una notifica
+// (reazioni, commenti, level-up). Scritta SOLO dai trigger Postgres sulle
+// tabelle sorgente (mai da un insert diretto del client); il client può solo
+// leggere le proprie righe e segnarle lette (read_at). actor_id è null per
+// gli eventi di sistema (level_up); activity_id solo per reaction/comment.
+export interface AppNotification {
+  id: string
+  user_id: string
+  type: NotificationType
+  actor_id: string | null
+  activity_id: string | null
+  payload: Record<string, unknown>
+  read_at: string | null
+  created_at: string
+  actor_username?: string
+  actor_photo?: string | null
+}
+
 // Riga di recovery_logs (v33): una per utente per giorno. rest = giorno di
 // riposo intenzionale (protegge la streak, max 2 a settimana lato client);
 // water_ml e sleep_hours restano null finché non tracciati — nessun default
