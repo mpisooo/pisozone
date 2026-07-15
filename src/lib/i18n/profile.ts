@@ -8,6 +8,17 @@ const profile = {
   pageTitle: 'PROFILO',
   creditsAmount: (n: number) => `${n} 💎`,
 
+  // La stessa card "In numeri" dei profili pubblici (RPC get_public_profile_stats),
+  // vista su se stessi: quello che gli altri vedono aprendo il tuo profilo.
+  publicStats: {
+    title: 'IN NUMERI',
+    hint: 'È il biglietto da visita che vedono gli altri sul tuo profilo.',
+    activities: 'Attività',
+    hours: 'Ore totali',
+    km: 'Km totali',
+    medals: 'Medaglie',
+  },
+
   account: {
     usernameLabel: 'Username',
     levelPrefix: 'LV.',

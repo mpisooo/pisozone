@@ -2,7 +2,7 @@ import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 import type { Activity } from '../types'
 import type { WrappedData } from './wrapped'
-import { ACTIVITY_OPTIONS } from './constants'
+import { activityLabel } from './constants'
 import { formatMinutesCompact } from './stats'
 import shareText from './i18n/share'
 
@@ -48,7 +48,7 @@ function capitalize(s: string): string {
 //   contenuto della card, senza toccare il DOM. —
 
 export function buildActivityShareData(activity: Activity): ShareCardData {
-  const label = ACTIVITY_OPTIONS.find((o) => o.value === activity.type)?.label ?? activity.type
+  const label = activityLabel(activity.type, activity.indoor)
   const stats: ShareStat[] = [
     { value: formatMinutesCompact(activity.duration_min), label: shareText.card.duration },
   ]

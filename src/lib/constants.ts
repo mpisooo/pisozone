@@ -16,6 +16,11 @@ export const ACTIVITY_OPTIONS: { value: ActivityType; label: string; hasDist: bo
   { value: 'golf',        label: 'Golf',        hasDist: false },
   { value: 'arrampicata', label: 'Arrampicata', hasDist: false },
   { value: 'padel',       label: 'Padel',       hasDist: false },
+  { value: 'beach_volley', label: 'Beach volley', hasDist: false },
+  { value: 'ping_pong',    label: 'Ping pong',    hasDist: false },
+  { value: 'salto_corda',  label: 'Salto corda',  hasDist: false },
+  { value: 'trekking',     label: 'Trekking',     hasDist: true  },
+  { value: 'boxe',         label: 'Boxe',         hasDist: false },
 ]
 
 // MET values (metabolic equivalent) per activity
@@ -35,6 +40,40 @@ export const MET: Record<ActivityType, number> = {
   golf:        4.3,
   arrampicata: 7.5,
   padel:       6.0,
+  beach_volley: 8.0,
+  ping_pong:    4.0,
+  salto_corda: 11.0,
+  trekking:     6.0,
+  boxe:         7.8,
+}
+
+// Varianti indoor/outdoor (v38): solo per gli sport dove il "dove" cambia il
+// nome dell'attività (tapis roulant ≠ corsa al parco). Le etichette sono DATI
+// di dominio come i label degli sport, quindi vivono qui e non in i18n.
+// `chip` = testo dei due bottoni nel form; `label` = nome mostrato al posto
+// di quello base nel feed/calendario/Home quando activities.indoor è valorizzato
+// (null/undefined = non indicato → resta il label base).
+export const INDOOR_VARIANTS: Partial<Record<ActivityType, {
+  outdoorChip: string
+  indoorChip: string
+  indoorLabel: string
+  outdoorLabel?: string
+}>> = {
+  corsa:       { outdoorChip: "All'aperto",  indoorChip: 'Tapis roulant', indoorLabel: 'Tapis roulant' },
+  bici:        { outdoorChip: "All'aperto",  indoorChip: 'Cyclette',      indoorLabel: 'Cyclette' },
+  camminata:   { outdoorChip: "All'aperto",  indoorChip: 'Tapis roulant', indoorLabel: 'Camminata su tapis' },
+  nuoto:       { outdoorChip: 'Acque libere', indoorChip: 'Piscina',      indoorLabel: 'Nuoto in piscina', outdoorLabel: 'Nuoto in acque libere' },
+  arrampicata: { outdoorChip: 'Falesia',      indoorChip: 'Indoor',       indoorLabel: 'Arrampicata indoor', outdoorLabel: 'Arrampicata su roccia' },
+}
+
+// Etichetta da mostrare per un'attività: quella base, o la variante
+// indoor/outdoor se lo sport la prevede e l'utente l'ha indicata.
+export function activityLabel(type: ActivityType, indoor?: boolean | null): string {
+  const base = ACTIVITY_OPTIONS.find((o) => o.value === type)?.label ?? type
+  if (indoor == null) return base
+  const variant = INDOOR_VARIANTS[type]
+  if (!variant) return base
+  return indoor ? variant.indoorLabel : (variant.outdoorLabel ?? base)
 }
 
 export function calcCalories(
@@ -49,13 +88,13 @@ export function calcCalories(
   return Math.round(MET[type] * weightKg * (durationMin / 60) * genderFactor)
 }
 
-export type GpsTrackableType = 'corsa' | 'bici' | 'camminata'
+export type GpsTrackableType = 'corsa' | 'bici' | 'camminata' | 'trekking'
 
 // Attività idonee al tracciamento GPS: outdoor, telefono trasportabile,
 // distanza rilevante. Escluse nuoto (impossibile portare il telefono) e
 // motocross (non ha senso portarlo mentre si guida) anche se in
 // ACTIVITY_OPTIONS hanno hasDist: true per l'inserimento manuale.
-export const GPS_TRACKABLE_TYPES: GpsTrackableType[] = ['corsa', 'bici', 'camminata']
+export const GPS_TRACKABLE_TYPES: GpsTrackableType[] = ['corsa', 'bici', 'camminata', 'trekking']
 
 // MET per fascia di velocità media (km/h), valori approssimati dal Compendium
 // of Physical Activities: a parità di durata, correre a 8 km/h e a 16 km/h
@@ -90,6 +129,16 @@ const SPEED_MET_TABLE: Record<GpsTrackableType, { maxKmh: number; met: number }[
     { maxKmh: 25.7, met: 10.0 },
     { maxKmh: 30.6, met: 12.0 },
     { maxKmh: Infinity, met: 15.8 },
+  ],
+  // Camminata in montagna: alle stesse velocità della camminata piana il
+  // dispendio è più alto (pendenza, terreno, zaino) — valori "hiking" del
+  // Compendium, con la fascia alta che copre i tratti veloci in salita.
+  trekking: [
+    { maxKmh: 3.2, met: 4.3 },
+    { maxKmh: 4.7, met: 5.3 },
+    { maxKmh: 5.5, met: 6.0 },
+    { maxKmh: 6.4, met: 7.0 },
+    { maxKmh: Infinity, met: 7.8 },
   ],
 }
 

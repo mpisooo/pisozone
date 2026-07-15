@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
 import { X, Trash2, Save, Share2, AlertTriangle } from 'lucide-react'
-import { ACTIVITY_OPTIONS, calcCalories } from '../lib/constants'
+import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories } from '../lib/constants'
 import { buildActivityShareData, shareCardImage } from '../lib/shareCard'
 import { haptic } from '../lib/haptics'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
@@ -54,6 +54,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
   const [rpe, setRpe] = useState<number | null>(activity.rpe ?? null)
   const [mood, setMood] = useState<number | null>(activity.mood ?? null)
+  // Indoor/outdoor (v38): al cambio di sport riparte pulito, tornando al tipo
+  // originale si ripristina il valore salvato.
+  const [indoor, setIndoor] = useState<boolean | null>(activity.indoor ?? null)
   // Esercizi (v32): setsLoaded resta false se il fetch iniziale fallisce, e in
   // quel caso il salvataggio NON tocca exercise_sets — un delete+reinsert a
   // partire da bozze vuote cancellerebbe set che l'utente non ha mai visto.
@@ -117,6 +120,10 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
   const selectedType = watch('type')
   const showDist = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)?.hasDist ?? false
+  const indoorVariant = INDOOR_VARIANTS[selectedType]
+  useEffect(() => {
+    setIndoor(selectedType === activity.type ? activity.indoor ?? null : null)
+  }, [selectedType, activity.type, activity.indoor])
   const isGym = selectedType === 'palestra'
   const { rows: exerciseHistory } = useExerciseHistory(isGym)
   const nameSuggestions = useMemo(() => exerciseSuggestions(exerciseHistory), [exerciseHistory])
@@ -156,6 +163,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       notes: v.notes || null,
       rpe,
       mood,
+      // La chiave viaggia solo se c'è qualcosa da scrivere o da azzerare:
+      // pre-migrazione v38 la colonna non esiste e l'update fallirebbe.
+      ...(indoor !== null || activity.indoor != null ? { indoor } : {}),
       ...photoUpdates,
     })
     if (error) {
@@ -263,6 +273,28 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               )
             })}
           </div>
+
+          {indoorVariant && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-2">{log.form.indoorQuestion}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([false, true] as const).map((val) => (
+                  <button
+                    key={String(val)}
+                    type="button"
+                    aria-pressed={indoor === val}
+                    onClick={() => setIndoor((prev) => (prev === val ? null : val))}
+                    className={`py-2.5 rounded-lg text-sm font-medium border transition-all duration-150 ${
+                      indoor === val ? 'border-[var(--red)] text-white' : 'border-transparent text-gray-400'
+                    }`}
+                    style={{ background: indoor === val ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+                  >
+                    {val ? indoorVariant.indoorChip : indoorVariant.outdoorChip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="card space-y-3">

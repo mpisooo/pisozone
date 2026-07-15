@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcCalories, calcCaloriesFromSpeed, MET, ACTIVITY_OPTIONS, GPS_TRACKABLE_TYPES } from './constants'
+import { calcCalories, calcCaloriesFromSpeed, MET, ACTIVITY_OPTIONS, GPS_TRACKABLE_TYPES, INDOOR_VARIANTS, activityLabel } from './constants'
 import { ACTIVITY_ICON_PATHS } from './activityIconPaths'
 
 describe('calcCalories', () => {
@@ -47,7 +47,39 @@ describe('calcCaloriesFromSpeed', () => {
 
 describe('GPS_TRACKABLE_TYPES', () => {
   it('contiene solo attività outdoor con telefono trasportabile', () => {
-    expect(GPS_TRACKABLE_TYPES).toEqual(['corsa', 'bici', 'camminata'])
+    expect(GPS_TRACKABLE_TYPES).toEqual(['corsa', 'bici', 'camminata', 'trekking'])
+  })
+})
+
+describe('activityLabel', () => {
+  it('senza indicazione indoor restituisce il label base', () => {
+    expect(activityLabel('corsa')).toBe('Corsa')
+    expect(activityLabel('corsa', null)).toBe('Corsa')
+    expect(activityLabel('corsa', undefined)).toBe('Corsa')
+  })
+
+  it('al chiuso usa il nome della variante indoor', () => {
+    expect(activityLabel('corsa', true)).toBe('Tapis roulant')
+    expect(activityLabel('bici', true)).toBe('Cyclette')
+    expect(activityLabel('nuoto', true)).toBe('Nuoto in piscina')
+  })
+
+  it('all\'aperto usa la variante outdoor solo dove il nome cambia', () => {
+    expect(activityLabel('corsa', false)).toBe('Corsa')
+    expect(activityLabel('nuoto', false)).toBe('Nuoto in acque libere')
+    expect(activityLabel('arrampicata', false)).toBe('Arrampicata su roccia')
+  })
+
+  it('ignora indoor per gli sport senza variante', () => {
+    expect(activityLabel('calcio', true)).toBe('Calcio')
+    expect(activityLabel('boxe', false)).toBe('Boxe')
+  })
+
+  it('ogni sport con variante è tra le opzioni valide', () => {
+    const valid = new Set(ACTIVITY_OPTIONS.map((o) => o.value))
+    for (const key of Object.keys(INDOOR_VARIANTS)) {
+      expect(valid.has(key as (typeof ACTIVITY_OPTIONS)[number]['value']), `variante orfana: ${key}`).toBe(true)
+    }
   })
 })
 

@@ -10,7 +10,8 @@ const guide = {
       icon: '🏃',
       title: 'Registrare un\'attività',
       paragraphs: [
-        'Dalla scheda Registra scegli uno dei 15 sport, imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
+        'Dalla scheda Registra scegli uno dei 20 sport, imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
+        'Per corsa, bici, camminata, nuoto e arrampicata puoi indicare anche il "dove": al chiuso l\'attività prende il suo nome vero — tapis roulant, cyclette, piscina. È facoltativo: tocca di nuovo per azzerare.',
         'Le calorie si calcolano da sole in base a peso, sesso e intensità dello sport (formula MET): puoi sempre scriverle a mano per sovrascriverle.',
         'Ogni attività si modifica o elimina dal Calendario, toccandola.',
         'Su Android, tenendo premuta l\'icona dell\'app trovi le scorciatoie rapide: Registra, GPS, Sfide e Statistiche.',
@@ -20,7 +21,7 @@ const guide = {
       icon: '🛰️',
       title: 'Tracciamento GPS',
       paragraphs: [
-        'Per corsa, bici e camminata puoi avviare il tracciamento GPS dal pulsante nella scheda Registra: distanza, ritmo e calorie si misurano da soli, e il percorso viene salvato.',
+        'Per corsa, bici, camminata e trekking puoi avviare il tracciamento GPS dal pulsante nella scheda Registra: distanza, ritmo e calorie si misurano da soli, e il percorso viene salvato.',
         'Il tracciamento funziona a schermo acceso: l\'app tiene lo schermo attivo per te. I comandi sono protetti da uno "scorri per sbloccare", così i tocchi accidentali in tasca non fermano nulla.',
         'La sagoma del percorso la ritrovi aprendo l\'attività dal Calendario.',
       ],
@@ -125,6 +126,7 @@ const guide = {
       paragraphs: [
         'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti.',
         'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese.',
+        'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km e medaglie totali.',
         'Puoi bloccare o segnalare chi si comporta male: chi è bloccato non può scriverti né mandarti richieste.',
       ],
     },

@@ -74,6 +74,25 @@ export default function ProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Card "In numeri": la stessa RPC dei profili pubblici (v37) chiamata su se
+  // stessi — quello che vedono gli altri aprendo il tuo profilo. Tollerante
+  // pre-migrazione: errore o zero attività → card nascosta.
+  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number } | null>(null)
+  useEffect(() => {
+    if (!user) return
+    supabase.rpc('get_public_profile_stats', { p_user_id: user.id }).then(({ data, error }) => {
+      const row = Array.isArray(data) ? data[0] : data
+      if (!error && row) {
+        setPubStats({
+          total_activities: Number(row.total_activities),
+          total_minutes: Number(row.total_minutes),
+          total_km: Number(row.total_km),
+          medals: Number(row.medals),
+        })
+      }
+    })
+  }, [user])
+
   const chartGrid  = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#2a2a2a'
   const chartTick  = theme === 'light' || theme === 'white' ? '#777777' : '#9ca3af'
   const tooltipBg  = theme === 'light' || theme === 'white' ? '#ffffff' : '#1a1a1a'
@@ -313,6 +332,27 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-500">{profileText.account.changePhotoHint}</p>
         )}
       </div>
+
+      {/* In numeri: il proprio profilo come lo vedono gli altri */}
+      {pubStats && pubStats.total_activities > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.publicStats.title}</h2>
+          <p className="text-xs text-gray-500 mb-3">{profileText.publicStats.hint}</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            {[
+              [String(pubStats.total_activities), profileText.publicStats.activities],
+              [`${Math.round(pubStats.total_minutes / 60)}h`, profileText.publicStats.hours],
+              [(Math.round(pubStats.total_km * 10) / 10).toLocaleString('it-IT'), profileText.publicStats.km],
+              [String(pubStats.medals), profileText.publicStats.medals],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <p className="font-bebas text-2xl text-white leading-none">{value}</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Dati personali */}

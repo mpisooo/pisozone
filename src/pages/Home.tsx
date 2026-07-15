@@ -12,7 +12,7 @@ import { useRecovery } from '../hooks/useRecovery'
 import { useTrainingPlan } from '../hooks/useTrainingPlan'
 import { usePersonalGoals } from '../hooks/usePersonalGoals'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
-import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
+import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { getPlanTemplate, computePlanProgress } from '../lib/plans'
 import { calcStreak } from '../lib/challenges'
@@ -318,7 +318,7 @@ export default function HomePage() {
                 <ActivityIcon type={lastOpt.value} size={24} />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white">{lastOpt.label}</p>
+                <p className="font-semibold text-white">{activityLabel(lastActivity.type, lastActivity.indoor)}</p>
                 <p className="text-xs text-gray-400">
                   {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
                 </p>

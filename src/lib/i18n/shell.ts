@@ -91,24 +91,19 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '⚔️',
-        title: 'Sfide con gli amici',
-        text: 'Duelli a tempo 1 contro 1 o di gruppo — sessioni, minuti, km o calorie. Chi fa di più vince 100 crediti. In fondo alla pagina Sfide.',
+        icon: '🥊',
+        title: '5 nuovi sport',
+        text: 'Beach volley, ping pong, salto con la corda, trekking e boxe — con le loro icone. Il trekking si può anche tracciare col GPS.',
       },
       {
-        icon: '👤',
-        title: 'Profili pubblici e scoperta',
-        text: 'Tocca chiunque in classifica per vedere il suo profilo con numeri e medaglie; in Amici trovi le persone più attive da scoprire.',
+        icon: '🏠',
+        title: 'Dentro o fuori?',
+        text: 'Per corsa, bici, camminata, nuoto e arrampicata ora indichi il "dove": al chiuso diventa tapis roulant, cyclette o piscina.',
       },
       {
-        icon: '✨',
-        title: 'Insight e Wrapped',
-        text: 'In Statistiche l\'app ti racconta cosa emerge dai tuoi dati, e il Wrapped riassume il tuo mese in stile storia — condivisibile come immagine.',
-      },
-      {
-        icon: '🌅',
-        title: 'Rientro morbido',
-        text: 'Se ti assenti qualche giorno, al ritorno ti accoglie una card dedicata — e il promemoria serale smette di martellare.',
+        icon: '📊',
+        title: 'I tuoi numeri nel Profilo',
+        text: 'La card "In numeri" che gli altri vedono sul tuo profilo ora è anche nel tuo: attività, ore, km e medaglie totali, sotto la foto.',
       },
     ],
   },

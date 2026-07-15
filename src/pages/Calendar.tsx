@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Flame, X, Pencil } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
-import { ACTIVITY_OPTIONS } from '../lib/constants'
+import { ACTIVITY_OPTIONS, activityLabel } from '../lib/constants'
 import { calcStreak } from '../lib/challenges'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
@@ -242,7 +242,7 @@ export default function CalendarPage() {
                 >
                   <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="text-[var(--red)] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white">{opt?.label}</p>
+                    <p className="font-semibold text-white">{activityLabel(a.type, a.indoor)}</p>
                     <p className="text-xs text-gray-400">
                       {calendar.dayPanel.durationLabel(a.duration_min)}
                       {a.calories ? calendar.dayPanel.caloriesSuffix(a.calories) : ''}

@@ -22,6 +22,7 @@ interface WakeLockSentinelLike {
 const MAX_SPEED_KMH: Record<GpsTrackableType, number> = {
   corsa: 40,
   camminata: 40,
+  trekking: 40,
   bici: 80,
 }
 

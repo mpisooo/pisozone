@@ -5,7 +5,7 @@ import { format, formatISO } from 'date-fns'
 import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, AlertTriangle, Satellite } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
-import { ACTIVITY_OPTIONS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
+import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { uploadActivityPhoto } from '../lib/activityPhotos'
 import { saveActivityExercises } from '../lib/activityExercises'
 import {
@@ -48,6 +48,10 @@ export default function LogPage() {
   const [setsWarning, setSetsWarning] = useState(false)
   const [rpe, setRpe] = useState<number | null>(null)
   const [mood, setMood] = useState<number | null>(null)
+  // Indoor/outdoor (v38): facoltativo, null = non indicato. Si azzera al
+  // cambio di sport: "tapis roulant" non deve sopravvivere a un passaggio
+  // corsa → calcio.
+  const [indoor, setIndoor] = useState<boolean | null>(null)
   const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>([])
   const [prRecords, setPrRecords] = useState<PrRecord[]>([])
 
@@ -90,6 +94,9 @@ export default function LogPage() {
   const showDist = selectedActivity?.hasDist ?? false
   const durationMin = hours * 60 + minutes
 
+  const indoorVariant = INDOOR_VARIANTS[selectedType]
+  useEffect(() => { setIndoor(null) }, [selectedType])
+
   // Storico esercizi: caricato solo quando serve (palestra selezionata),
   // alimenta i suggerimenti nomi e il confronto per i nuovi PR.
   const isGym = selectedType === 'palestra'
@@ -122,6 +129,9 @@ export default function LogPage() {
       notes: values.notes || null,
       rpe,
       mood,
+      // Solo se indicato: pre-migrazione v38 la colonna non esiste e un
+      // inserimento con la chiave fallirebbe anche a valore null.
+      ...(indoor !== null ? { indoor } : {}),
     })
 
     if (error) {
@@ -166,6 +176,7 @@ export default function LogPage() {
     setPhotoFile(null)
     setRpe(null)
     setMood(null)
+    setIndoor(null)
     setExerciseDrafts([])
 
     haptic(newPrs.length > 0 ? 'celebrate' : 'success')
@@ -231,9 +242,35 @@ export default function LogPage() {
               )
             })}
           </div>
+
+          {/* Indoor/outdoor: solo per gli sport dove il "dove" cambia il nome
+              (tapis roulant, cyclette, piscina...). Tocca di nuovo per azzerare. */}
+          {indoorVariant && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-2">{log.form.indoorQuestion}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([false, true] as const).map((val) => (
+                  <button
+                    key={String(val)}
+                    type="button"
+                    aria-pressed={indoor === val}
+                    onClick={() => setIndoor((prev) => (prev === val ? null : val))}
+                    className={`py-2.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                      indoor === val
+                        ? 'border-[var(--red)] text-white'
+                        : 'border-transparent text-gray-400 hover:border-gray-600'
+                    }`}
+                    style={{ background: indoor === val ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+                  >
+                    {val ? indoorVariant.indoorChip : indoorVariant.outdoorChip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && (
+        {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
           <button
             type="button"
             onClick={() => setTracking(true)}

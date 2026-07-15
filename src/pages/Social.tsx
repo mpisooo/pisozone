@@ -21,7 +21,7 @@ import { haptic } from '../lib/haptics'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import common from '../lib/i18n/common'
 import social from '../lib/i18n/social'
-import { ACTIVITY_OPTIONS } from '../lib/constants'
+import { ACTIVITY_OPTIONS, activityLabel } from '../lib/constants'
 import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
 import PhotoLightbox from '../components/PhotoLightbox'
@@ -1040,7 +1040,7 @@ export default function SocialPage() {
                         <ActivityIcon type={opt?.value ?? 'corsa'} size={24} />
                       </span>
                       <div className="flex-1">
-                        <p className="font-semibold text-white text-sm">{opt?.label ?? a.type}</p>
+                        <p className="font-semibold text-white text-sm">{activityLabel(a.type, a.indoor)}</p>
                         <p className="text-xs text-gray-400">
                           {a.duration_min} {social.shared.units.min}{a.calories ? ` · ${a.calories} ${social.shared.units.kcal}` : ''}{a.distance_km ? ` · ${a.distance_km} ${social.shared.units.km}` : ''}
                         </p>

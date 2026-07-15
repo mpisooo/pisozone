@@ -14,6 +14,11 @@ export type ActivityType =
   | 'golf'
   | 'arrampicata'
   | 'padel'
+  | 'beach_volley'
+  | 'ping_pong'
+  | 'salto_corda'
+  | 'trekking'
+  | 'boxe'
 
 export interface Activity {
   id: string
@@ -38,6 +43,10 @@ export interface Activity {
   // percepito 1-10. mood: umore/energia post-sessione 1-5.
   rpe?: number | null
   mood?: number | null
+  // Opzionale: esiste solo dopo la migrazione v38. true = al chiuso (tapis
+  // roulant, cyclette, piscina...), false = all'aperto, null = non indicato.
+  // Ha senso solo per gli sport in INDOOR_VARIANTS (lib/constants).
+  indoor?: boolean | null
 }
 
 export interface RoutePoint {

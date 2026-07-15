@@ -34,10 +34,11 @@ export const ACTIVITY_ICON_PATHS: Record<ActivityType, ReactNode> = {
   ),
   nuoto: (
     <>
-      <circle cx="28.5" cy="15" r="4.5" fill="currentColor" stroke="none" />
-      <path d="M12 19 L20.5 6.5 L33 9 L38.5 15" />
-      <path d="M4.5 27.5 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0" strokeWidth={4} />
-      <path d="M11.5 36.5 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0 c3.2 -4.4 6.3 -4.4 9.5 0" strokeWidth={4} />
+      {/* stile libero: bracciata ad arco sopra l'acqua, schiena emersa, onda sotto */}
+      <path d="M13.5 21.5 C17 8.5, 31 6, 39.5 15.5" />
+      <circle cx="30" cy="17.5" r="4.5" fill="currentColor" stroke="none" />
+      <path d="M26.5 22 L13 26.5" strokeWidth={6.5} />
+      <path d="M4.5 33.5 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0" strokeWidth={4} />
     </>
   ),
   danza: (
@@ -156,6 +157,57 @@ export const ACTIVITY_ICON_PATHS: Record<ActivityType, ReactNode> = {
       <path d="M15 4.5 L31 10.5 L15 16.5 Z" fill="currentColor" stroke="none" />
       <ellipse cx="20" cy="42.5" rx="10.5" ry="3.2" strokeWidth={3.5} />
       <circle cx="36.5" cy="38.5" r="3.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  beach_volley: (
+    <>
+      {/* palla a mezz'aria sopra la rete da spiaggia (banda alta + maglia fino a terra) */}
+      <circle cx="24" cy="10" r="8" strokeWidth={3.5} fill="currentColor" fillOpacity="0.16" />
+      <path d="M24 10 C25.5 5.5 28 3.5 31.3 3.2 M24 10 C19.5 10.8 16.5 9.5 14.6 7.2" strokeWidth={2.5} />
+      <path d="M7 21 L7 44" strokeWidth={3.5} />
+      <path d="M41 21 L41 44" strokeWidth={3.5} />
+      <path d="M5 22 L43 22" strokeWidth={3.5} />
+      <path d="M14.5 24 L14.5 42 M24 24 L24 42 M33.5 24 L33.5 42" strokeWidth={2} />
+      <path d="M8.5 30 L39.5 30 M8.5 37 L39.5 37" strokeWidth={2} />
+    </>
+  ),
+  ping_pong: (
+    <>
+      {/* racchetta a massa piena (la gomma), come le sorelle tennis/padel */}
+      <ellipse cx="19" cy="15" rx="11.5" ry="12.5" fill="currentColor" stroke="none" />
+      <path d="M19 27.5 L19 41" strokeWidth={5} />
+      <circle cx="36.5" cy="34.5" r="5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  salto_corda: (
+    <>
+      {/* figura a mezz'aria con la corda nel punto più alto del giro */}
+      <path d="M12 24.5 C3 -1, 45 -1, 36 24.5" strokeWidth={3.5} />
+      <circle cx="24" cy="13.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M24 17.5 L24 28" strokeWidth={6.5} />
+      <path d="M24 20.5 L13 23.5" />
+      <path d="M24 20.5 L35 23.5" />
+      <path d="M24 28 L19 34.5 L20.5 41.5" />
+      <path d="M24 28 L29 34.5 L27.5 41.5" />
+    </>
+  ),
+  trekking: (
+    <>
+      <circle cx="27" cy="7.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M26 12 L24 24" strokeWidth={6.5} />
+      <rect x="16.5" y="12.5" width="6.5" height="11" rx="3" fill="currentColor" stroke="none" />
+      <path d="M25 15 L33 19.5" />
+      <path d="M34.5 16 L37.5 41" strokeWidth={3.5} />
+      <path d="M24 24 L31 29.5 L30.5 38.5" />
+      <path d="M24 24 L17 30.5 L13.5 39" />
+    </>
+  ),
+  boxe: (
+    <>
+      {/* guantone: pugno pieno con pollice che sporge, polsino staccato da un filo di luce */}
+      <rect x="14" y="5" width="21" height="25" rx="10" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="23" r="6" fill="currentColor" stroke="none" />
+      <rect x="17.5" y="33.5" width="14" height="9.5" rx="2.5" fill="currentColor" stroke="none" />
     </>
   ),
 }

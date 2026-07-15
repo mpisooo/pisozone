@@ -13,6 +13,9 @@ const log = {
 
   form: {
     activityTypeTitle: 'TIPO DI ATTIVITÀ',
+    // Selettore indoor/outdoor (solo per gli sport in INDOOR_VARIANTS):
+    // facoltativo come RPE/umore, tocca di nuovo per azzerare.
+    indoorQuestion: 'Dove? Facoltativo — cambia il nome dell\'attività',
     dateTimeTitle: 'DATA E ORA',
     dateLabel: 'Data',
     timeLabel: 'Ora',
