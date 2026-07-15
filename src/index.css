@@ -1,6 +1,32 @@
 @import "tailwindcss";
 
-/* ── Custom properties ── */
+/* ══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS (roadmap v2, pilastro 05) — vocabolario unico riusato in
+   tutta l'app, invece di valori sparsi pagina per pagina. Quattro categorie,
+   in quest'ordine qui sotto:
+     1. Colore/temi   — --black, --grey (+ dark/light), --red (+ dark), --color-text, --accent-rgb
+     2. Zone           — --zone-1..4 + --zone-spectrum (intensità dello sforzo)
+     3. Elevazione     — --shadow-sm/md/lg, --shadow-chrome-down/up, --glow-accent
+     4. Movimento      — --dur-fast/base/slow, --ease-out, --ease-spring
+   La scala tipografica (dimensioni, pesi, spaziatura) resta quella nativa di
+   Tailwind v4 (text-xs…text-2xl ecc.): non ha bisogno di un token proprio,
+   solo i due font (.font-bebas per i titoli, Inter di default sul body) sono
+   una scelta dell'app. Ogni classe/componente nuovo pesca da qui invece di
+   scrivere un colore, un'ombra o una durata a mano. ══════════════════════ */
+
+/* ── 1. Colore/temi — 6 temi (Scuro/Chiaro/Blu Notte/Bianco Puro/Smeraldo/
+   Viola), applicati a runtime da ThemeContext via style.setProperty su
+   <html>, coi valori di ciascun tema in THEME_CSS_VARS (lib/levels.ts) — VERA
+   fonte di questi 8 nomi. Il blocco :root qui sotto è SOLO il fallback prima
+   che React idrati (niente FOUC nero): i suoi valori devono restare identici
+   a THEME_CSS_VARS.dark, e html.light a THEME_CSS_VARS.light — se cambi un
+   colore in un posto, cambialo anche nell'altro. --accent-rgb è il gemello
+   "tripletta RGB" di --red, per comporre rgba(var(--accent-rgb), x) dove
+   serve un'opacità (glow, heatmap, badge) — vale anche negli attributi SVG
+   di Recharts. MAI hardcodare l'accento (#F44352): sempre var(--red) o
+   rgba(var(--accent-rgb), x). Eccezioni deliberate, sempre a colore fisso:
+   pagine pre-login (Auth/Splash/Privacy/Termini) e colori semantici (scala
+   BMI, confetti, acqua/notte della card Recupero). ── */
 :root {
   --red: #F44352;
   --red-dark: #CC3845;
@@ -11,8 +37,6 @@
   --color-text: #f5f5f5;
   --accent-rgb: 244, 67, 82;
 }
-
-/* ── Light theme ── */
 html.light {
   --black: #F0F2F5;
   --grey-dark: #FFFFFF;
@@ -21,15 +45,20 @@ html.light {
   --color-text: #111111;
 }
 
-/* ── Zone di intensità: scala semantica fissa (blu→verde→ambra→rosso), NON
+/* ── 2. Zone di intensità: scala semantica fissa (blu→verde→ambra→rosso), NON
    segue l'accento dei 6 temi — stessa eccezione della scala BMI, perché qui
    il colore comunica un significato (l'intensità dello sforzo), non lo
-   stile. Vedi lib/zones.ts per le soglie MET che le popolano. ── */
+   stile. Vedi lib/zones.ts per le soglie MET che le popolano. --zone-spectrum
+   è il gradiente a 4 tappe riusato da .zone-spectrum e .spectrum-slider qui
+   sotto — unica fonte anche per chi lo vuole in JS/inline style via
+   ZONE_SPECTRUM_GRADIENT (lib/zones.ts, che punta qui invece di ripetere i
+   valori). ── */
 :root {
   --zone-1: #3B82F6;
   --zone-2: #10B981;
   --zone-3: #FBBF24;
   --zone-4: #F44352;
+  --zone-spectrum: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
 }
 html.light {
   --zone-1: #2563EB;
@@ -38,11 +67,11 @@ html.light {
   --zone-4: #E23140;
 }
 
-/* ── Materiali e profondità: gerarchia di elevazione + glow direzionale
-   sull'accento (roadmap v2, pilastro 01 punto 5). Le superfici scure hanno
-   anche un filo di luce interna in alto (tipico delle UI "materiali" scure);
-   quelle chiare restano ombre morbide classiche. --glow-accent deriva da
-   --accent-rgb: si adatta da solo ai 6 temi, nessuna variante light/dark. ── */
+/* ── 3. Elevazione: materiali e profondità (roadmap v2, pilastro 01 punto 5).
+   Le superfici scure hanno anche un filo di luce interna in alto (tipico
+   delle UI "materiali" scure); quelle chiare restano ombre morbide classiche.
+   --glow-accent deriva da --accent-rgb: si adatta da solo ai 6 temi, nessuna
+   variante light/dark. ── */
 :root {
   --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.28);
   --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 32px rgba(0, 0, 0, 0.35);
@@ -59,10 +88,10 @@ html.light {
   --shadow-chrome-up: 0 -2px 14px rgba(20, 18, 22, 0.12);
 }
 
-/* ── Linguaggio del movimento (roadmap v2, pilastro 01 punto 4): durate ed
-   easing condivisi, così ogni animazione nuova parla la stessa lingua. La
-   "molla" (--ease-spring) è la firma dei momenti che appaiono; --ease-out
-   per ciò che scivola o scompare. ── */
+/* ── 4. Movimento (roadmap v2, pilastro 01 punto 4): durate ed easing
+   condivisi, così ogni animazione nuova parla la stessa lingua. La "molla"
+   (--ease-spring) è la firma dei momenti che appaiono; --ease-out per ciò che
+   scivola o scompare. ── */
 :root {
   --dur-fast: 0.2s;
   --dur-base: 0.3s;
@@ -276,12 +305,12 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 }
 
 /* ── Spettro Zone: motivo firma, riusato ovunque serva rappresentare
-   l'intensità (barre, anelli, glow). Unica fonte visiva: chi vuole lo stesso
-   gradiente in JS/inline style usa ZONE_SPECTRUM_GRADIENT da lib/zones.ts. ── */
+   l'intensità (barre, anelli, glow). Il gradiente è il token --zone-spectrum
+   (vedi sezione Design tokens in cima al file). ── */
 .zone-spectrum {
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+  background: var(--zone-spectrum);
 }
 
 
@@ -617,7 +646,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   width: 100%;
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+  background: var(--zone-spectrum);
   outline: none;
   margin: 0;
 }
@@ -644,7 +673,7 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .spectrum-slider::-moz-range-track {
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4));
+  background: var(--zone-spectrum);
 }
 
 /* ── Rispetto di prefers-reduced-motion (roadmap v2, pilastro 01 punto 4):

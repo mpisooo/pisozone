@@ -42,8 +42,7 @@ export function getZoneByPercent(pct: number): ZoneDefinition {
   return ZONES[0]
 }
 
-// Unica fonte del gradiente "spettro": qualunque componente lo riusi (barra,
-// anello, glow) resta visivamente identico. Rispecchia la classe CSS
-// .zone-spectrum in index.css.
-export const ZONE_SPECTRUM_GRADIENT =
-  'linear-gradient(90deg, var(--zone-1), var(--zone-2) 40%, var(--zone-3) 70%, var(--zone-4))'
+// Il gradiente "spettro" vive come token CSS (--zone-spectrum in index.css,
+// sezione Design tokens): qui si punta a quel token invece di ripeterne i
+// valori, così resta UNA sola fonte anche per chi lo usa in JS/inline style.
+export const ZONE_SPECTRUM_GRADIENT = 'var(--zone-spectrum)'
