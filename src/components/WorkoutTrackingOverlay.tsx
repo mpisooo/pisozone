@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { Loader2, AlertTriangle, Pause, Play, Square } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
+import { computeRecentSpeedKmh, formatPaceClock } from '../lib/gps'
+import { zoneForSpeed } from '../lib/zones'
 import { saveActivityRoute } from '../lib/activityRoutes'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
@@ -37,10 +39,7 @@ function formatElapsed(ms: number): string {
 
 function formatPace(paceMinPerKm: number | null): string {
   if (paceMinPerKm == null || !Number.isFinite(paceMinPerKm) || paceMinPerKm <= 0) return '--:--'
-  const totalSeconds = Math.round(paceMinPerKm * 60)
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${m}:${String(s).padStart(2, '0')} /km`
+  return `${formatPaceClock(paceMinPerKm)} /km`
 }
 
 function formatSpeed(speedKmh: number): string {
@@ -67,6 +66,14 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
 
   const relockTimerRef = useRef<number | null>(null)
   const startedRef = useRef(false)
+
+  // Zone Live (roadmap v3, pilastro 01 punto 6): la zona di intensità della
+  // velocità recente tinge la schermata — il linguaggio delle 4 zone applicato
+  // al momento in cui lo sforzo accade, non solo alle statistiche a posteriori.
+  const liveZone = useMemo(
+    () => zoneForSpeed(activityType, computeRecentSpeedKmh(points)),
+    [activityType, points],
+  )
 
   useEffect(() => {
     if (startedRef.current) return
@@ -221,6 +228,21 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     // status === 'tracking' | 'paused'
     content = (
       <div className="flex-1 flex flex-col min-h-0" style={{ ...safeTop, ...safeBottom }}>
+        {/* Bagliore Zone Live: solo durante il tracciamento attivo (in pausa i
+            campioni si fermano e la zona resterebbe congelata su un dato vecchio).
+            zIndex -1: sotto il contenuto ma sopra lo sfondo del portale (che è
+            uno stacking context grazie a z-50). */}
+        {status === 'tracking' && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              zIndex: -1,
+              background: `radial-gradient(circle at 50% 16%, color-mix(in srgb, ${liveZone.cssVar} 26%, transparent), transparent 62%)`,
+              transition: 'background 0.8s ease',
+            }}
+          />
+        )}
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-5 min-h-0">
           {points.length >= 2 && <RouteShape points={points} width={260} height={140} />}
 
@@ -231,6 +253,18 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
                 style={{ background: 'rgba(var(--accent-rgb),0.15)', color: 'var(--red)' }}
               >
                 {log.tracking.pausedBadge}
+              </span>
+            )}
+            {status === 'tracking' && points.length >= 2 && (
+              <span
+                className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+                style={{
+                  background: `color-mix(in srgb, ${liveZone.cssVar} 16%, transparent)`,
+                  color: liveZone.cssVar,
+                  transition: 'background 0.5s ease, color 0.5s ease',
+                }}
+              >
+                {log.tracking.zoneLive(liveZone.label)}
               </span>
             )}
             {weakSignal && status === 'tracking' && (

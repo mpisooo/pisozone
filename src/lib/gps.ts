@@ -150,6 +150,27 @@ export function computeSplits(points: TrackedPoint[]): KmSplit[] {
   return splits
 }
 
+// Velocità sugli ultimi `windowMs` di campioni, riferita al timestamp
+// dell'ultimo punto: la velocità istantanea tra due soli campioni (5s) salta
+// troppo per pilotare la zona live del tracciamento, questa media su una
+// finestra breve è stabile ma reagisce comunque in mezzo minuto.
+export function computeRecentSpeedKmh(points: TrackedPoint[], windowMs = 30000): number {
+  const clean = dropNonIncreasingTimestamps(points)
+  if (clean.length < 2) return 0
+  const endT = clean[clean.length - 1].t
+  const cutoff = endT - windowMs
+  let startIdx = clean.length - 1
+  while (startIdx > 0 && clean[startIdx - 1].t >= cutoff) startIdx--
+  // Con un solo campione nella finestra si ripiega sull'ultimo segmento.
+  if (startIdx === clean.length - 1) startIdx = clean.length - 2
+  let distM = 0
+  for (let i = startIdx + 1; i < clean.length; i++) {
+    distM += haversineMeters(clean[i - 1], clean[i])
+  }
+  const dtSeconds = (endT - clean[startIdx].t) / 1000
+  return dtSeconds > 0 ? (distM / dtSeconds) * 3.6 : 0
+}
+
 // Passo in formato "orologio" ("5:23"): l'unità (/km) la mette chi lo mostra.
 // Unica scrittura per split, share card e recap, così il formato non diverge.
 export function formatPaceClock(paceMinPerKm: number): string {

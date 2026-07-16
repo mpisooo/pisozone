@@ -1,5 +1,5 @@
 import type { ActivityType } from '../types'
-import { MET } from './constants'
+import { MET, metForSpeed, type GpsTrackableType } from './constants'
 
 export type ZoneId = 1 | 2 | 3 | 4
 
@@ -40,6 +40,15 @@ export function getZoneByPercent(pct: number): ZoneDefinition {
   if (pct >= 70) return ZONES[2]
   if (pct >= 35) return ZONES[1]
   return ZONES[0]
+}
+
+// Zona "live" durante il tracciamento GPS (roadmap v3, pilastro 01 punto 6):
+// stessa scala a 4 zone, ma con il MET derivato dalla velocità corrente (la
+// tabella per fascia di calcCaloriesFromSpeed) invece che fisso per sport.
+// Da fermi o senza una velocità valida si è in Recupero: nessuno sforzo.
+export function zoneForSpeed(type: GpsTrackableType, speedKmh: number): ZoneDefinition {
+  if (!Number.isFinite(speedKmh) || speedKmh <= 0) return ZONES[0]
+  return getZoneByMet(metForSpeed(type, speedKmh))
 }
 
 // Il gradiente "spettro" vive come token CSS (--zone-spectrum in index.css,

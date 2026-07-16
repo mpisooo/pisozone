@@ -142,7 +142,9 @@ const SPEED_MET_TABLE: Record<GpsTrackableType, { maxKmh: number; met: number }[
   ],
 }
 
-function metForSpeed(type: GpsTrackableType, avgSpeedKmh: number): number {
+// Esportata anche per la zona "live" del tracciamento (zoneForSpeed in
+// lib/zones.ts): stessa tabella, così zona e calorie raccontano lo stesso sforzo.
+export function metForSpeed(type: GpsTrackableType, avgSpeedKmh: number): number {
   const table = SPEED_MET_TABLE[type]
   return (table.find((bracket) => avgSpeedKmh <= bracket.maxKmh) ?? table[table.length - 1]).met
 }

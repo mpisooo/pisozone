@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ZONES, getZoneByMet, getZoneForActivity, getZoneByPercent } from './zones'
+import { ZONES, getZoneByMet, getZoneForActivity, getZoneByPercent, zoneForSpeed } from './zones'
 import { MET } from './constants'
 import type { ActivityType } from '../types'
 
@@ -41,6 +41,24 @@ describe('getZoneForActivity', () => {
       expect(z.id).toBeGreaterThanOrEqual(1)
       expect(z.id).toBeLessThanOrEqual(4)
     }
+  })
+})
+
+describe('zoneForSpeed', () => {
+  it('da fermi o con velocità non valida si è in Recupero', () => {
+    expect(zoneForSpeed('corsa', 0).id).toBe(1)
+    expect(zoneForSpeed('corsa', -1).id).toBe(1)
+    expect(zoneForSpeed('corsa', NaN).id).toBe(1)
+  })
+  it('la camminata lenta resta in Recupero, la corsa veloce va in Picco', () => {
+    expect(zoneForSpeed('camminata', 4).id).toBe(1) // MET 2.8
+    expect(zoneForSpeed('corsa', 12).id).toBe(4) // MET 10.5
+  })
+  it('le fasce intermedie seguono la tabella velocità→MET', () => {
+    expect(zoneForSpeed('bici', 15).id).toBe(2) // MET 4.0
+    expect(zoneForSpeed('bici', 21).id).toBe(3) // MET 8.0
+    expect(zoneForSpeed('corsa', 7).id).toBe(2) // MET 6.0
+    expect(zoneForSpeed('trekking', 5).id).toBe(2) // MET 6.0
   })
 })
 

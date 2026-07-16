@@ -1,5 +1,36 @@
 import { describe, it, expect } from 'vitest'
-import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, computeElevationProfile, projectToViewBox, formatPaceClock, type TrackedPoint } from './gps'
+import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, computeElevationProfile, projectToViewBox, formatPaceClock, computeRecentSpeedKmh, type TrackedPoint } from './gps'
+
+describe('computeRecentSpeedKmh', () => {
+  // ~0.001° di latitudine ≈ 111 m
+  const p = (lat: number, tSec: number): TrackedPoint => ({ lat, lng: 9, t: tSec * 1000 })
+
+  it('con meno di 2 punti la velocità è zero', () => {
+    expect(computeRecentSpeedKmh([])).toBe(0)
+    expect(computeRecentSpeedKmh([p(45, 0)])).toBe(0)
+  })
+
+  it('media la velocità sui campioni dentro la finestra', () => {
+    // 111 m ogni 30 s → ~13,3 km/h costanti
+    const points = [p(45, 0), p(45.001, 30), p(45.002, 60), p(45.003, 90)]
+    const speed = computeRecentSpeedKmh(points, 60000)
+    expect(speed).toBeGreaterThan(12.5)
+    expect(speed).toBeLessThan(14)
+  })
+
+  it('ignora i campioni più vecchi della finestra', () => {
+    // Prima metà veloce, poi fermo: la finestra breve vede solo il fermo
+    const points = [p(45, 0), p(45.005, 60), p(45.005, 90), p(45.005, 120)]
+    expect(computeRecentSpeedKmh(points, 30000)).toBeCloseTo(0, 3)
+  })
+
+  it('con un solo campione in finestra ripiega sull\'ultimo segmento', () => {
+    const points = [p(45, 0), p(45.001, 300)]
+    const speed = computeRecentSpeedKmh(points, 10000)
+    expect(speed).toBeGreaterThan(1)
+    expect(speed).toBeLessThan(2)
+  })
+})
 
 describe('formatPaceClock', () => {
   it('formatta il passo come minuti:secondi', () => {

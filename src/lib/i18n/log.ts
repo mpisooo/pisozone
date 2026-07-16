@@ -157,6 +157,9 @@ const log = {
     retry: 'Riprova',
     discard: 'Scarta',
     pausedBadge: 'In pausa',
+    // Zone Live: il badge con la zona di intensità della velocità recente
+    // (l'etichetta — Recupero, Moderata... — è un dato di dominio di lib/zones).
+    zoneLive: (label: string) => `Zona ${label}`,
     weakSignal: 'Segnale GPS debole',
     kmUnit: 'km',
     avgSpeedLabel: 'velocità media',
