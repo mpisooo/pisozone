@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
@@ -23,6 +23,12 @@ import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
 import { computeSplits, computeElevationProfile, type TrackedPoint } from '../lib/gps'
 import ElevationProfileChart from './ElevationProfileChart'
+
+// Mappa reale caricata pigra: Leaflet pesa ~150 kB e serve solo quando si
+// apre un'attività GPS — senza key (o senza rete: le tile non arriverebbero
+// e il chunk potrebbe non scaricarsi) si ripiega sulla sagoma RouteShape.
+const RouteMap = lazy(() => import('./RouteMap'))
+const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY
 import type { Activity, ActivityType } from '../types'
 
 // Passo di uno split come "5:23" (l'unità è nel titolo della sezione).
@@ -382,7 +388,13 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
         {activity.gps_tracked && routePoints.length >= 2 && (
           <div className="card space-y-2">
             <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.routeTitle}</h2>
-            <RouteShape points={routePoints} width={280} height={140} />
+            {MAPTILER_KEY && navigator.onLine ? (
+              <Suspense fallback={<div className="skeleton rounded-xl" style={{ height: 192 }} />}>
+                <RouteMap points={routePoints} />
+              </Suspense>
+            ) : (
+              <RouteShape points={routePoints} width={280} height={140} />
+            )}
             {showSplits && (
               <div className="pt-1 space-y-1.5">
                 <p className="text-[10px] text-gray-500 uppercase tracking-wide">{log.splits.title}</p>

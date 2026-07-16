@@ -185,6 +185,10 @@ const log = {
 
   routeShapeAriaLabel: 'Sagoma del percorso registrato',
 
+  map: {
+    ariaLabel: 'Mappa del percorso registrato',
+  },
+
   // Split per km sotto la sagoma del percorso (ActivityEditModal): compaiono
   // solo se il percorso ha almeno un km completo. L'ultimo tratto sotto il km
   // mostra la sua distanza reale al posto del numero progressivo.

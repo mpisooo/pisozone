@@ -24,6 +24,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   if (event.request.url.includes('supabase.co')) return
+  // Tile della mappa: pesanti, tante e opache (cross-origin) — metterle in
+  // cache gonfierebbe la quota storage senza beneficio, le gestisce Leaflet.
+  if (event.request.url.includes('api.maptiler.com')) return
 
   event.respondWith(
     fetch(event.request)

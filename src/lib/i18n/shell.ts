@@ -91,9 +91,14 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
+        icon: '🗺️',
+        title: 'Il percorso su una vera mappa',
+        text: 'Apri un\'attività GPS dal Calendario: il tracciato ora è disegnato su una mappa reale, anche per gli allenamenti già registrati.',
+      },
+      {
         icon: '⏱️',
         title: 'Passo per ogni chilometro',
-        text: 'Apri un\'attività tracciata col GPS dal Calendario: sotto il percorso trovi il passo km per km, per vedere dove hai spinto di più. Vale anche per gli allenamenti già registrati.',
+        text: 'Sotto la mappa trovi il passo km per km, per vedere dove hai spinto di più. Anche questo vale per i percorsi già registrati.',
       },
       {
         icon: '⛰️',

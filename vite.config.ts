@@ -47,6 +47,9 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-recharts'
+          // Leaflet è già caricato pigro (React.lazy in ActivityEditModal):
+          // il chunk dedicato lo tiene stabile in cache tra i deploy.
+          if (id.includes('node_modules/leaflet')) return 'vendor-leaflet'
         },
       },
     },
@@ -60,5 +63,6 @@ export default defineConfig({
     'import.meta.env.VITE_SUPABASE_URL': JSON.stringify((process.env.VITE_SUPABASE_URL ?? '').trim()),
     'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify((process.env.VITE_SUPABASE_ANON_KEY ?? '').trim()),
     'import.meta.env.VITE_SENTRY_DSN': JSON.stringify((process.env.VITE_SENTRY_DSN ?? '').trim()),
+    'import.meta.env.VITE_MAPTILER_KEY': JSON.stringify((process.env.VITE_MAPTILER_KEY ?? '').trim()),
   },
 })
