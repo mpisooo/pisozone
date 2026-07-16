@@ -81,6 +81,15 @@ const stats = {
     weightValue: (kg: number) => `${kg.toLocaleString('it-IT')} kg`,
   },
 
+  // Progressione carichi: il grafico per esercizio dal log palestra (v32).
+  progression: {
+    heading: 'PROGRESSIONE CARICHI',
+    subtitle: 'Il carico massimo di ogni giornata, sessione dopo sessione',
+    chartAriaLabel: 'Grafico della progressione del carico per l\'esercizio selezionato',
+    pointValue: (kg: number) => `${kg.toLocaleString('it-IT')} kg`,
+    delta: (kg: number) => `${kg > 0 ? '+' : ''}${kg.toLocaleString('it-IT')} kg dalla prima giornata`,
+  },
+
   records: {
     heading: 'RECORD PERSONALI',
     longestSession: 'Sessione più lunga',

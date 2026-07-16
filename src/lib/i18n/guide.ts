@@ -37,6 +37,7 @@ const guide = {
         'Quando registri una sessione di palestra puoi segnare gli esercizi con serie × ripetizioni × carico (lascia il peso vuoto per il corpo libero).',
         'I nomi degli esercizi ti vengono suggeriti da quelli già usati: scrivere sempre lo stesso nome rende affidabili i record.',
         'Se superi il tuo carico massimo su un esercizio, l\'app te lo annuncia al salvataggio. Tutti i massimali sono nella card "Record palestra" in Statistiche.',
+        'Dalla seconda giornata su uno stesso esercizio, in Statistiche compare anche "Progressione carichi": il grafico del tuo massimo giornata per giornata, esercizio per esercizio.',
       ],
     },
     {

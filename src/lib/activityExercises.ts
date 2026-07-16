@@ -59,15 +59,38 @@ export async function fetchActivityExercises(
   return { rows: (data ?? []) as ExerciseSet[], error: null }
 }
 
-// Storico completo dell'utente, solo le colonne che servono a PR/suggerimenti/
-// record. Tollerante pre-migrazione: tabella assente = storico vuoto.
+// Riga dello storico esercizi: le colonne che servono a PR/suggerimenti/
+// record, più la data dell'attività (dal join su activities) per la
+// progressione carichi. `date` resta opzionale: le righe aggiunte in locale
+// dopo un salvataggio (appendLocal) e ogni riga senza join non la portano.
+export interface ExerciseHistoryRow {
+  exercise: string
+  weight_kg: number | null
+  date?: string
+}
+
+// Storico completo dell'utente. Tollerante pre-migrazione: tabella assente =
+// storico vuoto. exercise_sets non ha una data propria: la si prende
+// dall'attività madre (FK activity_id), che è la data vera dell'allenamento
+// anche quando è stato registrato a posteriori.
 export async function fetchExerciseHistory(
   userId: string,
-): Promise<{ rows: Pick<ExerciseSet, 'exercise' | 'weight_kg'>[]; error: Error | null }> {
+): Promise<{ rows: ExerciseHistoryRow[]; error: Error | null }> {
   const { data, error } = await supabase
     .from('exercise_sets')
-    .select('exercise, weight_kg')
+    .select('exercise, weight_kg, activities(date)')
     .eq('user_id', userId)
   if (error) return { rows: [], error }
-  return { rows: (data ?? []) as Pick<ExerciseSet, 'exercise' | 'weight_kg'>[], error: null }
+  // La relazione è molti-a-uno: a runtime PostgREST restituisce un oggetto,
+  // ma senza tipi generati il client la inferisce come array — si accettano
+  // entrambe le forme invece di fidarsi di una sola.
+  type Fetched = Pick<ExerciseSet, 'exercise' | 'weight_kg'> & {
+    activities: { date: string } | { date: string }[] | null
+  }
+  const rows = ((data ?? []) as unknown as Fetched[]).map((r) => ({
+    exercise: r.exercise,
+    weight_kg: r.weight_kg,
+    date: Array.isArray(r.activities) ? r.activities[0]?.date : r.activities?.date,
+  }))
+  return { rows, error: null }
 }

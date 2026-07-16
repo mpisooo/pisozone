@@ -10,6 +10,8 @@ import {
   buildPrMap,
   detectNewPrs,
   buildGymRecords,
+  buildExerciseProgression,
+  progressionExercises,
   exerciseSuggestions,
   SETS_MAX,
   REPS_MAX,
@@ -187,6 +189,52 @@ describe('buildGymRecords', () => {
       { exercise: 'Squat', weightKg: 100 },
       { exercise: 'Panca piana', weightKg: 80 },
     ])
+  })
+})
+
+describe('buildExerciseProgression', () => {
+  const rows = [
+    { exercise: 'Panca piana', weight_kg: 60, date: '2026-06-01T10:00:00' },
+    { exercise: 'panca piana', weight_kg: 70, date: '2026-06-01T18:00:00' }, // stesso giorno: vince il max
+    { exercise: 'Panca Piana', weight_kg: 65, date: '2026-06-08T10:00:00' },
+    { exercise: 'Squat', weight_kg: 100, date: '2026-06-01T10:00:00' }, // altro esercizio
+    { exercise: 'Panca piana', weight_kg: null, date: '2026-06-15T10:00:00' }, // corpo libero: fuori
+    { exercise: 'Panca piana', weight_kg: 80 }, // senza data: fuori
+  ]
+
+  it('un punto per giornata col massimo del giorno, in ordine cronologico', () => {
+    expect(buildExerciseProgression(rows, 'panca PIANA')).toEqual([
+      { date: '2026-06-01', weightKg: 70 },
+      { date: '2026-06-08', weightKg: 65 },
+    ])
+  })
+
+  it('esercizio sconosciuto o vuoto = serie vuota', () => {
+    expect(buildExerciseProgression(rows, 'Stacco')).toEqual([])
+    expect(buildExerciseProgression(rows, '  ')).toEqual([])
+  })
+})
+
+describe('progressionExercises', () => {
+  it('propone solo esercizi con almeno 2 giornate con carico, dal più allenato', () => {
+    const rows = [
+      { exercise: 'Panca piana', weight_kg: 60, date: '2026-06-01T10:00:00' },
+      { exercise: 'panca piana', weight_kg: 65, date: '2026-06-08T10:00:00' },
+      { exercise: 'Panca piana', weight_kg: 70, date: '2026-06-15T10:00:00' },
+      { exercise: 'Squat', weight_kg: 100, date: '2026-06-01T10:00:00' },
+      { exercise: 'Squat', weight_kg: 105, date: '2026-06-08T10:00:00' },
+      { exercise: 'Stacco', weight_kg: 120, date: '2026-06-01T10:00:00' }, // una sola giornata
+      { exercise: 'Trazioni', weight_kg: null, date: '2026-06-01T10:00:00' }, // corpo libero
+    ]
+    expect(progressionExercises(rows)).toEqual(['Panca piana', 'Squat'])
+  })
+
+  it('due sessioni nello stesso giorno contano come una giornata', () => {
+    const rows = [
+      { exercise: 'Squat', weight_kg: 100, date: '2026-06-01T10:00:00' },
+      { exercise: 'Squat', weight_kg: 105, date: '2026-06-01T18:00:00' },
+    ]
+    expect(progressionExercises(rows)).toEqual([])
   })
 })
 

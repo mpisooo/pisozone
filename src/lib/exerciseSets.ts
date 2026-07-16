@@ -179,6 +179,57 @@ export function buildGymRecords(rows: HistoryRow[]): GymRecord[] {
   return [...best.values()].sort((a, b) => b.weightKg - a.weightKg)
 }
 
+// — Progressione carichi (roadmap v3, pilastro 01 punto 4) —
+
+type DatedHistoryRow = { exercise: string; weight_kg: number | null; date?: string }
+
+export interface ProgressionPoint {
+  date: string // yyyy-MM-dd
+  weightKg: number
+}
+
+// Serie della progressione per un esercizio: il carico massimo di ogni
+// giornata di allenamento (chiave = nome normalizzato, come per i PR), in
+// ordine cronologico. Le righe senza data o senza carico non contribuiscono.
+export function buildExerciseProgression(rows: DatedHistoryRow[], exercise: string): ProgressionPoint[] {
+  const key = normalizeExerciseName(exercise)
+  if (key === '') return []
+  const bestByDay = new Map<string, number>()
+  for (const row of rows) {
+    if (row.weight_kg == null || row.date == null) continue
+    if (normalizeExerciseName(row.exercise) !== key) continue
+    const w = Number(row.weight_kg)
+    if (!Number.isFinite(w) || w <= 0) continue
+    const day = row.date.slice(0, 10)
+    if (w > (bestByDay.get(day) ?? 0)) bestByDay.set(day, w)
+  }
+  return [...bestByDay.entries()]
+    .map(([date, weightKg]) => ({ date, weightKg }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+}
+
+// Esercizi con una progressione da mostrare (almeno 2 giornate con carico),
+// dal più allenato: i chip del selettore nella card di Statistiche. Il nome
+// mostrato è quello della prima riga incontrata, ripulito.
+export function progressionExercises(rows: DatedHistoryRow[], max = 8): string[] {
+  const byKey = new Map<string, { name: string; days: Set<string> }>()
+  for (const row of rows) {
+    if (row.weight_kg == null || row.date == null) continue
+    const key = normalizeExerciseName(row.exercise)
+    if (key === '') continue
+    const w = Number(row.weight_kg)
+    if (!Number.isFinite(w) || w <= 0) continue
+    const entry = byKey.get(key) ?? { name: cleanExerciseName(row.exercise), days: new Set<string>() }
+    entry.days.add(row.date.slice(0, 10))
+    byKey.set(key, entry)
+  }
+  return [...byKey.values()]
+    .filter((e) => e.days.size >= 2)
+    .sort((a, b) => b.days.size - a.days.size || a.name.localeCompare(b.name))
+    .slice(0, max)
+    .map((e) => e.name)
+}
+
 // Nomi già usati, dal più frequente, per la <datalist> dell'editor: aiuta a
 // scrivere sempre lo stesso nome, che è ciò che rende i PR affidabili.
 export function exerciseSuggestions(rows: { exercise: string }[], max = 12): string[] {

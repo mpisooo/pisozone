@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
 import { useWeightLogs } from '../hooks/useWeightLogs'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
-import { buildGymRecords } from '../lib/exerciseSets'
+import { buildGymRecords, buildExerciseProgression, progressionExercises } from '../lib/exerciseSets'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
@@ -26,6 +26,7 @@ import AnalisiTabs from '../components/AnalisiTabs'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import InsightsCard from '../components/InsightsCard'
+import ExerciseProgressionChart from '../components/ExerciseProgressionChart'
 import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
 import wrappedText from '../lib/i18n/wrapped'
@@ -184,6 +185,18 @@ export default function StatsPage() {
   // v32) — non segue il filtro periodo, un PR è per definizione all-time
   const { rows: exerciseHistory } = useExerciseHistory(true)
   const gymRecords = useMemo(() => buildGymRecords(exerciseHistory), [exerciseHistory])
+
+  // Progressione carichi (roadmap v3, pilastro 01): serie del massimo per
+  // giornata dell'esercizio scelto — i candidati hanno almeno 2 giornate.
+  const progressionOptions = useMemo(() => progressionExercises(exerciseHistory), [exerciseHistory])
+  const [progressionPick, setProgressionPick] = useState<string | null>(null)
+  const selectedExercise = progressionPick && progressionOptions.includes(progressionPick)
+    ? progressionPick
+    : progressionOptions[0] ?? null
+  const progressionData = useMemo(
+    () => (selectedExercise ? buildExerciseProgression(exerciseHistory, selectedExercise) : []),
+    [exerciseHistory, selectedExercise],
+  )
 
   // Records
   const longestSession = filtered.reduce((best, a) => a.duration_min > (best?.duration_min ?? 0) ? a : best, null as Activity | null)
@@ -627,6 +640,38 @@ export default function StatsPage() {
               <p className="font-bebas text-xl text-[var(--red)] flex-shrink-0">{stats.gymRecords.weightValue(r.weightKg)}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Progressione carichi: massimo per giornata dell'esercizio scelto */}
+      {progressionData.length >= 2 && filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.progression.heading}</h2>
+          <p className="text-xs text-gray-400 mb-3">{stats.progression.subtitle}</p>
+          {progressionOptions.length > 1 && (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+              {progressionOptions.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setProgressionPick(name)}
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                    selectedExercise === name
+                      ? 'bg-[var(--red)] text-[white]'
+                      : 'bg-[var(--grey)] text-gray-400'
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
+          <ExerciseProgressionChart points={progressionData} />
+          <p className="text-xs text-gray-400 mt-2">
+            {stats.progression.delta(
+              Math.round((progressionData[progressionData.length - 1].weightKg - progressionData[0].weightKg) * 100) / 100,
+            )}
+          </p>
         </div>
       )}
 
