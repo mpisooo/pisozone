@@ -111,7 +111,7 @@ const stats = {
     titleNoDataInPeriod: 'Nessun dato qui',
     descriptionNoActivities: 'Registra la tua prima attività per vedere le statistiche prendere vita.',
     descriptionNoDataInPeriod: 'Non hai attività in questo periodo. Prova a cambiare filtro o registra un allenamento.',
-    ctaFirstActivity: '🏃 Prima attività',
+    ctaFirstActivity: 'Prima attività',
     ctaLogActivity: '+ Registra allenamento',
   },
 

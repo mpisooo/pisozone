@@ -27,6 +27,7 @@ import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import InsightsCard from '../components/InsightsCard'
 import ExerciseProgressionChart from '../components/ExerciseProgressionChart'
+import EmptyState from '../components/EmptyState'
 import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
 import wrappedText from '../lib/i18n/wrapped'
@@ -689,24 +690,16 @@ export default function StatsPage() {
       )}
 
       {filtered.length === 0 && (
-        <div className="card text-center py-10">
-          <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-6xl mx-auto mb-4"
-            style={{ background: 'rgba(45,212,191,0.12)' }}
-          >
-            {activities.length === 0 ? '🚀' : '🔍'}
-          </div>
-          <p className="font-bebas text-2xl text-white tracking-wider mb-1">
-            {activities.length === 0 ? stats.emptyState.titleNoActivities : stats.emptyState.titleNoDataInPeriod}
-          </p>
-          <p className="text-gray-500 text-sm mb-5 leading-relaxed">
-            {activities.length === 0
+        <div className="card py-10">
+          <EmptyState
+            icon={activities.length === 0 ? 'rocket' : 'magnifier'}
+            title={activities.length === 0 ? stats.emptyState.titleNoActivities : stats.emptyState.titleNoDataInPeriod}
+            hint={activities.length === 0
               ? stats.emptyState.descriptionNoActivities
               : stats.emptyState.descriptionNoDataInPeriod}
-          </p>
-          <button type="button" className="btn-primary px-6 py-2 text-sm" onClick={() => navigate('/log')}>
-            {activities.length === 0 ? stats.emptyState.ctaFirstActivity : stats.emptyState.ctaLogActivity}
-          </button>
+            cta={activities.length === 0 ? stats.emptyState.ctaFirstActivity : stats.emptyState.ctaLogActivity}
+            onCta={() => navigate('/log')}
+          />
         </div>
       )}
 

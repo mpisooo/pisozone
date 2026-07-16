@@ -24,6 +24,7 @@ import social from '../lib/i18n/social'
 import { ACTIVITY_OPTIONS, activityLabel } from '../lib/constants'
 import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
+import EmptyState from '../components/EmptyState'
 import PhotoLightbox from '../components/PhotoLightbox'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
@@ -1005,15 +1006,8 @@ export default function SocialPage() {
             {feedLoading ? (
               <div className="space-y-4">{[1, 2].map(i => <SkeletonCard key={i} lines={4} />)}</div>
             ) : feed.length === 0 ? (
-              <div className="card py-14 text-center">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
-                  style={{ background: 'rgba(251,146,60,0.12)' }}
-                >
-                  🏃
-                </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.feed.emptyTitle}</p>
-                <p className="text-sm text-gray-500">{social.feed.emptyHint}</p>
+              <div className="card py-14">
+                <EmptyState icon="bolt" title={social.feed.emptyTitle} hint={social.feed.emptyHint} />
               </div>
             ) : (
               feed.map(a => {
@@ -1163,21 +1157,12 @@ export default function SocialPage() {
             {lbLoading ? (
               <div className="space-y-3">{[1, 2, 3].map(i => <SkeletonRow key={i} />)}</div>
             ) : (lbScope === 'friends' ? lbEntries.length <= 1 : lbEntries.length === 0) ? (
-              <div className="card py-14 text-center">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
-                  style={{ background: 'rgba(250,204,21,0.12)' }}
-                >
-                  🏆
-                </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">
-                  {lbScope === 'friends' ? social.leaderboard.emptyFriendsTitle : social.leaderboard.emptyGlobalTitle}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {lbScope === 'friends'
-                    ? social.leaderboard.emptyFriendsHint
-                    : social.leaderboard.emptyGlobalHint}
-                </p>
+              <div className="card py-14">
+                <EmptyState
+                  icon="trophy"
+                  title={lbScope === 'friends' ? social.leaderboard.emptyFriendsTitle : social.leaderboard.emptyGlobalTitle}
+                  hint={lbScope === 'friends' ? social.leaderboard.emptyFriendsHint : social.leaderboard.emptyGlobalHint}
+                />
               </div>
             ) : (
               <div className="card">
@@ -1332,15 +1317,8 @@ export default function SocialPage() {
               {friendsLoading ? (
                 <div className="space-y-3">{[1, 2].map(i => <SkeletonRow key={i} />)}</div>
               ) : friends.length === 0 ? (
-                <div className="py-8 text-center">
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-4xl mx-auto mb-2"
-                    style={{ background: 'rgba(96,165,250,0.12)' }}
-                  >
-                    🤝
-                  </div>
-                  <p className="font-bebas text-xl text-white tracking-wider mb-1">{social.friends.emptyTitle}</p>
-                  <p className="text-gray-500 text-sm">{social.friends.emptyHint}</p>
+                <div className="py-8">
+                  <EmptyState icon="friends" compact title={social.friends.emptyTitle} hint={social.friends.emptyHint} />
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--grey)]">
@@ -1400,15 +1378,8 @@ export default function SocialPage() {
             {loadingConvs ? (
               <div className="space-y-2">{[1, 2, 3].map(i => <div key={i} className="p-2"><SkeletonRow avatarSize={48} lines={2} /></div>)}</div>
             ) : conversations.length === 0 ? (
-              <div className="card py-12 text-center">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
-                  style={{ background: 'rgba(56,189,248,0.12)' }}
-                >
-                  💬
-                </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.chat.emptyTitle}</p>
-                <p className="text-sm text-gray-500">{social.chat.emptyHint}</p>
+              <div className="card py-12">
+                <EmptyState icon="chat" title={social.chat.emptyTitle} hint={social.chat.emptyHint} />
               </div>
             ) : (
               <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
@@ -1458,15 +1429,8 @@ export default function SocialPage() {
             {groupsLoading ? (
               <div className="space-y-3">{[1, 2].map(i => <SkeletonCard key={i} lines={2} />)}</div>
             ) : groups.length === 0 ? (
-              <div className="card py-12 text-center">
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-5xl mx-auto mb-3"
-                  style={{ background: 'rgba(168,85,247,0.12)' }}
-                >
-                  👥
-                </div>
-                <p className="font-bebas text-2xl text-white tracking-wider mb-1">{social.groups.emptyTitle}</p>
-                <p className="text-sm text-gray-500">{social.groups.emptyHint}</p>
+              <div className="card py-12">
+                <EmptyState icon="group" title={social.groups.emptyTitle} hint={social.groups.emptyHint} />
               </div>
             ) : (
               <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
