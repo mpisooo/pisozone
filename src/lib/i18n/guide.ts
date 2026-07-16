@@ -120,7 +120,7 @@ const guide = {
       paragraphs: [
         'In Statistiche trovi "I tuoi insight": osservazioni che emergono dai tuoi dati — la settimana record, il giorno in cui ti alleni più spesso, il ritmo che cresce. Cambiano da soli man mano che ti alleni.',
         'PisoZone Wrapped è il riassunto del mese appena concluso (e dell\'anno, quando finisce) in stile storia: numeri, sport del periodo, record e spettro di intensità, slide dopo slide. Lo apri da Statistiche.',
-        'Ogni attività — e il Wrapped stesso — diventa un\'immagine da condividere: apri un\'attività dal Calendario e tocca l\'icona di condivisione in alto. La card con i tuoi numeri è pronta per la chat o le storie.',
+        'Ogni attività — e il Wrapped stesso — diventa un\'immagine da condividere: apri un\'attività dal Calendario e tocca l\'icona di condivisione in alto. La card con i tuoi numeri è pronta per la chat o le storie. Se l\'attività ha un percorso GPS, sulla card compaiono anche la sagoma del tracciato e le barre del passo per km.',
       ],
     },
     {

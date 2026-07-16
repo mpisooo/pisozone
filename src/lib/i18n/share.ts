@@ -19,6 +19,9 @@ const share = {
     time: 'Tempo totale',
     km: 'Chilometri',
     activeDays: 'Giorni attivi',
+    // Share card 2.0: kicker sopra le barre del passo per km (viene reso in
+    // maiuscolo dal canvas, qui resta leggibile).
+    splitsKicker: (pace: string) => `Passo per km — il più veloce ${pace}`,
     footer: 'pisozone-app.vercel.app',
   },
 } as const

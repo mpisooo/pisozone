@@ -21,7 +21,7 @@ import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
-import { computeSplits, computeElevationProfile, type TrackedPoint } from '../lib/gps'
+import { computeSplits, computeElevationProfile, formatPaceClock, type TrackedPoint } from '../lib/gps'
 import ElevationProfileChart from './ElevationProfileChart'
 
 // Mappa reale caricata pigra: Leaflet pesa ~150 kB e serve solo quando si
@@ -30,14 +30,6 @@ import ElevationProfileChart from './ElevationProfileChart'
 const RouteMap = lazy(() => import('./RouteMap'))
 const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY
 import type { Activity, ActivityType } from '../types'
-
-// Passo di uno split come "5:23" (l'unità è nel titolo della sezione).
-function formatSplitPace(paceMinPerKm: number): string {
-  const totalSeconds = Math.round(paceMinPerKm * 60)
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
-}
 
 type FormValues = {
   type: ActivityType
@@ -220,9 +212,13 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
   // Condivide l'attività com'è salvata (non le modifiche in bozza nel form):
   // la card riflette ciò che esiste, non ciò che si sta ancora scrivendo.
+  // Se c'è un percorso GPS, la card lo disegna con le barre del passo (2.0).
   const handleShareCard = async () => {
     setSharingCard(true)
-    const outcome = await shareCardImage(buildActivityShareData(activity), `pisozone-${activity.type}.png`)
+    const outcome = await shareCardImage(
+      buildActivityShareData(activity, { route: routePoints, splits }),
+      `pisozone-${activity.type}.png`,
+    )
     setSharingCard(false)
     if (outcome === 'failed') setErrorMsg(shareText.error)
     else if (outcome !== 'cancelled') haptic('success')
@@ -417,7 +413,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                       />
                     </div>
                     <span className="text-[11px] text-white tabular-nums w-10 text-right flex-shrink-0">
-                      {formatSplitPace(s.paceMinPerKm)}
+                      {formatPaceClock(s.paceMinPerKm)}
                     </span>
                   </div>
                 ))}

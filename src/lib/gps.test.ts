@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, computeElevationProfile, projectToViewBox, type TrackedPoint } from './gps'
+import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, computeElevationProfile, projectToViewBox, formatPaceClock, type TrackedPoint } from './gps'
+
+describe('formatPaceClock', () => {
+  it('formatta il passo come minuti:secondi', () => {
+    expect(formatPaceClock(5)).toBe('5:00')
+    expect(formatPaceClock(5.5)).toBe('5:30')
+    expect(formatPaceClock(4.3833)).toBe('4:23')
+  })
+
+  it('i secondi sotto la decina hanno lo zero davanti', () => {
+    expect(formatPaceClock(6.05)).toBe('6:03')
+  })
+})
 
 describe('haversineMeters', () => {
   it('calcola correttamente circa 1.11 km per 0.01° di latitudine', () => {

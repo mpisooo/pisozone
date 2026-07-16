@@ -1,9 +1,10 @@
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
-import type { Activity } from '../types'
+import type { Activity, RoutePoint } from '../types'
 import type { WrappedData } from './wrapped'
 import { activityLabel } from './constants'
 import { formatMinutesCompact } from './stats'
+import { projectToViewBox, formatPaceClock, type KmSplit } from './gps'
 import shareText from './i18n/share'
 
 // Card condivisibili come immagine (roadmap v2, pilastro 04): il layout è
@@ -38,6 +39,11 @@ export interface ShareCardData {
   subtitle: string
   stats: ShareStat[]
   footer: string
+  // Share card 2.0 (roadmap v3, pilastro 01): sagoma del percorso e passo per
+  // km delle attività GPS — quando presenti il layout cambia (statistiche su
+  // una riga sola per far posto a sagoma e barre).
+  route?: RoutePoint[]
+  splits?: KmSplit[]
 }
 
 function capitalize(s: string): string {
@@ -47,7 +53,13 @@ function capitalize(s: string): string {
 // — Builder puri (testati in shareCard.test.ts): dai dati di dominio al
 //   contenuto della card, senza toccare il DOM. —
 
-export function buildActivityShareData(activity: Activity): ShareCardData {
+// `gps` (share card 2.0): percorso e split dell'attività, se tracciata — la
+// card li disegna al posto della sola griglia di numeri. Il percorso entra
+// solo con almeno 2 punti (sotto non c'è una sagoma da mostrare).
+export function buildActivityShareData(
+  activity: Activity,
+  gps?: { route: RoutePoint[]; splits: KmSplit[] },
+): ShareCardData {
   const label = activityLabel(activity.type, activity.indoor)
   const stats: ShareStat[] = [
     { value: formatMinutesCompact(activity.duration_min), label: shareText.card.duration },
@@ -58,12 +70,14 @@ export function buildActivityShareData(activity: Activity): ShareCardData {
   if (activity.distance_km != null && activity.distance_km > 0) {
     stats.push({ value: `${activity.distance_km.toLocaleString('it-IT')} km`, label: shareText.card.distance })
   }
+  const hasRoute = (gps?.route.length ?? 0) >= 2
   return {
     kicker: shareText.card.activityKicker,
     title: label.toUpperCase(),
     subtitle: capitalize(format(parseISO(activity.date), 'EEEE d MMMM yyyy', { locale: it })),
     stats,
     footer: shareText.card.footer,
+    ...(hasRoute ? { route: gps!.route, splits: gps!.splits } : {}),
   }
 }
 
@@ -97,6 +111,65 @@ function fillRoundedRect(
   } else {
     ctx.fillRect(x, y, w, h)
   }
+}
+
+// Sagoma del percorso (share card 2.0): stessa proiezione di RouteShape
+// (projectToViewBox), tradotta nel box (x, y, w, h) del canvas. Stessa
+// convenzione dei punti: partenza piena tenue, arrivo cerchiato.
+function drawRouteShape(
+  ctx: CanvasRenderingContext2D,
+  route: RoutePoint[],
+  x: number, y: number, w: number, h: number,
+) {
+  const projected = projectToViewBox(route, w, h, 12)
+  ctx.beginPath()
+  projected.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(x + p.x, y + p.y)
+    else ctx.lineTo(x + p.x, y + p.y)
+  })
+  ctx.strokeStyle = ACCENT
+  ctx.lineWidth = 7
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  ctx.stroke()
+
+  const start = projected[0]
+  const end = projected[projected.length - 1]
+  ctx.beginPath()
+  ctx.arc(x + start.x, y + start.y, 9, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(244, 67, 82, 0.5)'
+  ctx.fill()
+  ctx.beginPath()
+  ctx.arc(x + end.x, y + end.y, 10, 0, Math.PI * 2)
+  ctx.fillStyle = TEXT
+  ctx.fill()
+  ctx.strokeStyle = ACCENT
+  ctx.lineWidth = 5
+  ctx.stroke()
+}
+
+// Barre del passo per km (share card 2.0): la controparte canvas delle barre
+// comparative di ActivityEditModal, ma verticali — lo split più veloce è la
+// barra piena, gli altri in proporzione; il tratto parziale è attenuato.
+function drawSplitBars(
+  ctx: CanvasRenderingContext2D,
+  splits: KmSplit[],
+  x: number, w: number,
+) {
+  const fastestPace = Math.min(...splits.map((s) => s.paceMinPerKm))
+  ctx.font = '600 26px "Inter", sans-serif'
+  ctx.fillStyle = MUTED
+  ctx.fillText(shareText.card.splitsKicker(formatPaceClock(fastestPace)).toUpperCase(), x, 1160)
+
+  const baseY = 1248
+  const maxH = 72
+  const gap = 8
+  const barWidth = Math.min(64, (w - gap * (splits.length - 1)) / splits.length)
+  splits.forEach((s, i) => {
+    const barH = Math.max(8, maxH * (fastestPace / s.paceMinPerKm))
+    ctx.fillStyle = s.partial ? 'rgba(244, 67, 82, 0.35)' : ACCENT
+    fillRoundedRect(ctx, x + i * (barWidth + gap), baseY - barH, barWidth, barH, 4)
+  })
 }
 
 async function ensureFonts(): Promise<void> {
@@ -166,18 +239,38 @@ export async function renderShareCard(data: ShareCardData): Promise<HTMLCanvasEl
   ctx.fillStyle = grad
   fillRoundedRect(ctx, MARGIN, 600, barW, 10, 5)
 
-  // Statistiche in griglia a 2 colonne
-  const colW = (CARD_W - MARGIN * 2) / 2
-  data.stats.slice(0, 4).forEach((stat, i) => {
-    const x = MARGIN + (i % 2) * colW
-    const y = 790 + Math.floor(i / 2) * 235
-    ctx.font = '96px "Bebas Neue", sans-serif'
-    ctx.fillStyle = TEXT
-    ctx.fillText(stat.value, x, y)
-    ctx.font = '600 28px "Inter", sans-serif'
-    ctx.fillStyle = MUTED
-    ctx.fillText(stat.label.toUpperCase(), x, y + 48)
-  })
+  if (data.route && data.route.length >= 2) {
+    // Share card 2.0: statistiche compresse su una riga per lasciare il
+    // centro della card alla sagoma del percorso (e alle barre del passo).
+    const splits = data.splits ?? []
+    const showSplits = splits.some((s) => !s.partial)
+    const statColW = barW / 3
+    data.stats.slice(0, 3).forEach((stat, i) => {
+      const x = MARGIN + i * statColW
+      ctx.font = '84px "Bebas Neue", sans-serif'
+      ctx.fillStyle = TEXT
+      ctx.fillText(stat.value, x, 722)
+      ctx.font = '600 26px "Inter", sans-serif'
+      ctx.fillStyle = MUTED
+      ctx.fillText(stat.label.toUpperCase(), x, 768)
+    })
+
+    drawRouteShape(ctx, data.route, MARGIN, 806, barW, showSplits ? 300 : 386)
+    if (showSplits) drawSplitBars(ctx, splits, MARGIN, barW)
+  } else {
+    // Statistiche in griglia a 2 colonne
+    const colW = barW / 2
+    data.stats.slice(0, 4).forEach((stat, i) => {
+      const x = MARGIN + (i % 2) * colW
+      const y = 790 + Math.floor(i / 2) * 235
+      ctx.font = '96px "Bebas Neue", sans-serif'
+      ctx.fillStyle = TEXT
+      ctx.fillText(stat.value, x, y)
+      ctx.font = '600 28px "Inter", sans-serif'
+      ctx.fillStyle = MUTED
+      ctx.fillText(stat.label.toUpperCase(), x, y + 48)
+    })
+  }
 
   // Footer centrato
   ctx.font = '400 28px "Inter", sans-serif'

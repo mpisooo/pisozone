@@ -40,6 +40,28 @@ describe('buildActivityShareData', () => {
     expect(data.title).toBe('PALESTRA')
     expect(data.stats).toEqual([{ value: '45m', label: 'Durata' }])
   })
+
+  it('con un percorso GPS la card porta con sé sagoma e split (2.0)', () => {
+    const route = [
+      { lat: 45.0, lng: 9.0 },
+      { lat: 45.01, lng: 9.0 },
+    ]
+    const splits = [
+      { index: 1, distanceKm: 1, durationMs: 300000, paceMinPerKm: 5, partial: false },
+    ]
+    const data = buildActivityShareData(act('2026-07-12T09:30:00'), { route, splits })
+    expect(data.route).toEqual(route)
+    expect(data.splits).toEqual(splits)
+  })
+
+  it('con meno di 2 punti il percorso non entra nella card', () => {
+    const data = buildActivityShareData(act('2026-07-12T09:30:00'), {
+      route: [{ lat: 45.0, lng: 9.0 }],
+      splits: [],
+    })
+    expect(data.route).toBeUndefined()
+    expect(data.splits).toBeUndefined()
+  })
 })
 
 describe('buildWrappedShareData', () => {

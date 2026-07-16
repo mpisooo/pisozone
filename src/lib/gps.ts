@@ -150,6 +150,15 @@ export function computeSplits(points: TrackedPoint[]): KmSplit[] {
   return splits
 }
 
+// Passo in formato "orologio" ("5:23"): l'unità (/km) la mette chi lo mostra.
+// Unica scrittura per split, share card e recap, così il formato non diverge.
+export function formatPaceClock(paceMinPerKm: number): string {
+  const totalSeconds = Math.round(paceMinPerKm * 60)
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export interface ElevationSample {
   distKm: number
   altitudeM: number
