@@ -194,6 +194,16 @@ const log = {
     partialLabel: (km: string) => `${km} km`,
   },
 
+  // Profilo altimetrico (v42): compare solo se il percorso ha la quota salvata
+  // (allenamenti tracciati dopo la migrazione, su dispositivi che la forniscono).
+  elevation: {
+    title: 'Altimetria',
+    chartAriaLabel: 'Profilo altimetrico del percorso',
+    gain: (m: number) => `D+ ${m} m`,
+    loss: (m: number) => `D− ${m} m`,
+    range: (min: number, max: number) => `${min}–${max} m`,
+  },
+
   errors: {
     loadFailed: 'Errore nel caricamento delle attività. Riprova.',
     // Un'attività in coda offline che al momento della sincronizzazione viene

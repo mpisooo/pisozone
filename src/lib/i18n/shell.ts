@@ -95,6 +95,11 @@ const shell = {
         title: 'Passo per ogni chilometro',
         text: 'Apri un\'attività tracciata col GPS dal Calendario: sotto il percorso trovi il passo km per km, per vedere dove hai spinto di più. Vale anche per gli allenamenti già registrati.',
       },
+      {
+        icon: '⛰️',
+        title: 'Altimetria del percorso',
+        text: 'Per gli allenamenti GPS tracciati d\'ora in poi c\'è anche il profilo altimetrico con il dislivello in salita e in discesa (D+/D−).',
+      },
     ],
   },
   photoLightbox: {

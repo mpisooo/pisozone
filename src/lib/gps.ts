@@ -3,6 +3,9 @@ import type { RoutePoint } from '../types'
 export interface TrackedPoint extends RoutePoint {
   t: number
   accuracyM?: number | null
+  // Quota WGS84 in metri da coords.altitude (v42): null quando il dispositivo
+  // non la fornisce, undefined per i percorsi letti/registrati pre-migrazione.
+  altitudeM?: number | null
 }
 
 export interface RouteStats {
@@ -64,6 +67,20 @@ export function computeRouteStats(points: TrackedPoint[], elapsedMs: number): Ro
   return { distanceKm, avgSpeedKmh, currentSpeedKmh, paceMinPerKm }
 }
 
+// Stessa difesa di isPlausibleSample per i dati già persistiti: un campione
+// con timestamp non crescente non è un movimento reale e va ignorato (i punti
+// in activity_routes sono già filtrati alla registrazione, ma le funzioni che
+// li rileggono non devono fidarsi).
+function dropNonIncreasingTimestamps(points: TrackedPoint[]): TrackedPoint[] {
+  const clean: TrackedPoint[] = []
+  for (const p of points) {
+    const prev = clean[clean.length - 1]
+    if (prev && p.t <= prev.t) continue
+    clean.push(p)
+  }
+  return clean
+}
+
 export interface KmSplit {
   index: number // 1-based: "1° km", "2° km", ...
   distanceKm: number // 1 per gli split completi, < 1 per l'ultimo parziale
@@ -86,15 +103,7 @@ const MIN_PARTIAL_M = 50
 // (wall clock): un'eventuale pausa del tracciamento gonfia lo split in cui
 // cade, limite noto e accettato per i percorsi già registrati.
 export function computeSplits(points: TrackedPoint[]): KmSplit[] {
-  // Stessa difesa di isPlausibleSample: un campione con timestamp non
-  // crescente non è un movimento reale e va ignorato (i punti storici in
-  // activity_routes sono già filtrati, ma la funzione non deve fidarsi).
-  const clean: TrackedPoint[] = []
-  for (const p of points) {
-    const prev = clean[clean.length - 1]
-    if (prev && p.t <= prev.t) continue
-    clean.push(p)
-  }
+  const clean = dropNonIncreasingTimestamps(points)
   if (clean.length < 2) return []
 
   const splits: KmSplit[] = []
@@ -139,6 +148,83 @@ export function computeSplits(points: TrackedPoint[]): KmSplit[] {
   }
 
   return splits
+}
+
+export interface ElevationSample {
+  distKm: number
+  altitudeM: number
+}
+
+export interface ElevationProfile {
+  samples: ElevationSample[]
+  gainM: number // dislivello positivo (D+)
+  lossM: number // dislivello negativo (D−)
+  minM: number
+  maxM: number
+}
+
+// La quota GPS è rumorosa (±5-10 m sui telefoni senza barometro): senza
+// contromisure, sommare le differenze grezze inventerebbe decine di metri di
+// dislivello su un percorso piatto. Due difese classiche, entrambe necessarie:
+// media mobile per spianare i picchi isolati, isteresi per accumulare solo le
+// variazioni che superano una soglia rispetto all'ultima quota "consolidata".
+const ELEVATION_SMOOTH_WINDOW = 5
+const ELEVATION_HYSTERESIS_M = 3
+// Un profilo ha senso solo se l'altitudine c'è per buona parte del percorso:
+// pochi campioni sparsi (dispositivo che la fornisce a intermittenza) non
+// bastano a raccontare nulla e produrrebbero un grafico ingannevole.
+const MIN_ELEVATION_POINTS = 5
+const MIN_ELEVATION_COVERAGE = 0.5
+
+// Profilo altimetrico del percorso: quota (smussata) in funzione della
+// distanza percorsa, più dislivello D+/D− accumulato con isteresi. Ritorna
+// null se l'altitudine manca o è troppo sparsa — percorsi pre-v42, dispositivi
+// che non la forniscono — e la UI in quel caso non mostra la sezione.
+export function computeElevationProfile(points: TrackedPoint[]): ElevationProfile | null {
+  const clean = dropNonIncreasingTimestamps(points)
+  if (clean.length < 2) return null
+
+  // Distanza cumulativa calcolata su TUTTI i punti (la geometria del percorso
+  // non dipende da chi ha la quota), poi si tengono solo i campioni quotati.
+  const raw: ElevationSample[] = []
+  let distM = 0
+  for (let i = 0; i < clean.length; i++) {
+    if (i > 0) distM += haversineMeters(clean[i - 1], clean[i])
+    const alt = clean[i].altitudeM
+    if (alt != null && Number.isFinite(alt)) raw.push({ distKm: distM / 1000, altitudeM: alt })
+  }
+  if (raw.length < MIN_ELEVATION_POINTS || raw.length / clean.length < MIN_ELEVATION_COVERAGE) {
+    return null
+  }
+
+  // Media mobile centrata, finestra accorciata ai bordi.
+  const half = Math.floor(ELEVATION_SMOOTH_WINDOW / 2)
+  const samples: ElevationSample[] = raw.map((s, i) => {
+    const from = Math.max(0, i - half)
+    const to = Math.min(raw.length - 1, i + half)
+    let sum = 0
+    for (let j = from; j <= to; j++) sum += raw[j].altitudeM
+    return { distKm: s.distKm, altitudeM: sum / (to - from + 1) }
+  })
+
+  let gainM = 0
+  let lossM = 0
+  let refM = samples[0].altitudeM
+  let minM = samples[0].altitudeM
+  let maxM = samples[0].altitudeM
+  for (const s of samples) {
+    if (s.altitudeM - refM >= ELEVATION_HYSTERESIS_M) {
+      gainM += s.altitudeM - refM
+      refM = s.altitudeM
+    } else if (refM - s.altitudeM >= ELEVATION_HYSTERESIS_M) {
+      lossM += refM - s.altitudeM
+      refM = s.altitudeM
+    }
+    if (s.altitudeM < minM) minM = s.altitudeM
+    if (s.altitudeM > maxM) maxM = s.altitudeM
+  }
+
+  return { samples, gainM, lossM, minM, maxM }
 }
 
 // Proietta lat/lng in coordinate SVG per disegnare la sagoma del percorso

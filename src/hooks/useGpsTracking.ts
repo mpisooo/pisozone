@@ -102,6 +102,11 @@ export function useGpsTracking(type: GpsTrackableType) {
       lng: pos.coords.longitude,
       t: pos.timestamp,
       accuracyM: pos.coords.accuracy,
+      // Quota per l'altimetria (v42): null se il dispositivo non la fornisce.
+      // Si salva grezza; smoothing e isteresi anti-rumore stanno in lettura
+      // (computeElevationProfile), così i dati storici restano riutilizzabili
+      // se un giorno si cambia strategia di filtraggio.
+      altitudeM: pos.coords.altitude,
     }
     if (next.t - lastAcceptedAtRef.current < MIN_SAMPLE_INTERVAL_MS) return
     setPoints((prev) => {

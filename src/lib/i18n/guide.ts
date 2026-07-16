@@ -25,6 +25,7 @@ const guide = {
         'Per corsa, bici, camminata e trekking puoi avviare il tracciamento GPS dal pulsante nella scheda Registra: distanza, ritmo e calorie si misurano da soli, e il percorso viene salvato.',
         'Il tracciamento funziona a schermo acceso: l\'app tiene lo schermo attivo per te. I comandi sono protetti da uno "scorri per sbloccare", così i tocchi accidentali in tasca non fermano nulla.',
         'La sagoma del percorso la ritrovi aprendo l\'attività dal Calendario, insieme al passo per ogni chilometro: una barra per km mostra dove hai spinto di più (l\'ultimo tratto sotto il km è indicato con la sua distanza reale). Funziona anche per i percorsi registrati in passato.',
+        'Sotto al passo c\'è anche l\'altimetria: il profilo del percorso con il dislivello in salita (D+) e in discesa (D−). Vale per gli allenamenti tracciati d\'ora in poi, se il dispositivo fornisce la quota: i percorsi registrati in passato non ce l\'hanno salvata.',
       ],
     },
     {

@@ -21,7 +21,8 @@ import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
-import { computeSplits, type TrackedPoint } from '../lib/gps'
+import { computeSplits, computeElevationProfile, type TrackedPoint } from '../lib/gps'
+import ElevationProfileChart from './ElevationProfileChart'
 import type { Activity, ActivityType } from '../types'
 
 // Passo di uno split come "5:23" (l'unità è nel titolo della sezione).
@@ -103,6 +104,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const splits = useMemo(() => computeSplits(routePoints), [routePoints])
   const showSplits = splits.some((s) => !s.partial)
   const fastestPace = Math.min(...splits.map((s) => s.paceMinPerKm))
+  // Altimetria (v42): null per i percorsi senza quota (pre-migrazione o
+  // dispositivo che non la fornisce) — in quel caso la sezione non compare.
+  const elevation = useMemo(() => computeElevationProfile(routePoints), [routePoints])
 
   const newPhotoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -405,6 +409,21 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                     </span>
                   </div>
                 ))}
+              </div>
+            )}
+            {elevation && (
+              <div className="pt-1 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide">{log.elevation.title}</p>
+                  <p className="text-[10px] text-gray-400 tabular-nums">
+                    {log.elevation.gain(Math.round(elevation.gainM))}
+                    {' · '}
+                    {log.elevation.loss(Math.round(elevation.lossM))}
+                    {' · '}
+                    {log.elevation.range(Math.round(elevation.minM), Math.round(elevation.maxM))}
+                  </p>
+                </div>
+                <ElevationProfileChart samples={elevation.samples} width={280} height={72} />
               </div>
             )}
           </div>

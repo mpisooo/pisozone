@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, projectToViewBox, type TrackedPoint } from './gps'
+import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, computeElevationProfile, projectToViewBox, type TrackedPoint } from './gps'
 
 describe('haversineMeters', () => {
   it('calcola correttamente circa 1.11 km per 0.01° di latitudine', () => {
@@ -134,6 +134,77 @@ describe('computeSplits', () => {
     // se non filtrato, aggiungerebbe distanza inesistente agli split.
     withBogus.splice(5, 0, { lat: 45.02, lng: 9, t: clean[4].t })
     expect(computeSplits(withBogus)).toEqual(computeSplits(clean))
+  })
+})
+
+describe('computeElevationProfile', () => {
+  // Percorso lungo un meridiano (0.001° ≈ 111.3 m tra campioni) con le quote
+  // passate in lista: null = campione senza altitudine, come dal Geolocation API.
+  const routeWithAlts = (alts: (number | null)[]): TrackedPoint[] =>
+    alts.map((a, i) => ({ lat: 45 + i * 0.001, lng: 9, t: i * 30000, altitudeM: a }))
+
+  it('ritorna null senza quote (percorsi pre-v42 o dispositivo senza altitudine)', () => {
+    const noField: TrackedPoint[] = Array.from({ length: 10 }, (_, i) => ({ lat: 45 + i * 0.001, lng: 9, t: i * 30000 }))
+    expect(computeElevationProfile(noField)).toBeNull()
+    expect(computeElevationProfile(routeWithAlts(Array(10).fill(null)))).toBeNull()
+  })
+
+  it('ritorna null con quote troppo sparse per un profilo onesto', () => {
+    // 4 campioni quotati su 10: sotto il minimo assoluto
+    const few = Array(10).fill(null).map((_, i) => (i < 4 ? 100 + i : null))
+    expect(computeElevationProfile(routeWithAlts(few))).toBeNull()
+    // 8 su 20: sopra il minimo assoluto ma sotto la copertura del 50%
+    const sparse = Array(20).fill(null).map((_, i) => (i % 3 === 0 ? 100 + i : null))
+    expect(computeElevationProfile(routeWithAlts(sparse))).toBeNull()
+  })
+
+  it('su un percorso piatto il rumore sotto soglia non inventa dislivello', () => {
+    const profile = computeElevationProfile(routeWithAlts([100, 101, 100, 101, 100, 101, 100, 101, 100, 101]))
+    expect(profile).not.toBeNull()
+    expect(profile!.gainM).toBe(0)
+    expect(profile!.lossM).toBe(0)
+    expect(profile!.samples).toHaveLength(10)
+  })
+
+  it('una salita costante accumula il dislivello positivo, non quello negativo', () => {
+    // 100 → 150 a gradini di 5 m, con plateau iniziale/finale perché la media
+    // mobile non tagli le estremità
+    const profile = computeElevationProfile(
+      routeWithAlts([100, 100, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 150, 150]),
+    )!
+    expect(profile.gainM).toBeGreaterThan(45)
+    expect(profile.gainM).toBeLessThanOrEqual(50)
+    expect(profile.lossM).toBe(0)
+    expect(profile.minM).toBeCloseTo(100, 5)
+    expect(profile.maxM).toBeCloseTo(150, 5)
+  })
+
+  it('salita e discesa si accumulano separatamente (D+ e D−)', () => {
+    const profile = computeElevationProfile(
+      routeWithAlts([100, 100, 100, 110, 120, 130, 140, 140, 140, 140, 140, 130, 120, 110, 100, 90, 80, 80, 80, 80, 80]),
+    )!
+    expect(profile.gainM).toBeGreaterThan(36)
+    expect(profile.gainM).toBeLessThanOrEqual(40)
+    expect(profile.lossM).toBeGreaterThanOrEqual(54)
+    expect(profile.lossM).toBeLessThanOrEqual(60)
+    expect(profile.minM).toBeCloseTo(80, 5)
+    expect(profile.maxM).toBeCloseTo(140, 5)
+  })
+
+  it('un picco isolato viene smussato invece di contare come scalata', () => {
+    // +30 m su un solo campione: rumore GPS, non una salita vera
+    const alts = Array(15).fill(100)
+    alts[7] = 130
+    const profile = computeElevationProfile(routeWithAlts(alts))!
+    expect(profile.gainM).toBeLessThan(10)
+  })
+
+  it('le distanze dei campioni sono cumulative e coprono tutto il percorso', () => {
+    const profile = computeElevationProfile(routeWithAlts([100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150]))!
+    const dists = profile.samples.map((s) => s.distKm)
+    for (let i = 1; i < dists.length; i++) expect(dists[i]).toBeGreaterThan(dists[i - 1])
+    // 10 segmenti da ~111.2 m
+    expect(dists[dists.length - 1]).toBeCloseTo(1.11, 1)
   })
 })
 
