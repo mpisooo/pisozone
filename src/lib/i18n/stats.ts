@@ -106,7 +106,17 @@ const stats = {
     ctaLogActivity: '+ Registra allenamento',
   },
 
+  // Anno in pixel: un quadratino per giorno, colorato per zona di intensità.
+  yearPixels: {
+    heading: (year: number) => `IL TUO ${year} IN PIXEL`,
+    subtitle: 'Un quadratino per giorno: il colore è la zona di intensità dominante',
+    activeDays: (n: number) => n === 1 ? '1 giorno attivo' : `${n} giorni attivi`,
+    restLegend: 'Senza attività',
+    gridAriaLabel: (year: number) => `Griglia dei giorni attivi del ${year} per zona di intensità`,
+  },
+
   weekdayLabels: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+  monthInitials: ['G', 'F', 'M', 'A', 'M', 'G', 'L', 'A', 'S', 'O', 'N', 'D'],
 
   csv: {
     header: ['Data', 'Ora', 'Attività', 'Durata (min)', 'Calorie', 'Distanza (km)', 'Crediti', 'Note'],

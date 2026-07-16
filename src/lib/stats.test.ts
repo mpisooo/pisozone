@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
-  buildWeightTrainingSeries, buildZoneDistribution, activitiesToCsv,
+  buildWeightTrainingSeries, buildZoneDistribution, buildYearPixels, activitiesToCsv,
 } from './stats'
 import type { Activity, ActivityType, WeightLog } from '../types'
 
@@ -28,6 +28,62 @@ function mkAct(overrides: Partial<Activity> = {}): Activity {
 function mkWeight(logged_at: string, weight_kg: number): WeightLog {
   return { id: crypto.randomUUID(), user_id: 'user-1', logged_at, weight_kg }
 }
+
+describe('buildYearPixels', () => {
+  it('copre tutti i giorni dell\'anno, con caselle nulle solo ai bordi', () => {
+    const grid = buildYearPixels([], 2026, NOW)
+    const flat = grid.weeks.flat()
+    expect(flat.filter((p) => p != null)).toHaveLength(365)
+    // Il 1° gennaio 2026 è un giovedì: le prime 3 caselle (lun-mer) sono fuori anno
+    expect(grid.weeks[0].slice(0, 3)).toEqual([null, null, null])
+    expect(grid.weeks[0][3]?.date).toBe('2026-01-01')
+  })
+
+  it('la zona dominante del giorno è quella con più minuti', () => {
+    const acts = [
+      mkAct({ date: '2026-03-10T08:00:00', type: 'yoga', duration_min: 40 }), // zona 1
+      mkAct({ date: '2026-03-10T18:00:00', type: 'corsa', duration_min: 30 }), // zona 4
+    ]
+    const grid = buildYearPixels(acts, 2026, NOW)
+    const day = grid.weeks.flat().find((p) => p?.date === '2026-03-10')!
+    expect(day.zoneId).toBe(1)
+    expect(day.minutes).toBe(70)
+  })
+
+  it('a parità di minuti vince la zona più intensa', () => {
+    const acts = [
+      mkAct({ date: '2026-03-10T08:00:00', type: 'yoga', duration_min: 30 }),
+      mkAct({ date: '2026-03-10T18:00:00', type: 'corsa', duration_min: 30 }),
+    ]
+    const grid = buildYearPixels(acts, 2026, NOW)
+    expect(grid.weeks.flat().find((p) => p?.date === '2026-03-10')!.zoneId).toBe(4)
+  })
+
+  it('conta i giorni attivi e marca i giorni futuri', () => {
+    const acts = [
+      mkAct({ date: '2026-03-10T08:00:00' }),
+      mkAct({ date: '2026-03-10T18:00:00' }), // stesso giorno: conta una volta
+      mkAct({ date: '2026-05-01T08:00:00' }),
+      mkAct({ date: '2025-12-31T08:00:00' }), // anno precedente: fuori
+    ]
+    const grid = buildYearPixels(acts, 2026, NOW)
+    expect(grid.activeDays).toBe(2)
+    const future = grid.weeks.flat().find((p) => p?.date === '2026-12-25')!
+    expect(future.future).toBe(true)
+    expect(future.zoneId).toBeNull()
+    expect(grid.weeks.flat().find((p) => p?.date === '2026-07-07')!.future).toBe(false)
+  })
+
+  it('le iniziali dei mesi cadono sulla colonna del loro giorno 1', () => {
+    const grid = buildYearPixels([], 2026, NOW)
+    expect(grid.monthTicks).toHaveLength(12)
+    expect(grid.monthTicks[0]).toEqual({ label: 'G', weekIndex: 0 })
+    // Colonne strettamente crescenti: mai due mesi sulla stessa settimana
+    for (let i = 1; i < grid.monthTicks.length; i++) {
+      expect(grid.monthTicks[i].weekIndex).toBeGreaterThan(grid.monthTicks[i - 1].weekIndex)
+    }
+  })
+})
 
 describe('buildTrendSeries', () => {
   it('settimana: un bucket al giorno da lunedì a oggi, vuoti inclusi', () => {

@@ -113,6 +113,7 @@ const guide = {
       title: 'Statistiche e calendario',
       paragraphs: [
         'Nella sezione Analisi trovi il calendario con la heatmap dei giorni attivi e le statistiche: andamento nel tempo, spettro di intensità per zone, obiettivo vs reale, correlazione peso-allenamento e record personali.',
+        'La card "Il tuo anno in pixel" è l\'anno intero in un colpo d\'occhio: un quadratino per giorno, colorato con la zona di intensità dominante di quel giorno (blu → rosso). Più l\'anno si riempie, più racconta.',
         'Da lì puoi anche esportare le attività in CSV, pronto per Excel o Google Sheets.',
       ],
     },

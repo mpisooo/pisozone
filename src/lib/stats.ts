@@ -1,6 +1,6 @@
 import {
   eachDayOfInterval, eachMonthOfInterval, startOfDay, startOfWeek, startOfMonth,
-  startOfYear, subWeeks, parseISO, format, min as minDate,
+  startOfYear, subWeeks, parseISO, format, min as minDate, differenceInCalendarWeeks,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
 import type { Activity } from '../types'
@@ -203,6 +203,77 @@ export function buildZoneDistribution(activities: Activity[]): ZoneDistributionP
       pct: totalMinutes > 0 ? Math.round((minutes / totalMinutes) * 100) : 0,
     }
   })
+}
+
+// Anno in pixel (roadmap v3, pilastro 01 punto 3): un quadratino per giorno
+// dell'anno, colorato con la zona di intensità dominante di quel giorno (la
+// zona con più minuti; a parità vince la più intensa). Colonne = settimane
+// lun→dom, come le heatmap dei contributi.
+export interface YearPixel {
+  date: string // yyyy-MM-dd
+  zoneId: ZoneId | null // null = giorno senza attività
+  minutes: number
+  future: boolean
+}
+
+export interface YearPixelsGrid {
+  year: number
+  // Una colonna per settimana; null = casella fuori dall'anno (bordi).
+  weeks: (YearPixel | null)[][]
+  // Iniziale del mese → colonna in cui cade il suo giorno 1.
+  monthTicks: { label: string; weekIndex: number }[]
+  activeDays: number
+}
+
+export function buildYearPixels(
+  activities: Activity[],
+  year: number,
+  now: Date = new Date(),
+): YearPixelsGrid {
+  const minutesByDay = new Map<string, Map<ZoneId, number>>()
+  for (const a of activities) {
+    const d = parseISO(a.date)
+    if (d.getFullYear() !== year) continue
+    const key = format(d, 'yyyy-MM-dd')
+    const zones = minutesByDay.get(key) ?? new Map<ZoneId, number>()
+    const zone = getZoneForActivity(a.type)
+    zones.set(zone.id, (zones.get(zone.id) ?? 0) + a.duration_min)
+    minutesByDay.set(key, zones)
+  }
+
+  const first = new Date(year, 0, 1)
+  const last = new Date(year, 11, 31)
+  const firstWeekStart = startOfWeek(first, { weekStartsOn: 1 })
+  const totalWeeks = differenceInCalendarWeeks(last, firstWeekStart, { weekStartsOn: 1 }) + 1
+  const weeks: (YearPixel | null)[][] = Array.from({ length: totalWeeks }, () => new Array(7).fill(null))
+  const today = startOfDay(now)
+
+  let activeDays = 0
+  for (const day of eachDayOfInterval({ start: first, end: last })) {
+    const weekIndex = differenceInCalendarWeeks(day, firstWeekStart, { weekStartsOn: 1 })
+    const dayIndex = (day.getDay() + 6) % 7 // 0 = lunedì
+    const key = format(day, 'yyyy-MM-dd')
+    const zones = minutesByDay.get(key)
+    let zoneId: ZoneId | null = null
+    let minutes = 0
+    if (zones) {
+      for (const [id, min] of zones) {
+        minutes += min
+        if (zoneId === null || min > zones.get(zoneId)! || (min === zones.get(zoneId)! && id > zoneId)) {
+          zoneId = id
+        }
+      }
+      activeDays++
+    }
+    weeks[weekIndex][dayIndex] = { date: key, zoneId, minutes, future: day > today }
+  }
+
+  const monthTicks = statsI18n.monthInitials.map((label, m) => ({
+    label,
+    weekIndex: differenceInCalendarWeeks(new Date(year, m, 1), firstWeekStart, { weekStartsOn: 1 }),
+  }))
+
+  return { year, weeks, monthTicks, activeDays }
 }
 
 // Formato compatto per durate: "45m" sotto l'ora, "2h 10m" sopra. Usato da

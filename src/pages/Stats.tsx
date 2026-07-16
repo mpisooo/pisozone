@@ -15,8 +15,8 @@ import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
-  buildWeightTrainingSeries, buildZoneDistribution, activitiesToCsv,
-  formatMinutesCompact,
+  buildWeightTrainingSeries, buildZoneDistribution, buildYearPixels,
+  activitiesToCsv, formatMinutesCompact,
 } from '../lib/stats'
 import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wrapped'
 import { downloadAsCsv } from '../lib/dataExport'
@@ -169,6 +169,10 @@ export default function StatsPage() {
   // Spettro di intensità: minuti per zona (lib/zones.ts), prima applicazione
   // visibile del sistema Zone (roadmap v2, pillar 01)
   const zoneData = useMemo(() => buildZoneDistribution(filtered), [filtered])
+
+  // Anno in pixel (roadmap v3, pilastro 01): griglia annuale zone-colored.
+  // Vista fissa sull'anno corrente, non segue il filtro periodo.
+  const yearGrid = useMemo(() => buildYearPixels(activities, new Date().getFullYear()), [activities])
 
   // PisoZone Wrapped: il mese appena concluso e l'anno (quello concluso, o il
   // corrente da dicembre). null = nessuna attività nel periodo → niente bottone.
@@ -449,6 +453,63 @@ export default function StatsPage() {
                 <span className="text-xs font-semibold text-white flex-shrink-0">{z.pct}%</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Anno in pixel: un quadratino per giorno dell'anno, zona dominante */}
+      {yearGrid.activeDays > 0 && filtered.length > 0 && (
+        <div className="card">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.yearPixels.heading(yearGrid.year)}</h2>
+            <span className="text-xs text-gray-400 flex-shrink-0">{stats.yearPixels.activeDays(yearGrid.activeDays)}</span>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">{stats.yearPixels.subtitle}</p>
+          <div className="overflow-x-auto pb-1" role="img" aria-label={stats.yearPixels.gridAriaLabel(yearGrid.year)}>
+            {/* Iniziali dei mesi: una cella per settimana, l'etichetta cade
+                sulla colonna che contiene il giorno 1 del mese. */}
+            <div className="flex gap-[2px] mb-1">
+              {yearGrid.weeks.map((_, i) => {
+                const tick = yearGrid.monthTicks.find((t) => t.weekIndex === i)
+                return (
+                  <span key={i} className="w-2 flex-shrink-0 text-[8px] leading-none text-gray-500 overflow-visible whitespace-nowrap">
+                    {tick?.label ?? ''}
+                  </span>
+                )
+              })}
+            </div>
+            <div className="flex gap-[2px]">
+              {yearGrid.weeks.map((week, i) => (
+                <div key={i} className="flex flex-col gap-[2px]">
+                  {week.map((day, j) => (
+                    <div
+                      key={j}
+                      className="w-2 h-2 rounded-[2px] flex-shrink-0"
+                      style={{
+                        background: day == null
+                          ? 'transparent'
+                          : day.zoneId != null
+                          ? `var(--zone-${day.zoneId})`
+                          : 'var(--grey)',
+                        opacity: day?.future ? 0.35 : 1,
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3">
+            {zoneData.map((z) => (
+              <span key={z.zoneId} className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                <span className="w-2 h-2 rounded-[2px] flex-shrink-0" style={{ background: z.cssVar }} />
+                {z.label}
+              </span>
+            ))}
+            <span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+              <span className="w-2 h-2 rounded-[2px] flex-shrink-0" style={{ background: 'var(--grey)' }} />
+              {stats.yearPixels.restLegend}
+            </span>
           </div>
         </div>
       )}
