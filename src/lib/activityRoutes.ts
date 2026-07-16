@@ -31,14 +31,21 @@ export async function saveActivityRoute(
   return { error: null }
 }
 
+// Riporta anche recorded_at (come `t` in ms) perché gli split per km hanno
+// bisogno del tempo, non solo della forma — retroattivo: la colonna esiste
+// per ogni percorso salvato dalla v29.
 export async function fetchActivityRoute(
   activityId: string,
-): Promise<{ points: RoutePoint[]; error: Error | null }> {
+): Promise<{ points: TrackedPoint[]; error: Error | null }> {
   const { data, error } = await supabase
     .from('activity_routes')
-    .select('lat, lng')
+    .select('lat, lng, recorded_at')
     .eq('activity_id', activityId)
     .order('seq')
   if (error) return { points: [], error }
-  return { points: (data ?? []) as RoutePoint[], error: null }
+  const rows = (data ?? []) as (RoutePoint & { recorded_at: string })[]
+  return {
+    points: rows.map(({ lat, lng, recorded_at }) => ({ lat, lng, t: Date.parse(recorded_at) })),
+    error: null,
+  }
 }

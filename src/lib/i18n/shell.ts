@@ -91,9 +91,9 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '📶',
-        title: 'Nessuna attività persa senza rete',
-        text: 'Registrala anche senza connessione: resta in attesa sul telefono e si sincronizza da sola appena torni online. Utile in montagna o in palestre senza segnale.',
+        icon: '⏱️',
+        title: 'Passo per ogni chilometro',
+        text: 'Apri un\'attività tracciata col GPS dal Calendario: sotto il percorso trovi il passo km per km, per vedere dove hai spinto di più. Vale anche per gli allenamenti già registrati.',
       },
     ],
   },

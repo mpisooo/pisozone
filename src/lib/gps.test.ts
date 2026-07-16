@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { haversineMeters, isPlausibleSample, computeRouteStats, projectToViewBox, type TrackedPoint } from './gps'
+import { haversineMeters, isPlausibleSample, computeRouteStats, computeSplits, projectToViewBox, type TrackedPoint } from './gps'
 
 describe('haversineMeters', () => {
   it('calcola correttamente circa 1.11 km per 0.01° di latitudine', () => {
@@ -66,6 +66,74 @@ describe('computeRouteStats', () => {
     expect(stats.avgSpeedKmh).toBeCloseTo(11.13, 1)
     expect(stats.paceMinPerKm).toBeCloseTo(6 / 1.113, 1)
     expect(stats.currentSpeedKmh).toBeCloseTo(11.13, 1)
+  })
+})
+
+describe('computeSplits', () => {
+  // Punti equidistanti lungo un meridiano: 0.001° di latitudine ≈ 111.3 m.
+  // A intervallo costante la velocità è uniforme, quindi ogni split (completo
+  // o parziale) deve avere lo stesso passo: ~4.49 min/km con campioni a 30s.
+  const uniformRoute = (count: number, dtMs = 30000): TrackedPoint[] =>
+    Array.from({ length: count }, (_, i) => ({ lat: 45 + i * 0.001, lng: 9, t: i * dtMs }))
+
+  it('ritorna un array vuoto senza punti o con un punto solo', () => {
+    expect(computeSplits([])).toEqual([])
+    expect(computeSplits([{ lat: 45, lng: 9, t: 0 }])).toEqual([])
+  })
+
+  it('un percorso sotto il km produce un solo split parziale, mai uno completo', () => {
+    // 3 segmenti ≈ 334 m
+    const splits = computeSplits(uniformRoute(4))
+    expect(splits).toHaveLength(1)
+    expect(splits[0].partial).toBe(true)
+    expect(splits[0].distanceKm).toBeCloseTo(0.334, 2)
+    expect(splits[0].paceMinPerKm).toBeCloseTo(4.49, 1)
+  })
+
+  it('segmenta un percorso lungo in split completi più l\'ultimo parziale', () => {
+    // 26 segmenti ≈ 2894 m → 2 km completi + parziale da ~894 m
+    const splits = computeSplits(uniformRoute(27))
+    expect(splits).toHaveLength(3)
+    expect(splits.map((s) => s.index)).toEqual([1, 2, 3])
+    expect(splits[0].partial).toBe(false)
+    expect(splits[0].distanceKm).toBe(1)
+    expect(splits[1].partial).toBe(false)
+    expect(splits[2].partial).toBe(true)
+    expect(splits[2].distanceKm).toBeCloseTo(0.894, 2)
+    // Velocità costante: il passo interpolato deve essere uguale ovunque
+    for (const s of splits) expect(s.paceMinPerKm).toBeCloseTo(4.49, 1)
+  })
+
+  it('il tempo del segmento a cavallo del confine si ripartisce tra i due split', () => {
+    // Due soli punti: 1113 m in 6 minuti. Il primo km "consuma" solo la sua
+    // quota proporzionale dei 6 minuti, il resto va al parziale.
+    const points: TrackedPoint[] = [
+      { lat: 45, lng: 9, t: 0 },
+      { lat: 45.01, lng: 9, t: 6 * 60 * 1000 },
+    ]
+    const splits = computeSplits(points)
+    const totalM = haversineMeters(points[0], points[1])
+    expect(splits).toHaveLength(2)
+    expect(splits[0].durationMs).toBeCloseTo(360000 * (1000 / totalM), 5)
+    expect(splits[0].paceMinPerKm).toBeCloseTo(5.39, 1)
+    expect(splits[1].partial).toBe(true)
+    expect(splits[1].paceMinPerKm).toBeCloseTo(5.39, 1)
+  })
+
+  it('scarta un tratto parziale finale di pochi metri (rumore, non uno split)', () => {
+    // 9 segmenti ≈ 1002 m → 1 km completo + 2 m di avanzo da ignorare
+    const splits = computeSplits(uniformRoute(10))
+    expect(splits).toHaveLength(1)
+    expect(splits[0].partial).toBe(false)
+  })
+
+  it('ignora i campioni con timestamp non crescente, come isPlausibleSample', () => {
+    const clean = uniformRoute(27)
+    const withBogus = [...clean]
+    // Un rimbalzo lontano con lo stesso timestamp del campione precedente:
+    // se non filtrato, aggiungerebbe distanza inesistente agli split.
+    withBogus.splice(5, 0, { lat: 45.02, lng: 9, t: clean[4].t })
+    expect(computeSplits(withBogus)).toEqual(computeSplits(clean))
   })
 })
 

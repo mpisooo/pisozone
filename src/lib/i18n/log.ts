@@ -185,6 +185,15 @@ const log = {
 
   routeShapeAriaLabel: 'Sagoma del percorso registrato',
 
+  // Split per km sotto la sagoma del percorso (ActivityEditModal): compaiono
+  // solo se il percorso ha almeno un km completo. L'ultimo tratto sotto il km
+  // mostra la sua distanza reale al posto del numero progressivo.
+  splits: {
+    title: 'Passo per km',
+    kmLabel: (n: number) => `Km ${n}`,
+    partialLabel: (km: string) => `${km} km`,
+  },
+
   errors: {
     loadFailed: 'Errore nel caricamento delle attività. Riprova.',
     // Un'attività in coda offline che al momento della sincronizzazione viene

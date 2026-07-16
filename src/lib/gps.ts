@@ -64,6 +64,83 @@ export function computeRouteStats(points: TrackedPoint[], elapsedMs: number): Ro
   return { distanceKm, avgSpeedKmh, currentSpeedKmh, paceMinPerKm }
 }
 
+export interface KmSplit {
+  index: number // 1-based: "1° km", "2° km", ...
+  distanceKm: number // 1 per gli split completi, < 1 per l'ultimo parziale
+  durationMs: number
+  paceMinPerKm: number
+  partial: boolean
+}
+
+const SPLIT_M = 1000
+// Sotto questa distanza l'ultimo tratto parziale è rumore GPS o la semplice
+// fermata finale: un passo calcolato su pochi metri sarebbe privo di senso.
+const MIN_PARTIAL_M = 50
+
+// Segmenta il percorso in blocchi cumulativi da 1 km e calcola il passo di
+// ciascuno. Il confine di ogni km cade quasi sempre a metà di un segmento tra
+// due campioni: l'istante di attraversamento è interpolato linearmente sulla
+// distanza, così il tempo del tratto a cavallo si ripartisce tra i due split.
+// L'ultimo blocco sotto il km è marcato `partial` con la sua distanza reale,
+// mai spacciato per uno split completo. Il tempo è quello tra i campioni
+// (wall clock): un'eventuale pausa del tracciamento gonfia lo split in cui
+// cade, limite noto e accettato per i percorsi già registrati.
+export function computeSplits(points: TrackedPoint[]): KmSplit[] {
+  // Stessa difesa di isPlausibleSample: un campione con timestamp non
+  // crescente non è un movimento reale e va ignorato (i punti storici in
+  // activity_routes sono già filtrati, ma la funzione non deve fidarsi).
+  const clean: TrackedPoint[] = []
+  for (const p of points) {
+    const prev = clean[clean.length - 1]
+    if (prev && p.t <= prev.t) continue
+    clean.push(p)
+  }
+  if (clean.length < 2) return []
+
+  const splits: KmSplit[] = []
+  let splitStartT = clean[0].t
+  let distInSplitM = 0
+
+  for (let i = 1; i < clean.length; i++) {
+    let segM = haversineMeters(clean[i - 1], clean[i])
+    let segStartT = clean[i - 1].t
+    const segEndT = clean[i].t
+    // Un segmento lungo può attraversare più confini di km in un colpo solo.
+    while (distInSplitM + segM >= SPLIT_M) {
+      const neededM = SPLIT_M - distInSplitM
+      const crossT = segStartT + (segEndT - segStartT) * (segM > 0 ? neededM / segM : 0)
+      const durationMs = crossT - splitStartT
+      splits.push({
+        index: splits.length + 1,
+        distanceKm: 1,
+        durationMs,
+        paceMinPerKm: durationMs / 60000,
+        partial: false,
+      })
+      splitStartT = crossT
+      segStartT = crossT
+      segM -= neededM
+      distInSplitM = 0
+    }
+    distInSplitM += segM
+  }
+
+  const lastT = clean[clean.length - 1].t
+  if (distInSplitM >= MIN_PARTIAL_M && lastT > splitStartT) {
+    const durationMs = lastT - splitStartT
+    const distanceKm = distInSplitM / 1000
+    splits.push({
+      index: splits.length + 1,
+      distanceKm,
+      durationMs,
+      paceMinPerKm: durationMs / 60000 / distanceKm,
+      partial: true,
+    })
+  }
+
+  return splits
+}
+
 // Proietta lat/lng in coordinate SVG per disegnare la sagoma del percorso
 // (non una mappa reale): correzione cos(latMedia) sulla longitudine perché un
 // grado di longitudine copre meno terreno di uno di latitudine man mano che ci

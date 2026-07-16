@@ -21,7 +21,16 @@ import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
-import type { Activity, ActivityType, RoutePoint } from '../types'
+import { computeSplits, type TrackedPoint } from '../lib/gps'
+import type { Activity, ActivityType } from '../types'
+
+// Passo di uno split come "5:23" (l'unità è nel titolo della sezione).
+function formatSplitPace(paceMinPerKm: number): string {
+  const totalSeconds = Math.round(paceMinPerKm * 60)
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
 
 type FormValues = {
   type: ActivityType
@@ -51,7 +60,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   // La X toglie sempre la foto mostrata: per ripristinare basta chiudere senza salvare.
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoRemoved, setPhotoRemoved] = useState(false)
-  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
+  const [routePoints, setRoutePoints] = useState<TrackedPoint[]>([])
   const [rpe, setRpe] = useState<number | null>(activity.rpe ?? null)
   const [mood, setMood] = useState<number | null>(activity.mood ?? null)
   // Indoor/outdoor (v38): al cambio di sport riparte pulito, tornando al tipo
@@ -87,6 +96,13 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     })
     return () => { cancelled = true }
   }, [activity.id, activity.gps_tracked])
+
+  // Split per km derivati dal percorso (roadmap v2, GPS potenziato). Senza
+  // almeno un km completo la sezione non compare: un solo tratto parziale non
+  // direbbe nulla in più del passo medio già visibile nei dettagli.
+  const splits = useMemo(() => computeSplits(routePoints), [routePoints])
+  const showSplits = splits.some((s) => !s.partial)
+  const fastestPace = Math.min(...splits.map((s) => s.paceMinPerKm))
 
   const newPhotoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -363,6 +379,34 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           <div className="card space-y-2">
             <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.routeTitle}</h2>
             <RouteShape points={routePoints} width={280} height={140} />
+            {showSplits && (
+              <div className="pt-1 space-y-1.5">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{log.splits.title}</p>
+                {splits.map((s) => (
+                  <div key={s.index} className="flex items-center gap-2">
+                    <span className={`text-[11px] tabular-nums w-16 flex-shrink-0 ${s.partial ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {s.partial
+                        ? log.splits.partialLabel(s.distanceKm.toLocaleString('it-IT', { maximumFractionDigits: 2 }))
+                        : log.splits.kmLabel(s.index)}
+                    </span>
+                    {/* Barra comparativa: lo split più veloce riempie tutta la
+                        traccia, gli altri in proporzione (passo → velocità). */}
+                    <div className="progress-track flex-1 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.round((fastestPace / s.paceMinPerKm) * 100)}%`,
+                          background: s.partial ? 'rgba(var(--accent-rgb),0.35)' : 'var(--red)',
+                        }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-white tabular-nums w-10 text-right flex-shrink-0">
+                      {formatSplitPace(s.paceMinPerKm)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
