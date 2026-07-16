@@ -14,12 +14,14 @@ import {
 } from '../lib/exerciseSets'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { isPendingActivityId } from '../lib/offlineQueue'
+import { detectGpsRecords, type WorkoutRecapData } from '../lib/workoutRecap'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import ExerciseSetsFields from '../components/ExerciseSetsFields'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
+import WorkoutRecapOverlay from '../components/WorkoutRecapOverlay'
 import log from '../lib/i18n/log'
 import type { ActivityType } from '../types'
 
@@ -35,7 +37,7 @@ type FormValues = {
 }
 
 export default function LogPage() {
-  const { addActivity, updateActivity } = useActivities()
+  const { activities, addActivity, updateActivity } = useActivities()
   const { profile } = useProfile()
   const [saved, setSaved] = useState(false)
   const [savedOffline, setSavedOffline] = useState(false)
@@ -47,7 +49,9 @@ export default function LogPage() {
   const [showCalInfo, setShowCalInfo] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [tracking, setTracking] = useState(false)
-  const [routeWarning, setRouteWarning] = useState(false)
+  // Recap dopo-allenamento (roadmap v3, pilastro 01): al salvataggio di un
+  // allenamento GPS il toast lascia il posto all'overlay celebrativo.
+  const [recapData, setRecapData] = useState<WorkoutRecapData | null>(null)
   const [setsWarning, setSetsWarning] = useState(false)
   const [rpe, setRpe] = useState<number | null>(null)
   const [mood, setMood] = useState<number | null>(null)
@@ -494,18 +498,22 @@ export default function LogPage() {
           activityType={selectedType as GpsTrackableType}
           addActivity={addActivity}
           onClose={() => setTracking(false)}
-          onSaved={(credits) => {
+          onSaved={({ activity, points, pending, routeSaved }) => {
             setTracking(false)
-            setCreditsEarned(credits)
-            setSaved(true)
-            setTimeout(() => setSaved(false), 2500)
-          }}
-          onSaveWarning={() => {
-            setRouteWarning(true)
-            setTimeout(() => setRouteWarning(false), 4000)
+            // I record si cercano nello storico già in memoria (l'attività
+            // appena salvata viene esclusa per id dentro detectGpsRecords).
+            const records = detectGpsRecords(activities, {
+              id: activity.id,
+              type: activity.type,
+              distanceKm: activity.distance_km ?? 0,
+              durationMin: activity.duration_min,
+            })
+            setRecapData({ activity, points, records, pending, routeSaved })
           }}
         />
       )}
+
+      {recapData && <WorkoutRecapOverlay data={recapData} onClose={() => setRecapData(null)} />}
 
       {saved && (
         <div className="toast-enter toast-saved flex items-center gap-3">
@@ -553,16 +561,6 @@ export default function LogPage() {
           <div>
             <p className="text-white font-semibold text-sm">{log.new.photoWarningToast.title}</p>
             <p className="text-[var(--red)] text-xs">{log.new.photoWarningToast.body}</p>
-          </div>
-        </div>
-      )}
-
-      {routeWarning && (
-        <div className="toast-enter toast-error flex items-center gap-3">
-          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
-          <div>
-            <p className="text-white font-semibold text-sm">{log.new.routeWarningToast.title}</p>
-            <p className="text-[var(--red)] text-xs">{log.new.routeWarningToast.body}</p>
           </div>
         </div>
       )}

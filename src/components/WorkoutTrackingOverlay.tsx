@@ -4,7 +4,7 @@ import { Loader2, AlertTriangle, Pause, Play, Square } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
-import { computeRecentSpeedKmh, formatPaceClock } from '../lib/gps'
+import { computeRecentSpeedKmh, formatPaceClock, type TrackedPoint } from '../lib/gps'
 import { zoneForSpeed } from '../lib/zones'
 import { saveActivityRoute } from '../lib/activityRoutes'
 import { isPendingActivityId } from '../lib/offlineQueue'
@@ -20,8 +20,15 @@ interface Props {
     activity: Omit<Activity, 'id' | 'user_id' | 'created_at' | 'credits_earned'>
   ) => Promise<{ data: Activity | null; error: Error | null }>
   onClose: () => void
-  onSaved: (creditsEarned: number) => void
-  onSaveWarning: () => void
+  // Il chiamante riceve tutto ciò che serve al recap del dopo-allenamento:
+  // l'attività salvata, i punti locali del percorso (validi anche se il
+  // percorso non è arrivato sul server) e l'esito di coda/salvataggio.
+  onSaved: (result: {
+    activity: Activity
+    points: TrackedPoint[]
+    pending: boolean
+    routeSaved: boolean
+  }) => void
 }
 
 const RELOCK_MS = 6000
@@ -52,7 +59,7 @@ function formatSpeed(speedKmh: number): string {
 // per un tocco accidentale. Struttura full-screen come ActivityEditModal, ma
 // senza useFocusTrap: il suo Esc-per-chiudere immediato contraddice il
 // concetto di schermata bloccata, e non c'è nulla "dietro" da raggiungere.
-export default function WorkoutTrackingOverlay({ activityType, addActivity, onClose, onSaved, onSaveWarning }: Props) {
+export default function WorkoutTrackingOverlay({ activityType, addActivity, onClose, onSaved }: Props) {
   const { profile } = useProfile()
   const { status, error, weakSignal, elapsedMs, stats, points, start, pause, resume, finish, cancel } =
     useGpsTracking(activityType)
@@ -160,8 +167,7 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     const routeError = pending ? true : (await saveActivityRoute(data.user_id, data.id, s.points)).error
     setSaving(false)
     haptic('success')
-    if (routeError) onSaveWarning()
-    onSaved(data.credits_earned)
+    onSaved({ activity: data, points: s.points, pending, routeSaved: !routeError })
   }
 
   const handleFinishSave = () => {

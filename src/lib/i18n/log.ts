@@ -125,10 +125,6 @@ const log = {
       title: 'Attività salvata, ma foto non caricata',
       body: 'Riprova dal calendario, modificando l\'attività',
     },
-    routeWarningToast: {
-      title: 'Attività salvata, ma percorso non salvato',
-      body: 'Durata, distanza e calorie sono corrette',
-    },
     setsWarningToast: {
       title: 'Attività salvata, ma esercizi non salvati',
       body: 'Riprova dal calendario, modificando l\'attività',
