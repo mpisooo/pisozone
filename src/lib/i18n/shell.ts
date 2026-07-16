@@ -91,19 +91,29 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '🗺️',
-        title: 'Il percorso su una vera mappa',
-        text: 'Apri un\'attività GPS dal Calendario: il tracciato ora è disegnato su una mappa reale, anche per gli allenamenti già registrati.',
+        icon: '🎉',
+        title: 'Il recap del dopo-allenamento',
+        text: 'Quando salvi un allenamento GPS ti accoglie una schermata celebrativa: mappa, passo per km, altimetria, crediti e i record del percorso — condivisibile con un tocco.',
       },
       {
-        icon: '⏱️',
-        title: 'Passo per ogni chilometro',
-        text: 'Sotto la mappa trovi il passo km per km, per vedere dove hai spinto di più. Anche questo vale per i percorsi già registrati.',
+        icon: '🎨',
+        title: 'Zone Live mentre ti alleni',
+        text: 'Durante il tracciamento la schermata si tinge della tua zona di intensità del momento: blu, verde, ambra o rosso a seconda di quanto stai spingendo.',
       },
       {
-        icon: '⛰️',
-        title: 'Altimetria del percorso',
-        text: 'Per gli allenamenti GPS tracciati d\'ora in poi c\'è anche il profilo altimetrico con il dislivello in salita e in discesa (D+/D−).',
+        icon: '🖼️',
+        title: 'Card condivisibili col percorso',
+        text: 'Le immagini che condividi dalle attività GPS ora mostrano anche la sagoma del tracciato e le barre del passo per km.',
+      },
+      {
+        icon: '🟦',
+        title: 'Il tuo anno in pixel',
+        text: 'In Statistiche c\'è l\'anno intero in un colpo d\'occhio: un quadratino per giorno, colorato con la zona di intensità dominante.',
+      },
+      {
+        icon: '📈',
+        title: 'Progressione carichi',
+        text: 'Per chi va in palestra: il grafico del carico massimo giornata per giornata, esercizio per esercizio, sempre in Statistiche.',
       },
     ],
   },
