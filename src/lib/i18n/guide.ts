@@ -108,7 +108,8 @@ const guide = {
       icon: '🏅',
       title: 'Medaglie',
       paragraphs: [
-        'Ci sono 18 medaglie in 4 livelli (bronzo, argento, oro, diamante), legate a traguardi reali: chilometri totali, sessioni in palestra, streak, costanza settimanale…',
+        'Ci sono 22 medaglie in 4 livelli (bronzo, argento, oro, diamante), legate a traguardi reali: chilometri totali, sessioni in palestra, streak, costanza settimanale…',
+        'Quattro sono le medaglie della montagna, e si guadagnano col tracciamento GPS: chilometri tracciati (Esploratore, Cartografo) e metri di dislivello in salita accumulati (Scalatore, e Ottomila — gli 8.848 m dell\'Everest, un po\' alla volta). Il dislivello conta per gli allenamenti tracciati d\'ora in poi, quota del dispositivo permettendo.',
         'Ogni medaglia sbloccata vale crediti una tantum. Il progresso verso la più vicina lo vedi in Home.',
       ],
     },
@@ -146,6 +147,7 @@ const guide = {
       paragraphs: [
         'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti.',
         'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese.',
+        'Sul profilo di un amico c\'è anche "Io vs te": il confronto della settimana in corso — allenamenti, minuti, chilometri e calorie — tu da un lato, l\'amico dall\'altro. La barra di ogni voce dice a colpo d\'occhio chi è avanti: più rosso, più sei tu.',
         'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km e medaglie totali.',
         'Puoi bloccare o segnalare chi si comporta male: chi è bloccato non può scriverti né mandarti richieste.',
       ],

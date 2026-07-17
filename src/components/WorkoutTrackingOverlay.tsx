@@ -4,7 +4,7 @@ import { Loader2, AlertTriangle, Pause, Play, Square } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
-import { computeRecentSpeedKmh, computeSplits, formatPaceClock, type TrackedPoint } from '../lib/gps'
+import { computeElevationProfile, computeRecentSpeedKmh, computeSplits, formatPaceClock, type TrackedPoint } from '../lib/gps'
 import { zoneForSpeed } from '../lib/zones'
 import { saveActivityRoute } from '../lib/activityRoutes'
 import { isPendingActivityId } from '../lib/offlineQueue'
@@ -157,6 +157,10 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     const calories = profile?.weight_kg
       ? calcCaloriesFromSpeed(activityType, s.durationMin, s.avgSpeedKmh, profile.weight_kg, profile.gender)
       : null
+    // D+ persistito sull'attività (v44, medaglie della montagna): stessa
+    // logica dell'altimetria mostrata nel recap. La chiave viaggia solo se
+    // c'è un profilo valido — niente colonna per quota assente o troppo sparsa.
+    const gainM = computeElevationProfile(s.points)?.gainM
     const { data, error: addError } = await addActivity({
       type: activityType,
       date: new Date(s.startedAt).toISOString(),
@@ -165,6 +169,7 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
       distance_km: Number(s.distanceKm.toFixed(2)),
       notes: null,
       gps_tracked: true,
+      ...(gainM != null ? { elevation_gain_m: Math.round(gainM) } : {}),
     })
     if (addError || !data) {
       setSaving(false)

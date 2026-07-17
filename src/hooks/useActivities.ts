@@ -69,16 +69,33 @@ export function useActivities() {
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 
+  // La colonna elevation_gain_m esiste solo dalla v44: PostgREST rifiuta
+  // l'insert di una colonna sconosciuta (PGRST204, il messaggio la nomina).
+  // Come per altitude_m nei percorsi si riprova senza — meglio perdere il
+  // dislivello che l'attività.
+  const insertActivity = useCallback(async (payload: QueuedActivityPayload, userId: string) => {
+    let result = await supabase
+      .from('activities')
+      .insert({ ...payload, user_id: userId })
+      .select()
+      .single()
+    if (result.error?.message?.includes('elevation_gain_m') && payload.elevation_gain_m !== undefined) {
+      const { elevation_gain_m: _dropped, ...rest } = payload
+      result = await supabase
+        .from('activities')
+        .insert({ ...rest, user_id: userId })
+        .select()
+        .single()
+    }
+    return result
+  }, [])
+
   const flushQueue = useCallback(async () => {
     if (!user || flushingRef.current || queue.length === 0) return
     flushingRef.current = true
     let synced = 0
     for (const item of queue) {
-      const { data, error, status } = await supabase
-        .from('activities')
-        .insert({ ...item.payload, user_id: user.id })
-        .select()
-        .single()
+      const { data, error, status } = await insertActivity(item.payload, user.id)
       if (!error && data) {
         setQueue((prev) => prev.filter((q) => q.localId !== item.localId))
         setServerActivities((prev) => [data as Activity, ...prev])
@@ -93,7 +110,7 @@ export function useActivities() {
     }
     flushingRef.current = false
     if (synced > 0) refreshChallengesBadge()
-  }, [user, queue, showError, refreshChallengesBadge])
+  }, [user, queue, showError, refreshChallengesBadge, insertActivity])
 
   useEffect(() => {
     const onOnline = () => { flushQueue() }
@@ -122,11 +139,7 @@ export function useActivities() {
       return { data: enqueueLocally(activity), error: null }
     }
 
-    const { data, error, status } = await supabase
-      .from('activities')
-      .insert({ ...activity, user_id: user.id })
-      .select()
-      .single()
+    const { data, error, status } = await insertActivity(activity, user.id)
 
     if (error && isNetworkFailure(status)) {
       return { data: enqueueLocally(activity), error: null }

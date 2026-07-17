@@ -302,6 +302,42 @@ export const MEDALS: MedalDefinition[] = [
     icon: '📆',
     checkProgress: (s: AchievementStats) => ({ current: Math.min(s.maxActivitiesInMonth, 20), target: 20 }),
   },
+  // MONTAGNA (roadmap v3, pilastro 03): premiano il tracciamento GPS — km
+  // tracciati e D+ cumulato. Il dislivello arriva da elevation_gain_m (v44),
+  // quindi conta solo dalle attività tracciate da lì in poi: non è un bug,
+  // è il costo dichiarato di tenere achievementStats su una colonna.
+  {
+    key: 'esploratore',
+    name: 'Esploratore',
+    description: '100 km percorsi col tracciamento GPS',
+    tier: 'silver',
+    icon: '🧭',
+    checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalGpsKm, 100), target: 100 }),
+  },
+  {
+    key: 'cartografo',
+    name: 'Cartografo',
+    description: '500 km percorsi col tracciamento GPS',
+    tier: 'gold',
+    icon: '🗺️',
+    checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalGpsKm, 500), target: 500 }),
+  },
+  {
+    key: 'scalatore',
+    name: 'Scalatore',
+    description: '1.000 m di dislivello in salita accumulati col GPS',
+    tier: 'silver',
+    icon: '⛰️',
+    checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalElevationGainM, 1000), target: 1000 }),
+  },
+  {
+    key: 'ottomila',
+    name: 'Ottomila',
+    description: '8.848 m di dislivello accumulati: l\'altezza dell\'Everest',
+    tier: 'gold',
+    icon: '🏔️',
+    checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalElevationGainM, 8848), target: 8848 }),
+  },
   // DIAMOND
   {
     key: 'inarrestabile',

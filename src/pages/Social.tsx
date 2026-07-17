@@ -498,6 +498,25 @@ function FriendProfileView({
     })
   }, [userId])
 
+  // "Io vs te" (v44): aggregati della settimana in corso per me e per l'amico
+  // via RPC — due righe, una per testa. Solo tra amici accettati (la RPC
+  // stessa non risponde per gli estranei); tollerante pre-migrazione:
+  // errore o righe mancanti → card nascosta.
+  type WeeklySide = { sessions: number; minutes: number; km: number; kcal: number }
+  const [weeklyVs, setWeeklyVs] = useState<{ me: WeeklySide; friend: WeeklySide } | null>(null)
+  useEffect(() => {
+    if (!isFriend) { setWeeklyVs(null); return }
+    supabase.rpc('get_weekly_comparison', { p_friend_id: userId }).then(({ data, error }) => {
+      if (error || !Array.isArray(data)) return
+      const toSide = (r: any): WeeklySide => ({
+        sessions: Number(r.sessions), minutes: Number(r.minutes), km: Number(r.km), kcal: Number(r.kcal),
+      })
+      const meRow = data.find((r: any) => r.user_id !== userId)
+      const friendRow = data.find((r: any) => r.user_id === userId)
+      if (meRow && friendRow) setWeeklyVs({ me: toSide(meRow), friend: toSide(friendRow) })
+    })
+  }, [userId, isFriend])
+
   const ld = getLevelDef(remoteProfile?.level ?? 1)
   const sports = (remoteProfile?.sport_preferiti ?? []).map((s: string) => ACTIVITY_OPTIONS.find(o => o.value === s)).filter(Boolean)
 
@@ -563,6 +582,49 @@ function FriendProfileView({
                   <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">{label}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* "Io vs te" (v44): la settimana in corso, tu contro l'amico. La barra
+            è un tiro alla fune — la quota rossa è la tua parte del totale. */}
+        {weeklyVs && (
+          <div className="card">
+            <div className="flex items-baseline justify-between mb-1">
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{social.friends.profile.vsHeading}</p>
+              <p className="text-[10px] text-gray-600">{social.friends.profile.vsSubtitle}</p>
+            </div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--red)' }}>
+                {social.friends.profile.vsYouLabel}
+              </span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest">@{username}</span>
+            </div>
+            <div className="space-y-3">
+              {([
+                [social.friends.profile.vsMetricSessions, weeklyVs.me.sessions, weeklyVs.friend.sessions, 0],
+                [social.friends.profile.vsMetricMinutes, weeklyVs.me.minutes, weeklyVs.friend.minutes, 0],
+                [social.friends.profile.vsMetricKm, weeklyVs.me.km, weeklyVs.friend.km, 1],
+                [social.friends.profile.vsMetricKcal, weeklyVs.me.kcal, weeklyVs.friend.kcal, 0],
+              ] as [string, number, number, number][]).map(([label, mine, theirs, decimals]) => {
+                const share = mine + theirs > 0 ? (mine / (mine + theirs)) * 100 : 50
+                const fmt = (n: number) => n.toLocaleString('it-IT', { maximumFractionDigits: decimals })
+                return (
+                  <div key={label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-white tabular-nums">{fmt(mine)}</span>
+                      <span className="text-[10px] text-gray-500 uppercase tracking-widest">{label}</span>
+                      <span className="text-sm text-gray-400 tabular-nums">{fmt(theirs)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${share}%`, background: 'var(--red)' }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

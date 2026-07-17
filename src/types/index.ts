@@ -47,6 +47,11 @@ export interface Activity {
   // roulant, cyclette, piscina...), false = all'aperto, null = non indicato.
   // Ha senso solo per gli sport in INDOOR_VARIANTS (lib/constants).
   indoor?: boolean | null
+  // Opzionale: esiste solo dopo la migrazione v44. Dislivello positivo (D+)
+  // in metri, calcolato al salvataggio di un'attività GPS con la stessa
+  // logica dell'altimetria (computeElevationProfile). Sempre nullable:
+  // attività manuali, pre-v44 o senza quota non hanno un D+ — non si inventa.
+  elevation_gain_m?: number | null
 }
 
 export interface RoutePoint {
@@ -291,4 +296,8 @@ export interface AchievementStats {
   maxActivitiesInMonth: number
   distinctTypesUsed: number
   maxDurationMinInDay: number
+  // Medaglie della montagna (roadmap v3, pilastro 03): km percorsi con il
+  // tracciamento GPS e D+ cumulato (solo attività con elevation_gain_m, v44+).
+  totalGpsKm: number
+  totalElevationGainM: number
 }

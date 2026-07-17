@@ -11,6 +11,8 @@ export function computeStats(activities: Activity[], weeklyGoal: number): Achiev
   let gymSessions = 0
   let earlyMorningCount = 0
   let weekendWorkoutCount = 0
+  let totalGpsKm = 0
+  let totalElevationGainM = 0
 
   const dayMap = new Map<string, { types: Set<ActivityType>; count: number; totalMin: number }>()
   const monthMap = new Map<string, number>()
@@ -20,6 +22,8 @@ export function computeStats(activities: Activity[], weeklyGoal: number): Achiev
     if (a.distance_km) totalAllKm += a.distance_km
     if (a.type === 'corsa' && a.distance_km) totalRunKm += a.distance_km
     if (a.type === 'palestra') gymSessions++
+    if (a.gps_tracked && a.distance_km) totalGpsKm += a.distance_km
+    if (a.elevation_gain_m) totalElevationGainM += a.elevation_gain_m
 
     const d = parseISO(a.date)
     if (getHours(d) < 8) earlyMorningCount++
@@ -110,5 +114,7 @@ export function computeStats(activities: Activity[], weeklyGoal: number): Achiev
     maxActivitiesInMonth,
     distinctTypesUsed,
     maxDurationMinInDay,
+    totalGpsKm,
+    totalElevationGainM,
   }
 }

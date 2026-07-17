@@ -65,7 +65,7 @@ const shell = {
       {
         icon: '🔥',
         title: 'STREAK E RECUPERO',
-        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 18 medaglie e 10 livelli.',
+        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 22 medaglie e 10 livelli.',
       },
       {
         icon: '🎨',
