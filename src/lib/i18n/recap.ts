@@ -24,6 +24,13 @@ const recap = {
   offlineNote: 'Salvata sul telefono: si sincronizza appena torni online. Percorso e dettagli di questa schermata non verranno conservati.',
   routeWarning: 'Percorso non salvato — durata, distanza e calorie sono corrette.',
 
+  // Percorso nel feed (v45): consenso esplicito, default spento.
+  routeShare: {
+    label: 'Mostra il percorso agli amici nel feed',
+    hint: 'Solo la sagoma del giro, mai la mappa. Puoi cambiare idea in ogni momento dal Calendario.',
+    error: 'Impostazione non salvata. Riprova.',
+  },
+
   share: 'Condividi come immagine',
   sharing: 'Condivisione…',
   shareError: 'Condivisione non riuscita. Riprova.',

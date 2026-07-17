@@ -42,6 +42,15 @@ describe('getCurrentSeasonalEvent', () => {
     expect(getCurrentSeasonalEvent(new Date('2026-08-31T23:30:00'))?.key).toBe('estate-2026')
     expect(getCurrentSeasonalEvent(new Date('2026-09-01T00:00:01'))?.key).toBe('rientro-2026')
   })
+
+  // La ragione d'essere degli eventi d'autunno/inverno (roadmap v3, pilastro
+  // 03): la catena non deve avere buchi da luglio 2026 a fine gennaio 2027.
+  it('autunno e inverno coprono senza buchi fino a fine gennaio 2027', () => {
+    expect(getCurrentSeasonalEvent(new Date('2026-10-01T08:00:00'))?.key).toBe('autunno-2026')
+    expect(getCurrentSeasonalEvent(new Date('2026-11-30T22:00:00'))?.key).toBe('autunno-2026')
+    expect(getCurrentSeasonalEvent(new Date('2026-12-25T10:00:00'))?.key).toBe('inverno-2026')
+    expect(getCurrentSeasonalEvent(new Date('2027-01-31T22:00:00'))?.key).toBe('inverno-2026')
+  })
 })
 
 describe('getUpcomingSeasonalEvent', () => {

@@ -65,6 +65,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   // Indoor/outdoor (v38): al cambio di sport riparte pulito, tornando al tipo
   // originale si ripristina il valore salvato.
   const [indoor, setIndoor] = useState<boolean | null>(activity.indoor ?? null)
+  // Percorso nel feed (v45): consenso esplicito per attività, default spento.
+  const [routeVisible, setRouteVisible] = useState(activity.route_visible ?? false)
   // Esercizi (v32): setsLoaded resta false se il fetch iniziale fallisce, e in
   // quel caso il salvataggio NON tocca exercise_sets — un delete+reinsert a
   // partire da bozze vuote cancellerebbe set che l'utente non ha mai visto.
@@ -178,6 +180,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       // La chiave viaggia solo se c'è qualcosa da scrivere o da azzerare:
       // pre-migrazione v38 la colonna non esiste e l'update fallirebbe.
       ...(indoor !== null || activity.indoor != null ? { indoor } : {}),
+      // Solo a colonna presente (v45): se l'attività l'ha riportata dal
+      // select *, esiste; pre-migrazione la chiave non viaggia.
+      ...(activity.route_visible !== undefined ? { route_visible: routeVisible } : {}),
       ...photoUpdates,
     })
     if (error) {
@@ -386,6 +391,32 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               <RouteShape points={routePoints} width={280} height={140} />
             )}
             <RouteInsights points={routePoints} />
+            {/* Consenso al percorso nel feed (v45): visibile solo a colonna
+                presente. Il valore si applica col salvataggio, come il resto. */}
+            {activity.route_visible !== undefined && (
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-300">{log.routeShare.label}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{log.routeShare.hint}</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={routeVisible ? 'true' : 'false'}
+                  aria-label={log.routeShare.label}
+                  onClick={() => setRouteVisible((v) => !v)}
+                  className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
+                    routeVisible ? 'bg-[var(--red)]' : 'bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                      routeVisible ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
           </div>
         )}
 

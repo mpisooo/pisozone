@@ -7,6 +7,7 @@ import type { AppNotification, NotificationType } from '../types'
 
 export const NOTIFICATION_TYPES: NotificationType[] = [
   'friend_request', 'friend_accepted', 'reaction', 'comment', 'level_up',
+  'duel_invite', 'duel_accepted', 'duel_finished', 'seasonal_podium',
 ]
 
 export function countUnread(list: Pick<AppNotification, 'read_at'>[]): number {
@@ -16,7 +17,8 @@ export function countUnread(list: Pick<AppNotification, 'read_at'>[]): number {
 // Dove porta il tap su una notifica: le sociali aprono Social sulla scheda
 // giusta (stesso meccanismo di navigate('/social', { state: { tab } }) già
 // usato da Home per classifica/amici); level_up non ha un attore né un
-// posto "sociale", porta al Profilo dove vive il livello.
+// posto "sociale", porta al Profilo dove vive il livello. Duelli ed eventi
+// stagionali vivono entrambi in fondo alla pagina Sfide (v45).
 export function notificationTarget(type: NotificationType): { path: string; tab?: 'friends' | 'feed' } {
   switch (type) {
     case 'friend_request':
@@ -27,5 +29,10 @@ export function notificationTarget(type: NotificationType): { path: string; tab?
       return { path: '/social', tab: 'feed' }
     case 'level_up':
       return { path: '/profile' }
+    case 'duel_invite':
+    case 'duel_accepted':
+    case 'duel_finished':
+    case 'seasonal_podium':
+      return { path: '/challenges' }
   }
 }

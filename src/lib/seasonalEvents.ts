@@ -1,5 +1,5 @@
 import { parseISO, startOfDay, endOfDay, isWithinInterval, differenceInCalendarDays, isAfter } from 'date-fns'
-import type { ActivityType } from '../types'
+import { SEASONAL_EVENTS, type SeasonalEventDef } from './seasonalCatalog'
 
 // Eventi stagionali e classifiche a tempo (roadmap v2, pilastro 03): a
 // differenza dei duelli (v37, solo amici/gruppo), qui la classifica è aperta
@@ -10,27 +10,12 @@ import type { ActivityType } from '../types'
 // (rank 1-3) si riscatta a finestra chiusa in seasonal_claims (v39): rank e
 // crediti sono CALCOLATI dal trigger Postgres dai dati reali, mai dal client
 // — stesso principio fiduciario dei duelli.
+//
+// I DATI (SEASONAL_EVENTS e affini) vivono in lib/seasonalCatalog.ts, senza
+// dipendenze: qui restano gli helper con date-fns, e chi ha bisogno solo del
+// catalogo (la campanella nel chunk d'ingresso) importa da là.
 
-export type SeasonalMetric = 'sessions' | 'minutes' | 'km' | 'kcal'
-
-export interface SeasonalEventDef {
-  key: string
-  title: string
-  subtitle: string
-  icon: string // emoji: linguaggio della gamification, come sfide e programmi
-  metric: SeasonalMetric
-  activityType?: ActivityType // opzionale: l'evento vale solo per questo sport
-  startsOn: string // yyyy-MM-dd
-  endsOn: string   // yyyy-MM-dd
-}
-
-// Crediti al podio, decrescenti: anteprima in UI, ma l'importo vero lo decide
-// comunque il trigger DB (guard_seasonal_claim) dai dati reali.
-export const SEASONAL_PODIUM_CREDITS: Record<1 | 2 | 3, number> = { 1: 150, 2: 100, 3: 60 }
-
-// Finestra massima di un evento (coerente col check DB): una stagione intera,
-// non un anno.
-export const SEASONAL_MAX_WINDOW_DAYS = 120
+export * from './seasonalCatalog'
 
 // Entro quanti giorni dalla chiusura un evento appena finito resta proposto
 // per il riscatto in UI (il riscatto tecnico resta possibile anche oltre:
@@ -38,27 +23,6 @@ export const SEASONAL_MAX_WINDOW_DAYS = 120
 const CLAIM_TEASER_DAYS = 14
 // Entro quanti giorni dall'inizio un evento futuro compare come anteprima.
 const UPCOMING_TEASER_DAYS = 14
-
-export const SEASONAL_EVENTS: SeasonalEventDef[] = [
-  {
-    key: 'estate-2026',
-    title: 'Sfida d\'estate',
-    subtitle: 'Chi percorre più chilometri entro fine agosto sale sul podio.',
-    icon: '☀️',
-    metric: 'km',
-    startsOn: '2026-07-01',
-    endsOn: '2026-08-31',
-  },
-  {
-    key: 'rientro-2026',
-    title: 'Rientro in forma',
-    subtitle: 'Settembre riparte: chi totalizza più sessioni sale sul podio.',
-    icon: '🍂',
-    metric: 'sessions',
-    startsOn: '2026-09-01',
-    endsOn: '2026-09-30',
-  },
-]
 
 function inWindow(now: Date, startsOn: string, endsOn: string): boolean {
   return isWithinInterval(now, { start: startOfDay(parseISO(startsOn)), end: endOfDay(parseISO(endsOn)) })

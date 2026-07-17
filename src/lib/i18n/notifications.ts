@@ -15,9 +15,18 @@ const notifications = {
     reaction: (name: string, emoji: string) => `@${name} ha reagito ${emoji} a una tua attività`,
     comment: (name: string) => `@${name} ha commentato una tua attività`,
     level_up: (level: number) => `Sei salito al livello ${level}!`,
+    duel_invite: (name: string) => `@${name} ti ha lanciato un duello`,
+    duel_accepted: (name: string) => `@${name} ha accettato il tuo duello: si comincia!`,
+    duel_won: (name: string) => `@${name} ha vinto il vostro duello`,
+    duel_finished_no_winner: 'Il duello si è concluso senza un vincitore',
+    seasonal_podium: (title: string, rank: number) =>
+      rank === 1
+        ? `Hai vinto "${title}"! Riscatta il podio nella pagina Sfide`
+        : `Sei sul podio di "${title}" (${rank}º posto): riscatta i tuoi crediti`,
   },
 
   fallbackActor: 'Qualcuno',
+  fallbackSeasonalTitle: 'l\'evento stagionale',
 } as const
 
 export default notifications

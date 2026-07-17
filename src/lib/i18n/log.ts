@@ -198,6 +198,12 @@ const log = {
 
   routeShapeAriaLabel: 'Sagoma del percorso registrato',
 
+  // Percorso nel feed (v45): il consenso si rivede anche in modifica.
+  routeShare: {
+    label: 'Mostra il percorso agli amici nel feed',
+    hint: 'Solo la sagoma del giro, mai la mappa.',
+  },
+
   map: {
     ariaLabel: 'Mappa del percorso registrato',
   },

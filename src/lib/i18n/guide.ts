@@ -30,6 +30,7 @@ const guide = {
         'Quando termini e salvi, ti accoglie il recap: mappa del percorso, passo per km, altimetria, crediti e gli eventuali record — prima distanza per quello sport, distanza più lunga di sempre, passo (o velocità) più veloce di sempre. Da lì condividi tutto come immagine con un tocco.',
         'Il percorso lo ritrovi aprendo l\'attività dal Calendario, disegnato su una vera mappa (senza connessione resta la sagoma stilizzata), insieme al passo per ogni chilometro: una barra per km mostra dove hai spinto di più (l\'ultimo tratto sotto il km è indicato con la sua distanza reale). Mappa e passo valgono anche per i percorsi registrati in passato.',
         'Sotto al passo c\'è anche l\'altimetria: il profilo del percorso con il dislivello in salita (D+) e in discesa (D−). Vale per gli allenamenti tracciati d\'ora in poi, se il dispositivo fornisce la quota: i percorsi registrati in passato non ce l\'hanno salvata.',
+        'Il percorso è privato. Se vuoi, puoi mostrarne la sagoma agli amici nel feed: lo decidi allenamento per allenamento, dal recap subito dopo il salvataggio o riaprendo l\'attività dal Calendario. Gli amici vedono solo la forma del giro, mai la mappa.',
       ],
     },
     {
@@ -93,7 +94,7 @@ const guide = {
         'Ogni giorno ricevi 3 sfide personalizzate (nella pagina Sfide e in Home). Si completano allenandosi e scadono a mezzanotte.',
         'Quando una sfida risulta completata, riscattala per incassare i crediti. Un numerino sulla voce Sfide in basso ti ricorda quante ne hai da riscattare.',
         'In fondo alla pagina Sfide ci sono le sfide con gli amici: lancia un duello a tempo — sessioni, minuti, chilometri o calorie — a un amico (che deve accettare) o a un tuo gruppo (parte subito per tutti). A finestra chiusa, chi ha fatto di più riscatta 100 crediti; in caso di parità nessun vincitore.',
-        'Ancora più in fondo trovi l\'evento stagionale del momento: una classifica a tempo aperta a TUTTA la community, non solo agli amici. A finestra chiusa il podio (primi 3) riscatta crediti — di più per il primo posto.',
+        'Ancora più in fondo trovi l\'evento stagionale del momento: una classifica a tempo aperta a TUTTA la community, non solo agli amici. A finestra chiusa il podio (primi 3) riscatta crediti — di più per il primo posto — e se ci sei tu, una notifica te lo ricorda. Gli eventi si susseguono tutto l\'anno: estate, rientro, autunno, inverno.',
       ],
     },
     {
@@ -145,7 +146,7 @@ const guide = {
       icon: '👥',
       title: 'Social: amici, feed e classifica',
       paragraphs: [
-        'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti.',
+        'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti. Se un amico ha scelto di condividere un giro GPS, nel feed compare anche la sagoma del suo percorso.',
         'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese.',
         'Sul profilo di un amico c\'è anche "Io vs te": il confronto della settimana in corso — allenamenti, minuti, chilometri e calorie — tu da un lato, l\'amico dall\'altro. La barra di ogni voce dice a colpo d\'occhio chi è avanti: più rosso, più sei tu.',
         'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km e medaglie totali.',
@@ -159,7 +160,7 @@ const guide = {
         'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla.',
         'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
         'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
-        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, e i tuoi level-up. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
+        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, i tuoi level-up — e ora anche i duelli (sfida ricevuta, accettata, conclusa) e il podio degli eventi stagionali quando c\'è da riscattare. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
         'Con l\'app installata (su iPhone: Condividi → Aggiungi a Home, con le notifiche attive), l\'icona mostra un numerino con i messaggi e le notifiche non letti — come le app native. Si azzera da solo quando li leggi.',
       ],
     },

@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext'
 import social from '../lib/i18n/social'
 import { buildReactionSummaries, emptyReactionSummary, withMyReaction } from '../lib/reactions'
 import type { ReactionKind, ReactionSummary } from '../lib/reactions'
-import type { ActivityType } from '../types'
+import type { ActivityType, RoutePoint } from '../types'
 
 export interface FeedActivity {
   id: string
@@ -21,11 +21,21 @@ export interface FeedActivity {
   photo_url?: string | null
   // Opzionale finché la migrazione v38 non è eseguita (colonna assente)
   indoor?: boolean | null
+  // Opzionali finché la migrazione v45 non è eseguita (colonne assenti)
+  gps_tracked?: boolean
+  route_visible?: boolean
+  // Punti del percorso condiviso (solo sagoma: lat/lng, niente tempi),
+  // caricati best-effort per le attività con route_visible.
+  route?: RoutePoint[]
   username: string
   user_photo: string | null
   user_level: number
   reactions: ReactionSummary
 }
+
+// Quante sagome caricare per un feed: ogni percorso è una query a parte
+// (centinaia di righe), oltre questo tetto il costo non vale la coda del feed.
+const MAX_FEED_ROUTES = 10
 
 export function useFeed() {
   const { user } = useAuth()
@@ -75,12 +85,31 @@ export function useFeed() {
     }
     const reactionMap = buildReactionSummaries(likeRows, user.id)
 
+    // Percorso nel feed (v45): la sagoma delle attività GPS che il
+    // proprietario ha scelto di condividere (route_visible, consenso esplicito
+    // per attività — la policy "friends read shared routes" fa da guardiano
+    // vero). Best effort: pre-migrazione la colonna non esiste e non si
+    // seleziona nulla; un fetch fallito lascia la card senza sagoma.
+    const routeMap = new Map<string, RoutePoint[]>()
+    const shared = activities.filter(a => a.gps_tracked && a.route_visible).slice(0, MAX_FEED_ROUTES)
+    if (shared.length > 0) {
+      await Promise.all(shared.map(async a => {
+        const { data: pts } = await supabase
+          .from('activity_routes')
+          .select('lat, lng')
+          .eq('activity_id', a.id)
+          .order('seq')
+        if (pts && pts.length >= 2) routeMap.set(a.id, pts as RoutePoint[])
+      }))
+    }
+
     const profileMap = new Map((profiles ?? []).map(p => [p.id, p]))
     setFeed(
       activities.map(a => {
         const p = profileMap.get(a.user_id)
         return {
           ...a,
+          route: routeMap.get(a.id),
           username: p?.username ?? 'Utente',
           user_photo: p?.photo_url ?? null,
           user_level: p?.level ?? 1,

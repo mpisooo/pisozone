@@ -579,7 +579,9 @@ export default function LogPage() {
         />
       )}
 
-      {recapData && <WorkoutRecapOverlay data={recapData} onClose={() => setRecapData(null)} />}
+      {recapData && (
+        <WorkoutRecapOverlay data={recapData} onClose={() => setRecapData(null)} updateActivity={updateActivity} />
+      )}
 
       {saved && (
         <div className="toast-enter toast-saved flex items-center gap-3">

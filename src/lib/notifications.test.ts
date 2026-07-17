@@ -24,6 +24,13 @@ describe('notificationTarget', () => {
     expect(notificationTarget('level_up')).toEqual({ path: '/profile' })
   })
 
+  it('duelli e podio stagionale portano alla pagina Sfide (v45)', () => {
+    expect(notificationTarget('duel_invite')).toEqual({ path: '/challenges' })
+    expect(notificationTarget('duel_accepted')).toEqual({ path: '/challenges' })
+    expect(notificationTarget('duel_finished')).toEqual({ path: '/challenges' })
+    expect(notificationTarget('seasonal_podium')).toEqual({ path: '/challenges' })
+  })
+
   it('ogni tipo dichiarato ha un target', () => {
     for (const type of NOTIFICATION_TYPES) {
       expect(notificationTarget(type).path).toBeTruthy()

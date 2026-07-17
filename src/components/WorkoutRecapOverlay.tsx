@@ -22,6 +22,12 @@ const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY
 interface Props {
   data: WorkoutRecapData
   onClose: () => void
+  // Percorso nel feed (v45): il consenso si offre nel momento più naturale,
+  // subito dopo il salvataggio. Facoltativo: senza callback il toggle sparisce.
+  updateActivity?: (
+    id: string,
+    updates: { route_visible: boolean },
+  ) => Promise<{ data: unknown; error: Error | null }>
 }
 
 // Recap del dopo-allenamento GPS (roadmap v3, pilastro 01 punto 1 — flagship):
@@ -30,12 +36,31 @@ interface Props {
 // in un colpo solo, con la condivisione (share card 2.0) a portata di pollice.
 // Tema dell'app (non il vestito scuro fisso del Wrapped): la mappa segue già
 // il tema, e questa schermata vive dentro il flusso, non fuori.
-export default function WorkoutRecapOverlay({ data, onClose }: Props) {
+export default function WorkoutRecapOverlay({ data, onClose, updateActivity }: Props) {
   const { activity, points, records } = data
   const [sharing, setSharing] = useState(false)
   const [shareError, setShareError] = useState(false)
+  // Consenso al percorso nel feed (v45): ottimistico con rollback. Il toggle
+  // esiste solo se la colonna c'è (attività tornata dal server con
+  // route_visible), il percorso è arrivato sul DB e non siamo in coda offline.
+  const [routeShared, setRouteShared] = useState(activity.route_visible ?? false)
+  const [routeShareError, setRouteShareError] = useState(false)
+  const canShareRoute =
+    !!updateActivity && !data.pending && data.routeSaved && activity.route_visible !== undefined
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onClose)
+
+  const handleToggleRouteShare = async () => {
+    const next = !routeShared
+    setRouteShared(next)
+    setRouteShareError(false)
+    haptic('light')
+    const { error } = await updateActivity!(activity.id, { route_visible: next })
+    if (error) {
+      setRouteShared(!next)
+      setRouteShareError(true)
+    }
+  }
 
   // Blocco scroll del body come ogni overlay con scroller interno (iOS).
   useEffect(() => {
@@ -181,6 +206,35 @@ export default function WorkoutRecapOverlay({ data, onClose }: Props) {
               <RouteShape points={points} width={280} height={140} />
             )}
             <RouteInsights points={points} />
+            {canShareRoute && (
+              <div className="pt-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm text-gray-300">{recapText.routeShare.label}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{recapText.routeShare.hint}</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={routeShared ? 'true' : 'false'}
+                    aria-label={recapText.routeShare.label}
+                    onClick={handleToggleRouteShare}
+                    className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
+                      routeShared ? 'bg-[var(--red)]' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                        routeShared ? 'translate-x-5' : ''
+                      }`}
+                    />
+                  </button>
+                </div>
+                {routeShareError && (
+                  <p className="text-xs text-[var(--red)] mt-1">{recapText.routeShare.error}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

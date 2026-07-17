@@ -52,6 +52,10 @@ export interface Activity {
   // logica dell'altimetria (computeElevationProfile). Sempre nullable:
   // attività manuali, pre-v44 o senza quota non hanno un D+ — non si inventa.
   elevation_gain_m?: number | null
+  // Opzionale: esiste solo dopo la migrazione v45. true = il percorso GPS è
+  // visibile agli amici nel feed (consenso esplicito per attività, default
+  // false: i propri giri sono un dato sensibile). undefined = colonna assente.
+  route_visible?: boolean
 }
 
 export interface RoutePoint {
@@ -202,7 +206,10 @@ export interface SeasonalClaim {
   created_at: string
 }
 
-export type NotificationType = 'friend_request' | 'friend_accepted' | 'reaction' | 'comment' | 'level_up'
+export type NotificationType =
+  | 'friend_request' | 'friend_accepted' | 'reaction' | 'comment' | 'level_up'
+  // v45: duelli (trigger su duels) e podio stagionale (scritto dal cron serale)
+  | 'duel_invite' | 'duel_accepted' | 'duel_finished' | 'seasonal_podium'
 
 // Riga di notifications (v40): cronologia persistente degli eventi che oggi
 // esistono solo come push effimere o non hanno affatto una notifica

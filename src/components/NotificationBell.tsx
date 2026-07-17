@@ -8,6 +8,9 @@ import { useFocusTrap } from '../hooks/useFocusTrap'
 import { useNotifications } from '../context/NotificationsContext'
 import { notificationTarget } from '../lib/notifications'
 import { REACTION_EMOJI, type ReactionKind } from '../lib/reactions'
+// Dal catalogo puro (non da seasonalEvents): questo componente vive nel
+// chunk d'ingresso e gli helper porterebbero con sé date-fns.
+import { SEASONAL_EVENTS } from '../lib/seasonalCatalog'
 import { getLevelDef } from '../lib/levels'
 import { haptic } from '../lib/haptics'
 import common from '../lib/i18n/common'
@@ -22,6 +25,17 @@ function messageFor(n: AppNotification): string {
     case 'reaction': return notifText.messages.reaction(name, REACTION_EMOJI[(n.payload.kind as ReactionKind) ?? 'heart'])
     case 'comment': return notifText.messages.comment(name)
     case 'level_up': return notifText.messages.level_up(Number(n.payload.level) || 1)
+    case 'duel_invite': return notifText.messages.duel_invite(name)
+    case 'duel_accepted': return notifText.messages.duel_accepted(name)
+    case 'duel_finished':
+      // Il vincitore, se c'è, è sempre chi ha chiuso il duello (= l'attore).
+      return n.payload.winner ? notifText.messages.duel_won(name) : notifText.messages.duel_finished_no_winner
+    case 'seasonal_podium': {
+      // Il titolo vive nel catalogo client (SEASONAL_EVENTS), il payload porta
+      // solo la chiave: un evento rimosso dal catalogo degrada al fallback.
+      const event = SEASONAL_EVENTS.find((e) => e.key === n.payload.event_key)
+      return notifText.messages.seasonal_podium(event?.title ?? notifText.fallbackSeasonalTitle, Number(n.payload.rank) || 3)
+    }
   }
 }
 
@@ -161,6 +175,9 @@ export default function NotificationBell() {
                         <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-[var(--grey)] flex-shrink-0 mt-0.5 text-base leading-none">
                           {n.type === 'level_up' ? (
                             getLevelDef(Number(n.payload.level) || 1).emoji
+                          ) : n.type === 'seasonal_podium' ? (
+                            // Evento di sistema senza attore: il trofeo al posto dell'avatar
+                            '🏆'
                           ) : n.actor_photo ? (
                             <img src={n.actor_photo} alt="" className="w-full h-full object-cover" />
                           ) : (

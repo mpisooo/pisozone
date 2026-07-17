@@ -26,6 +26,7 @@ import SkeletonCard, { SkeletonRow } from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
 import EmptyState from '../components/EmptyState'
 import PhotoLightbox from '../components/PhotoLightbox'
+import RouteShape from '../components/RouteShape'
 import type { FriendProfile } from '../types'
 import type { Message } from '../hooks/useMessages'
 import type { GroupMessage, GroupMember } from '../hooks/useGroups'
@@ -1102,6 +1103,13 @@ export default function SocialPage() {
                         </p>
                       </div>
                     </div>
+                    {/* Percorso condiviso (v45): la sagoma stilizzata, mai una
+                        mappa — "guarda che giro" senza coordinate leggibili. */}
+                    {a.route && a.route.length >= 2 && (
+                      <div className="flex justify-center rounded-xl py-2" style={{ background: 'var(--grey)' }}>
+                        <RouteShape points={a.route} width={280} height={110} />
+                      </div>
+                    )}
                     {a.photo_url && (
                       <button
                         type="button"
