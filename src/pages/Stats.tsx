@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { startOfDay, startOfWeek, startOfMonth, startOfYear, parseISO, format, isAfter, isEqual } from 'date-fns'
 import { it } from 'date-fns/locale'
+import { AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
 import { useWeightLogs } from '../hooks/useWeightLogs'
@@ -18,6 +19,7 @@ import {
   buildWeightTrainingSeries, buildZoneDistribution, buildYearPixels,
   activitiesToCsv, formatMinutesCompact,
 } from '../lib/stats'
+import { buildTrainingLoadSeries, loadJumpPct } from '../lib/trainingLoad'
 import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wrapped'
 import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
@@ -175,6 +177,20 @@ export default function StatsPage() {
   // Anno in pixel (roadmap v3, pilastro 01): griglia annuale zone-colored.
   // Vista fissa sull'anno corrente, non segue il filtro periodo.
   const yearGrid = useMemo(() => buildYearPixels(activities, new Date().getFullYear()), [activities])
+
+  // Carico settimanale session-RPE (roadmap v3, pilastro 02): finestra fissa
+  // di 8 settimane come "Obiettivo vs reale", non segue il filtro periodo.
+  const loadSeries = useMemo(() => buildTrainingLoadSeries(activities), [activities])
+  const loadWeeksWithData = useMemo(() => loadSeries.filter((w) => w.load > 0).length, [loadSeries])
+  const loadJump = useMemo(() => loadJumpPct(loadSeries), [loadSeries])
+  const maxLoad = Math.max(...loadSeries.map((w) => w.load), 1)
+  const loadTotals = useMemo(
+    () => loadSeries.reduce(
+      (acc, w) => ({ withRpe: acc.withRpe + w.sessionsWithRpe, total: acc.total + w.sessions }),
+      { withRpe: 0, total: 0 },
+    ),
+    [loadSeries],
+  )
 
   // PisoZone Wrapped: il mese appena concluso e l'anno (quello concluso, o il
   // corrente da dicembre). null = nessuna attività nel periodo → niente bottone.
@@ -468,6 +484,53 @@ export default function StatsPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Carico settimanale session-RPE: sforzo percepito × minuti (grafico a
+          colonne in puro CSS — niente recharts sulle card nuove, il pilastro 04
+          della roadmap v3 lo pensiona del tutto) */}
+      {loadWeeksWithData >= 2 && filtered.length > 0 && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.trainingLoad.heading}</h2>
+          <p className="text-xs text-gray-400 mb-3">{stats.trainingLoad.subtitle}</p>
+          <div className="flex items-end gap-1.5 h-28" role="img" aria-label={stats.trainingLoad.chartAriaLabel}>
+            {loadSeries.map((w, i) => (
+              <div
+                key={w.key}
+                className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0 h-full"
+                aria-label={stats.trainingLoad.barAria(w.label, w.load)}
+              >
+                {w.load > 0 && (
+                  <span className="text-[9px] text-gray-500 tabular-nums leading-none">{w.load}</span>
+                )}
+                <div
+                  className="w-full rounded-t"
+                  style={{
+                    height: `${Math.max(w.load > 0 ? 4 : 2, Math.round((w.load / maxLoad) * 88))}px`,
+                    background: i === loadSeries.length - 1 ? 'var(--red)' : 'rgba(var(--accent-rgb),0.45)',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-1.5 mt-1">
+            {loadSeries.map((w) => (
+              <span key={w.key} className="flex-1 text-center text-[9px] text-gray-500 truncate">{w.label}</span>
+            ))}
+          </div>
+          {/* Ambra semantica di avvertimento (come la scala BMI), non il tema */}
+          {loadJump != null && (
+            <div className="flex items-start gap-2 mt-3 px-3 py-2 rounded-lg text-xs leading-relaxed" style={{ background: 'rgba(250,204,21,0.1)', color: '#facc15' }}>
+              <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+              {stats.trainingLoad.jumpWarning(loadJump)}
+            </div>
+          )}
+          {loadTotals.withRpe < loadTotals.total && (
+            <p className="text-[10px] text-gray-600 mt-2">
+              {stats.trainingLoad.coverageHint(loadTotals.withRpe, loadTotals.total)}
+            </p>
+          )}
         </div>
       )}
 

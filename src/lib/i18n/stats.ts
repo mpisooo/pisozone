@@ -63,6 +63,19 @@ const stats = {
     subtitle: 'Come si distribuiscono i minuti allenati tra le zone di sforzo',
   },
 
+  // Carico settimanale session-RPE (roadmap v3, pilastro 02): sforzo
+  // percepito × minuti, con avviso quando il salto supera il +50%.
+  trainingLoad: {
+    heading: 'CARICO SETTIMANALE',
+    subtitle: 'Sforzo percepito × minuti (session-RPE), settimana per settimana (ultime 8)',
+    chartAriaLabel: 'Grafico del carico allenante settimanale',
+    barAria: (label: string, load: number) => `Settimana del ${label}: carico ${load}`,
+    jumpWarning: (pct: number) =>
+      `Carico in forte aumento: +${pct}% rispetto alla settimana scorsa. Sali gradualmente per ridurre il rischio di infortuni.`,
+    coverageHint: (withRpe: number, total: number) =>
+      `Calcolato sulle ${withRpe} sessioni con sforzo percepito su ${total}: compilarlo su ogni attività rende il grafico più fedele.`,
+  },
+
   weightTraining: {
     heading: 'PESO E ALLENAMENTO',
     subtitle: 'Peso medio e minuti di allenamento, settimana per settimana (ultime 12)',
