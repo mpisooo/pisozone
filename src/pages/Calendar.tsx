@@ -5,12 +5,16 @@ import {
   addMonths, subMonths,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Flame, X, Pencil, CloudOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flame, X, Pencil, CloudOff, Filter, Satellite, Camera } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
 import { ACTIVITY_OPTIONS, activityLabel } from '../lib/constants'
 import { calcStreak } from '../lib/challenges'
+import {
+  EMPTY_FILTERS, hasActiveFilters, activeFilterCount, filterActivities, typesInActivities,
+  type ActivityFilters,
+} from '../lib/activityFilters'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import type { Activity } from '../types'
 import ActivityEditModal from '../components/ActivityEditModal'
@@ -35,6 +39,11 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
+  // Filtri e ricerca (roadmap v3, pilastro 02): con filtri attivi heatmap e
+  // pannello del giorno mostrano solo le attività corrispondenti, e sotto il
+  // mese compare la lista dei risultati. Lo streak resta su TUTTE le attività.
+  const [filters, setFilters] = useState<ActivityFilters>(EMPTY_FILTERS)
+  const [showFilters, setShowFilters] = useState(false)
 
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -60,15 +69,25 @@ export default function CalendarPage() {
     [currentMonth]
   )
 
+  const filtersActive = hasActiveFilters(filters)
+  const filteredActivities = useMemo(() => filterActivities(activities, filters), [activities, filters])
+  const availableTypes = useMemo(() => typesInActivities(activities), [activities])
+  // Risultati: le più recenti tra le filtrate (la lista di useActivities è già
+  // in ordine di data discendente), limitate per non allungare la pagina.
+  const searchResults = useMemo(
+    () => (filtersActive ? filteredActivities.slice(0, 20) : []),
+    [filtersActive, filteredActivities],
+  )
+
   const actsByDay = useMemo(() => {
     const map = new Map<string, Activity[]>()
-    for (const a of activities) {
+    for (const a of filteredActivities) {
       const key = format(parseISO(a.date), 'yyyy-MM-dd')
       if (!map.has(key)) map.set(key, [])
       map.get(key)!.push(a)
     }
     return map
-  }, [activities])
+  }, [filteredActivities])
 
   // Stessa fonte di Home/Challenges: freeze e giorni di riposo (v33)
   // contano come giorni attivi
@@ -102,6 +121,161 @@ export default function CalendarPage() {
       <div className="pt-3">
         <AnalisiTabs />
       </div>
+
+      {/* Filtri e ricerca (roadmap v3, pilastro 02) */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          aria-expanded={showFilters}
+          aria-label={calendar.filters.toggleAria}
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-all duration-200 ${
+            showFilters || filtersActive ? 'bg-[var(--red)] text-[white]' : 'bg-[var(--grey)] text-gray-400'
+          }`}
+        >
+          <Filter size={13} />
+          {calendar.filters.toggle}
+          {activeFilterCount(filters) > 0 && (
+            <span
+              className="min-w-4 h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.25)' }}
+            >
+              {activeFilterCount(filters)}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {showFilters && (
+        <div className="card space-y-3">
+          <input
+            type="search"
+            value={filters.query}
+            onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+            className="input-dark w-full"
+            placeholder={calendar.filters.searchPlaceholder}
+            aria-label={calendar.filters.searchAria}
+          />
+
+          {availableTypes.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-400 mb-2">{calendar.filters.sportsLabel}</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {availableTypes.map((type) => {
+                  const selected = filters.types.includes(type)
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setFilters((f) => ({
+                        ...f,
+                        types: selected ? f.types.filter((t) => t !== type) : [...f.types, type],
+                      }))}
+                      className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                        selected ? 'border-[var(--red)] text-white' : 'border-transparent text-gray-400'
+                      }`}
+                      style={{ background: selected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+                    >
+                      <ActivityIcon type={type} size={14} className={selected ? 'text-[var(--red)]' : 'text-gray-400'} />
+                      {ACTIVITY_OPTIONS.find((o) => o.value === type)?.label ?? type}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              aria-pressed={filters.gpsOnly}
+              onClick={() => setFilters((f) => ({ ...f, gpsOnly: !f.gpsOnly }))}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                filters.gpsOnly ? 'border-[var(--red)] text-white' : 'border-transparent text-gray-400'
+              }`}
+              style={{ background: filters.gpsOnly ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+            >
+              <Satellite size={13} />
+              {calendar.filters.gpsChip}
+            </button>
+            <button
+              type="button"
+              aria-pressed={filters.photoOnly}
+              onClick={() => setFilters((f) => ({ ...f, photoOnly: !f.photoOnly }))}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                filters.photoOnly ? 'border-[var(--red)] text-white' : 'border-transparent text-gray-400'
+              }`}
+              style={{ background: filters.photoOnly ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+            >
+              <Camera size={13} />
+              {calendar.filters.photoChip}
+            </button>
+          </div>
+
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={() => setFilters(EMPTY_FILTERS)}
+              className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-medium text-gray-400 hover:text-white transition-colors"
+              style={{ background: 'var(--grey)' }}
+            >
+              <X size={13} />
+              {calendar.filters.clear}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Risultati della ricerca: le attività filtrate più recenti, apribili
+          in modifica come dal pannello del giorno */}
+      {filtersActive && (
+        <div className="card space-y-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-sm font-semibold text-white">
+              {calendar.filters.resultsCount(filteredActivities.length)}
+            </p>
+            {filteredActivities.length > searchResults.length && (
+              <span className="text-xs text-gray-500 flex-shrink-0">
+                {calendar.filters.resultsShownHint(searchResults.length)}
+              </span>
+            )}
+          </div>
+          {searchResults.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-2">{calendar.filters.noResults}</p>
+          ) : (
+            searchResults.map((a) => {
+              const opt = ACTIVITY_OPTIONS.find((o) => o.value === a.type)
+              const pending = isPendingActivityId(a.id)
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  disabled={pending}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] ${
+                    pending ? 'opacity-70 cursor-default' : 'hover:brightness-110 active:brightness-90'
+                  }`}
+                  onClick={() => { if (!pending) setEditingActivity(a) }}
+                >
+                  <ActivityIcon type={opt?.value ?? 'corsa'} size={22} className="text-[var(--red)] flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm">{activityLabel(a.type, a.indoor)}</p>
+                    <p className="text-xs text-gray-400">
+                      {calendar.dayPanel.durationLabel(a.duration_min)}
+                      {a.calories ? calendar.dayPanel.caloriesSuffix(a.calories) : ''}
+                      {a.distance_km ? calendar.dayPanel.distanceSuffix(a.distance_km) : ''}
+                    </p>
+                    {a.notes && <p className="text-xs text-gray-500 mt-0.5 truncate">{a.notes}</p>}
+                  </div>
+                  <p className="text-xs text-gray-500 flex-shrink-0">
+                    {format(parseISO(a.date), 'd MMM yy', { locale: it })}
+                  </p>
+                </button>
+              )
+            })
+          )}
+        </div>
+      )}
 
       {/* Month nav */}
       <div className="card" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
@@ -185,6 +359,10 @@ export default function CalendarPage() {
             </div>
           ))}
         </div>
+
+        {filtersActive && (
+          <p className="text-[10px] text-gray-600 text-right mt-1.5">{calendar.filters.heatmapHint}</p>
+        )}
       </div>
 
       {/* Streak info */}

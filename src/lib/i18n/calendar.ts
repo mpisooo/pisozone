@@ -28,6 +28,24 @@ const calendar = {
   },
 
   editHint: 'Tocca un\'attività per modificarla',
+
+  // Filtri e ricerca (roadmap v3, pilastro 02): sport, GPS, foto, note.
+  // Con filtri attivi la heatmap mostra solo le attività corrispondenti e
+  // sotto compare la lista dei risultati più recenti.
+  filters: {
+    toggle: 'Filtri',
+    toggleAria: 'Mostra o nascondi i filtri delle attività',
+    searchPlaceholder: 'Cerca nelle note…',
+    searchAria: 'Cerca nelle note delle attività',
+    sportsLabel: 'Sport',
+    gpsChip: 'Con GPS',
+    photoChip: 'Con foto',
+    clear: 'Azzera filtri',
+    heatmapHint: 'Il calendario mostra solo le attività filtrate',
+    resultsCount: (n: number) => (n === 1 ? '1 attività trovata' : `${n} attività trovate`),
+    resultsShownHint: (shown: number) => `Qui sotto le ${shown} più recenti`,
+    noResults: 'Nessuna attività corrisponde ai filtri.',
+  },
 } as const
 
 export default calendar
