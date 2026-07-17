@@ -30,7 +30,10 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   await sendPushToUserIfAllowed(message.receiver_id, 'messages', {
     title: `Nuovo messaggio da ${sender?.username ?? 'un amico'}`,
     body: message.content.slice(0, 100),
-    url: '/social',
+    // Deep-link (roadmap v3, pilastro 04): il tap apre la conversazione
+    // esatta, non la pagina Social generica. Il query param sopravvive alla
+    // navigazione del service worker; Social lo consuma e pulisce l'URL.
+    url: `/social?dm=${message.sender_id}`,
   })
 
   return res.status(200).json({ ok: true })

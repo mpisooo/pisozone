@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { Coins, CheckCircle2, Lock, Loader2 } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
@@ -8,7 +9,7 @@ import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
 import { calcStreak } from '../lib/challenges'
 import { haptic } from '../lib/haptics'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import SkeletonCard from '../components/SkeletonCard'
 import AnimatedNumber from '../components/AnimatedNumber'
 import DuelsSection from '../components/DuelsSection'
@@ -33,6 +34,25 @@ export default function ChallengesPage() {
   const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile()
   const { frozenDates } = useStreakFreeze()
   const { restDates } = useRecovery()
+  const location = useLocation()
+
+  // Deep-link dalla campanella (roadmap v3, pilastro 04): duelli e podio
+  // stagionale vivono in fondo alla pagina — si scorre fin lì invece di
+  // lasciare l'utente in cima. Il ritardo lascia alle sezioni (che caricano
+  // async) il tempo di comparire; se pre-migrazione non esistono, l'ancora
+  // vuota non fa danni.
+  useEffect(() => {
+    const section = (location.state as { section?: 'duels' | 'seasonal' } | null)?.section
+    if (!section) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const timer = setTimeout(() => {
+      document.getElementById(`${section}-section`)?.scrollIntoView({
+        behavior: reduced ? 'auto' : 'smooth',
+        block: 'start',
+      })
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [location.state])
 
   // Stessa fonte di Home/Calendar: freeze e giorni di riposo proteggono la streak
   const streak = useMemo(
@@ -185,11 +205,16 @@ export default function ChallengesPage() {
         {challenges.footerHint}
       </p>
 
-      {/* Sfide 1v1 e di gruppo (v37): sparisce da sola pre-migrazione */}
-      <DuelsSection />
+      {/* Sfide 1v1 e di gruppo (v37): sparisce da sola pre-migrazione.
+          Gli id sono le ancore dei deep-link della campanella. */}
+      <div id="duels-section">
+        <DuelsSection />
+      </div>
 
       {/* Eventi stagionali (v39): classifica aperta a tutta la community */}
-      <SeasonalEventSection />
+      <div id="seasonal-section">
+        <SeasonalEventSection />
+      </div>
     </div>
   )
 }

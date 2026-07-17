@@ -4,8 +4,32 @@ import type { User } from '@supabase/supabase-js'
 
 const FAKE_EMAIL_SUFFIX = '@pisozone.local'
 
+// I percorsi GPS sono l'unica tabella con migliaia di righe per utente (un
+// campione ogni ~5 secondi): PostgREST tronca silenziosamente a 1000 righe
+// per richiesta, quindi un select singolo esporterebbe solo il primo scampolo
+// dei giri. Si pagina finché una pagina torna incompleta.
+const ROUTES_PAGE_SIZE = 1000
+
+async function fetchAllActivityRoutes(uid: string): Promise<unknown[]> {
+  const rows: unknown[] = []
+  for (let from = 0; ; from += ROUTES_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('activity_routes')
+      .select('*')
+      .eq('user_id', uid)
+      .order('activity_id')
+      .order('seq')
+      .range(from, from + ROUTES_PAGE_SIZE - 1)
+    if (error) throw new Error(profileText.export.fieldFailed('activity_routes', error.message))
+    rows.push(...(data ?? []))
+    if (!data || data.length < ROUTES_PAGE_SIZE) break
+  }
+  return rows
+}
+
 // Copia completa dei dati personali dell'utente (GDPR art. 20 — portabilità).
-// Le query passano dalla RLS: ogni tabella restituisce solo le righe proprie.
+// Le query passano dalla RLS: ogni tabella restituisce solo le righe proprie
+// (per i commenti, quelle che la policy di visibilità consente ancora di leggere).
 export async function buildUserDataExport(user: User): Promise<Record<string, unknown>> {
   const uid = user.id
 
@@ -17,12 +41,15 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     daily_challenge_completions: supabase.from('daily_challenge_completions').select('*').eq('user_id', uid),
     streak_freezes: supabase.from('streak_freezes').select('*').eq('user_id', uid),
     activity_likes: supabase.from('activity_likes').select('*').eq('user_id', uid),
+    activity_comments: supabase.from('activity_comments').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
     exercise_sets: supabase.from('exercise_sets').select('*').eq('user_id', uid),
     recovery_logs: supabase.from('recovery_logs').select('*').eq('user_id', uid).order('day', { ascending: true }),
     plan_enrollments: supabase.from('plan_enrollments').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
     personal_goals: supabase.from('personal_goals').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
+    duels: supabase.from('duels').select('*').or(`creator_id.eq.${uid},opponent_id.eq.${uid}`).order('created_at', { ascending: true }),
     seasonal_claims: supabase.from('seasonal_claims').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
     notifications: supabase.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: true }),
+    user_blocks: supabase.from('user_blocks').select('*').eq('blocker_id', uid),
     friendships: supabase.from('friendships').select('*').or(`requester_id.eq.${uid},addressee_id.eq.${uid}`),
     messages: supabase.from('messages').select('*').or(`sender_id.eq.${uid},receiver_id.eq.${uid}`),
     group_memberships: supabase.from('group_members').select('*').eq('user_id', uid),
@@ -33,18 +60,23 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   // Tabelle più recenti dello schema: se la migrazione non è ancora eseguita
   // la tabella può mancare, e non deve far fallire l'intero export —
   // pre-migrazione non c'è comunque alcun dato da restituire.
-  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments', 'personal_goals', 'seasonal_claims', 'notifications'])
+  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments', 'personal_goals', 'duels', 'seasonal_claims', 'notifications'])
 
-  const entries = await Promise.all(
-    Object.entries(queries).map(async ([key, query]) => {
-      const { data, error } = await query
-      if (error) {
-        if (optionalTables.has(key)) return [key, []] as const
-        throw new Error(profileText.export.fieldFailed(key, error.message))
-      }
-      return [key, data] as const
-    }),
-  )
+  const [entries, activityRoutes] = await Promise.all([
+    Promise.all(
+      Object.entries(queries).map(async ([key, query]) => {
+        const { data, error } = await query
+        if (error) {
+          if (optionalTables.has(key)) return [key, []] as const
+          throw new Error(profileText.export.fieldFailed(key, error.message))
+        }
+        return [key, data] as const
+      }),
+    ),
+    // Il gap di conformità chiuso dalla roadmap v3 (pilastro 04): i percorsi
+    // GPS sono dati personali a tutti gli effetti — anzi, i più sensibili.
+    fetchAllActivityRoutes(uid),
+  ])
 
   return {
     exported_at: new Date().toISOString(),
@@ -56,6 +88,7 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
       created_at: user.created_at,
     },
     ...Object.fromEntries(entries),
+    activity_routes: activityRoutes,
   }
 }
 

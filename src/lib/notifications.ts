@@ -14,25 +14,36 @@ export function countUnread(list: Pick<AppNotification, 'read_at'>[]): number {
   return list.filter((n) => n.read_at == null).length
 }
 
-// Dove porta il tap su una notifica: le sociali aprono Social sulla scheda
-// giusta (stesso meccanismo di navigate('/social', { state: { tab } }) già
-// usato da Home per classifica/amici); level_up non ha un attore né un
-// posto "sociale", porta al Profilo dove vive il livello. Duelli ed eventi
-// stagionali vivono entrambi in fondo alla pagina Sfide (v45).
-export function notificationTarget(type: NotificationType): { path: string; tab?: 'friends' | 'feed' } {
-  switch (type) {
+export interface NotificationDestination {
+  path: string
+  tab?: 'friends' | 'feed'
+  // Deep-link (roadmap v3, pilastro 04): l'attività esatta da evidenziare nel
+  // feed (reazioni/commenti) e la sezione della pagina Sfide da raggiungere.
+  activityId?: string
+  section?: 'duels' | 'seasonal'
+}
+
+// Dove porta il tap su una notifica: non più solo la scheda giusta (v40) ma
+// il punto esatto — l'attività commentata nel feed, la sezione duelli o
+// l'evento stagionale in fondo a Sfide. level_up non ha un attore né un
+// posto "sociale": porta al Profilo dove vive il livello.
+export function notificationTarget(
+  n: Pick<AppNotification, 'type' | 'activity_id'>,
+): NotificationDestination {
+  switch (n.type) {
     case 'friend_request':
     case 'friend_accepted':
       return { path: '/social', tab: 'friends' }
     case 'reaction':
     case 'comment':
-      return { path: '/social', tab: 'feed' }
+      return { path: '/social', tab: 'feed', activityId: n.activity_id ?? undefined }
     case 'level_up':
       return { path: '/profile' }
     case 'duel_invite':
     case 'duel_accepted':
     case 'duel_finished':
+      return { path: '/challenges', section: 'duels' }
     case 'seasonal_podium':
-      return { path: '/challenges' }
+      return { path: '/challenges', section: 'seasonal' }
   }
 }

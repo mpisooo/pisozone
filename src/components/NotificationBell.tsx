@@ -79,8 +79,15 @@ export default function NotificationBell() {
 
   const handleClick = (n: AppNotification) => {
     setOpen(false)
-    const target = notificationTarget(n.type)
-    navigate(target.path, target.tab ? { state: { tab: target.tab }, viewTransition: true } : { viewTransition: true })
+    // Deep-link (roadmap v3, pilastro 04): oltre alla scheda viaggiano anche
+    // l'attività esatta (feed) o la sezione di Sfide da raggiungere.
+    const target = notificationTarget(n)
+    const state = {
+      ...(target.tab ? { tab: target.tab } : {}),
+      ...(target.activityId ? { activityId: target.activityId } : {}),
+      ...(target.section ? { section: target.section } : {}),
+    }
+    navigate(target.path, Object.keys(state).length ? { state, viewTransition: true } : { viewTransition: true })
   }
 
   const handleDelete = (id: string) => {

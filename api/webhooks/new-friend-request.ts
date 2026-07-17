@@ -32,7 +32,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   await sendPushToUserIfAllowed(friendship.addressee_id, 'friend_requests', {
     title: 'Nuova richiesta di amicizia',
     body: `${requester?.username ?? 'Un utente'} vuole aggiungerti come amico`,
-    url: '/social',
+    // Deep-link (roadmap v3, pilastro 04): dritti alla scheda Amici, dove
+    // la richiesta è in cima in attesa di risposta.
+    url: '/social?tab=friends',
   })
 
   return res.status(200).json({ ok: true })

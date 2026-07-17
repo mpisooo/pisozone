@@ -13,27 +13,34 @@ describe('countUnread', () => {
 })
 
 describe('notificationTarget', () => {
+  const n = (type: (typeof NOTIFICATION_TYPES)[number], activity_id: string | null = null) => ({ type, activity_id })
+
   it('le notifiche sociali con attore portano a Social sulla scheda giusta', () => {
-    expect(notificationTarget('friend_request')).toEqual({ path: '/social', tab: 'friends' })
-    expect(notificationTarget('friend_accepted')).toEqual({ path: '/social', tab: 'friends' })
-    expect(notificationTarget('reaction')).toEqual({ path: '/social', tab: 'feed' })
-    expect(notificationTarget('comment')).toEqual({ path: '/social', tab: 'feed' })
+    expect(notificationTarget(n('friend_request'))).toEqual({ path: '/social', tab: 'friends' })
+    expect(notificationTarget(n('friend_accepted'))).toEqual({ path: '/social', tab: 'friends' })
+  })
+
+  it('reazioni e commenti portano all\'attività esatta nel feed (deep-link, pilastro 04)', () => {
+    expect(notificationTarget(n('reaction', 'act-1'))).toEqual({ path: '/social', tab: 'feed', activityId: 'act-1' })
+    expect(notificationTarget(n('comment', 'act-2'))).toEqual({ path: '/social', tab: 'feed', activityId: 'act-2' })
+    // Riga storica senza activity_id: si degrada alla sola scheda
+    expect(notificationTarget(n('reaction'))).toEqual({ path: '/social', tab: 'feed', activityId: undefined })
   })
 
   it('level_up porta al Profilo, senza scheda', () => {
-    expect(notificationTarget('level_up')).toEqual({ path: '/profile' })
+    expect(notificationTarget(n('level_up'))).toEqual({ path: '/profile' })
   })
 
-  it('duelli e podio stagionale portano alla pagina Sfide (v45)', () => {
-    expect(notificationTarget('duel_invite')).toEqual({ path: '/challenges' })
-    expect(notificationTarget('duel_accepted')).toEqual({ path: '/challenges' })
-    expect(notificationTarget('duel_finished')).toEqual({ path: '/challenges' })
-    expect(notificationTarget('seasonal_podium')).toEqual({ path: '/challenges' })
+  it('duelli e podio stagionale portano alla sezione giusta di Sfide', () => {
+    expect(notificationTarget(n('duel_invite'))).toEqual({ path: '/challenges', section: 'duels' })
+    expect(notificationTarget(n('duel_accepted'))).toEqual({ path: '/challenges', section: 'duels' })
+    expect(notificationTarget(n('duel_finished'))).toEqual({ path: '/challenges', section: 'duels' })
+    expect(notificationTarget(n('seasonal_podium'))).toEqual({ path: '/challenges', section: 'seasonal' })
   })
 
   it('ogni tipo dichiarato ha un target', () => {
     for (const type of NOTIFICATION_TYPES) {
-      expect(notificationTarget(type).path).toBeTruthy()
+      expect(notificationTarget(n(type)).path).toBeTruthy()
     }
   })
 })

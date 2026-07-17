@@ -157,10 +157,10 @@ const guide = {
       icon: '🔔',
       title: 'Notifiche',
       paragraphs: [
-        'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla.',
+        'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla. Toccarne una apre direttamente il punto giusto: la conversazione esatta per un messaggio, la scheda Amici per una richiesta.',
         'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
         'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
-        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, i tuoi level-up — e ora anche i duelli (sfida ricevuta, accettata, conclusa) e il podio degli eventi stagionali quando c\'è da riscattare. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
+        'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, i tuoi level-up — e ora anche i duelli (sfida ricevuta, accettata, conclusa) e il podio degli eventi stagionali quando c\'è da riscattare. Si apre e si segna letta da sola; toccando una voce vai dritto al punto esatto: l\'attività commentata evidenziata nel feed, la sezione duelli o l\'evento stagionale in fondo a Sfide. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
         'Con l\'app installata (su iPhone: Condividi → Aggiungi a Home, con le notifiche attive), l\'icona mostra un numerino con i messaggi e le notifiche non letti — come le app native. Si azzera da solo quando li leggi.',
       ],
     },
@@ -168,7 +168,7 @@ const guide = {
       icon: '🔒',
       title: 'Privacy e i tuoi dati',
       paragraphs: [
-        'I tuoi dati sono tuoi: dal Profilo puoi scaricarli tutti in JSON o eliminare l\'account con tutto ciò che contiene.',
+        'I tuoi dati sono tuoi: dal Profilo puoi scaricarli tutti in JSON — attività, percorsi GPS punto per punto, messaggi, commenti, tutto — o eliminare l\'account con ciò che contiene.',
         'Privacy policy e termini di servizio sono sempre consultabili dai link nel Profilo.',
       ],
     },

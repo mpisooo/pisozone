@@ -881,7 +881,10 @@ export default function SocialPage() {
   const { profile } = useProfile()
   const location = useLocation()
   const [tab, setTab] = useState<Tab>(() => {
+    // Lo state arriva dalla navigazione interna (Home, campanella); il query
+    // param dalle push (?tab=friends), che attraversano un vero page load.
     const requested = (location.state as { tab?: Tab } | null)?.tab
+      ?? (new URLSearchParams(location.search).get('tab') as Tab | null)
     return requested && VALID_TABS.includes(requested) ? requested : 'feed'
   })
   const [activeView, setActiveView] = useState<ActiveView | null>(null)
@@ -921,6 +924,49 @@ export default function SocialPage() {
   const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
   const [openReactionsId, setOpenReactionsId] = useState<string | null>(null)
   const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; alt: string } | null>(null)
+
+  // Deep-link dalla push di un messaggio (roadmap v3, pilastro 04): la
+  // notifica porta ?dm=<userId> attraverso un vero page load (il service
+  // worker naviga, non passa uno state di rotta). Si apre la conversazione
+  // esatta e si pulisce l'URL, così un refresh non la riapre a sorpresa.
+  useEffect(() => {
+    const dmId = new URLSearchParams(location.search).get('dm')
+    if (new URLSearchParams(location.search).toString()) {
+      window.history.replaceState(window.history.state, '', '/social')
+    }
+    if (!dmId || !user || dmId === user.id) return
+    let cancelled = false
+    supabase.from('profiles').select('username, photo_url').eq('id', dmId).single().then(({ data }) => {
+      if (cancelled || !data) return
+      setTab('chat')
+      setActiveView({ type: 'dm', userId: dmId, username: data.username, photo: data.photo_url })
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Deep-link dalla campanella (pilastro 04): reazioni e commenti portano
+  // all'attività esatta — scroll al centro e bordo acceso per qualche
+  // secondo. Se l'attività non è tra le 50 del feed, resta la scheda giusta.
+  const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null)
+  const highlightConsumedRef = useRef(false)
+  useEffect(() => {
+    const targetId = (location.state as { activityId?: string } | null)?.activityId
+    if (!targetId || feedLoading || highlightConsumedRef.current) return
+    highlightConsumedRef.current = true
+    if (!feed.some(a => a.id === targetId)) return
+    setHighlightedActivityId(targetId)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const scrollTimer = setTimeout(() => {
+      document.getElementById(`feed-act-${targetId}`)?.scrollIntoView({
+        behavior: reduced ? 'auto' : 'smooth',
+        block: 'center',
+      })
+    }, 100)
+    const clearTimer = setTimeout(() => setHighlightedActivityId(null), 3000)
+    return () => { clearTimeout(scrollTimer); clearTimeout(clearTimer) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedLoading, feed])
 
   // Conteggi commenti per i badge del feed (i dettagli si caricano all'apertura)
   useEffect(() => {
@@ -1078,7 +1124,18 @@ export default function SocialPage() {
                 const ld = getLevelDef(a.user_level)
                 const ago = formatDistanceToNow(parseISO(a.date), { addSuffix: true, locale: it })
                 return (
-                  <div key={a.id} className="card space-y-3">
+                  <div
+                    key={a.id}
+                    id={`feed-act-${a.id}`}
+                    className="card space-y-3"
+                    style={{
+                      // Evidenziazione deep-link: outline, non box-shadow — la
+                      // .card ha già la sua elevazione e non va soppressa.
+                      outline: highlightedActivityId === a.id ? '2px solid var(--red)' : '2px solid transparent',
+                      outlineOffset: 2,
+                      transition: 'outline-color 0.4s ease',
+                    }}
+                  >
                     <div className="flex items-center gap-2.5">
                       <button onClick={() => openProfile(a.user_id, a.username, a.user_photo)} className="flex items-center gap-2.5 flex-1 min-w-0">
                         <Av photo={a.user_photo} name={a.username} size={36} />
