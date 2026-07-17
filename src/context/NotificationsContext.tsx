@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
 import { countUnread } from '../lib/notifications'
+import { reportBadgeCount } from '../lib/appBadge'
 import type { AppNotification } from '../types'
 
 interface NotificationRow {
@@ -80,6 +81,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   useEffect(() => { refresh() }, [refresh])
+
+  // Badge sull'icona dell'app (roadmap v3, pilastro 02): le notifiche non
+  // lette sono la seconda fonte del numerino, insieme ai messaggi.
+  useEffect(() => { reportBadgeCount('notifications', unreadCount) }, [unreadCount])
 
   // Realtime (stesso meccanismo del badge messaggi in UnreadContext): un
   // nuovo evento fa ricomparire subito il pallino, senza polling.
