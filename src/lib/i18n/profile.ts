@@ -90,6 +90,27 @@ const profile = {
     tooltipValue: (v: any) => `${v} kg`,
     tooltipLabel: 'Peso',
     entriesCount: (n: number) => `${n} ${n === 1 ? 'pesata' : 'pesate'} registrate`,
+
+    // Obiettivo peso con proiezione (roadmap v3, pilastro 02): traguardo su
+    // profiles (v43) + regressione sulle pesate recenti (lib/weightTrend.ts).
+    goal: {
+      inputLabel: 'Obiettivo di peso (kg)',
+      inputPlaceholder: 'es. 78',
+      setButton: 'Imposta',
+      badge: (kg: number) => `Obiettivo: ${kg.toLocaleString('it-IT')} kg`,
+      chartLineLabel: 'Obiettivo',
+      removeAria: 'Rimuovi obiettivo di peso',
+      outOfRange: 'L\'obiettivo deve essere tra 20 e 400 kg.',
+      saveFailed: 'Salvataggio non riuscito. Controlla la connessione e riprova.',
+      ratePerWeek: (kg: string) => `${kg} kg/settimana`,
+      needMoreData: 'Registra qualche pesata in più (almeno 3 in una settimana) per vedere la proiezione.',
+      onTrack: (rate: string, date: string) => `Al ritmo attuale (${rate}) ci arrivi intorno al ${date}.`,
+      onTrackWeeks: (weeks: number) => weeks === 1 ? 'Manca circa una settimana.' : `Mancano circa ${weeks} settimane.`,
+      reached: 'Obiettivo raggiunto! 🎉 Ora si tratta di mantenerlo.',
+      flat: 'Peso stabile nelle ultime settimane: la proiezione comparirà quando il trend prenderà una direzione.',
+      away: (rate: string) => `Al ritmo attuale (${rate}) ti stai allontanando dall'obiettivo.`,
+      tooFar: 'A questo ritmo servirebbe più di un anno: la proiezione comparirà quando il trend accelererà.',
+    },
   },
 
   guide: {

@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { differenceInYears, parseISO, format } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2, BookOpen } from 'lucide-react'
+import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2, BookOpen, Target, X } from 'lucide-react'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -13,6 +13,7 @@ import { useWeightLogs } from '../hooks/useWeightLogs'
 import { useTheme } from '../context/ThemeContext'
 import { supabase } from '../lib/supabase'
 import { buildUserDataExport, downloadAsJson } from '../lib/dataExport'
+import { computeWeightTrend, goalOutlook } from '../lib/weightTrend'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   LEVEL_DEFINITIONS, THEME_DEFINITIONS,
@@ -66,6 +67,11 @@ export default function ProfilePage() {
   const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [loggingWeight, setLoggingWeight] = useState(false)
   const [weightLogError, setWeightLogError] = useState('')
+  // Obiettivo peso (roadmap v3, pilastro 02): traguardo su profiles (v43),
+  // proiezione calcolata dalla regressione sulle pesate recenti.
+  const [goalInput, setGoalInput] = useState('')
+  const [savingGoal, setSavingGoal] = useState(false)
+  const [goalError, setGoalError] = useState('')
   const [shopMsg, setShopMsg] = useState('')
   const [shopWorking, setShopWorking] = useState(false)
   const [levelUpCelebration, setLevelUpCelebration] = useState<{ emoji: string; level: number; title: string } | null>(null)
@@ -168,6 +174,37 @@ export default function ProfilePage() {
     }
   }
 
+  // undefined = colonna weight_goal_kg assente (migrazione v43 non ancora
+  // eseguita): la sezione obiettivo non compare e il campo resta fuori
+  // dall'upsert del profilo, come da pattern dei flag one-shot.
+  const weightGoal = profile?.weight_goal_kg
+  const goalAvailable = weightGoal !== undefined
+
+  const handleSetGoal = async () => {
+    const value = Number(goalInput.replace(',', '.'))
+    if (!Number.isFinite(value) || value <= 20 || value >= 400) {
+      setGoalError(profileText.weight.goal.outOfRange)
+      setTimeout(() => setGoalError(''), 3500)
+      return
+    }
+    setSavingGoal(true)
+    setGoalError('')
+    const { error } = await updateProfile({ weight_goal_kg: Math.round(value * 10) / 10 })
+    setSavingGoal(false)
+    if (error) {
+      setGoalError(profileText.weight.goal.saveFailed)
+      setTimeout(() => setGoalError(''), 3500)
+    } else {
+      setGoalInput('')
+    }
+  }
+
+  const handleRemoveGoal = async () => {
+    setSavingGoal(true)
+    await updateProfile({ weight_goal_kg: null })
+    setSavingGoal(false)
+  }
+
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !user) return
@@ -257,8 +294,29 @@ export default function ProfilePage() {
     date: format(parseISO(l.logged_at), 'd MMM', { locale: it }),
     peso: Number(l.weight_kg),
   }))
-  const minWeight = chartData.length > 0 ? Math.min(...chartData.map((d) => d.peso)) - 2 : 50
-  const maxWeight = chartData.length > 0 ? Math.max(...chartData.map((d) => d.peso)) + 2 : 100
+  // L'asse Y include anche l'obiettivo, o la sua linea finirebbe fuori scala.
+  const chartValues = [...chartData.map((d) => d.peso), ...(weightGoal != null ? [Number(weightGoal)] : [])]
+  const minWeight = chartValues.length > 0 ? Math.min(...chartValues) - 2 : 50
+  const maxWeight = chartValues.length > 0 ? Math.max(...chartValues) + 2 : 100
+
+  // Proiezione verso l'obiettivo: trend dalle pesate recenti (regressione),
+  // messaggio onesto se il trend è piatto, contrario o troppo lento.
+  const weightTrend = computeWeightTrend(weightLogs)
+  const outlook = weightGoal != null && weightTrend ? goalOutlook(weightTrend, Number(weightGoal)) : null
+  const trendRate = weightTrend
+    ? profileText.weight.goal.ratePerWeek(
+        `${weightTrend.slopeKgPerWeek > 0 ? '+' : '−'}${Math.abs(weightTrend.slopeKgPerWeek).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}`,
+      )
+    : ''
+  let goalHint: string = profileText.weight.goal.needMoreData
+  if (outlook) {
+    if (outlook.kind === 'reached') goalHint = profileText.weight.goal.reached
+    else if (outlook.kind === 'onTrack') {
+      goalHint = `${profileText.weight.goal.onTrack(trendRate, format(outlook.etaDate, 'd MMMM', { locale: it }))} ${profileText.weight.goal.onTrackWeeks(Math.max(1, Math.round(outlook.days / 7)))}`
+    } else if (outlook.kind === 'flat') goalHint = profileText.weight.goal.flat
+    else if (outlook.kind === 'away') goalHint = profileText.weight.goal.away(trendRate)
+    else goalHint = profileText.weight.goal.tooFar
+  }
 
   if (loading) {
     return (
@@ -766,6 +824,14 @@ export default function ProfilePage() {
                 itemStyle={{ color: 'var(--red)' }}
                 formatter={(v) => [profileText.weight.tooltipValue(v), profileText.weight.tooltipLabel]}
               />
+              {weightGoal != null && (
+                <ReferenceLine
+                  y={Number(weightGoal)}
+                  stroke={chartTick}
+                  strokeDasharray="6 3"
+                  label={{ value: profileText.weight.goal.chartLineLabel, position: 'insideBottomRight', fill: chartTick, fontSize: 10 }}
+                />
+              )}
               <Line
                 type="monotone"
                 dataKey="peso"
@@ -782,6 +848,64 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-600 text-center">
             {profileText.weight.entriesCount(chartData.length)}
           </p>
+        )}
+
+        {/* Obiettivo peso con proiezione (v43): compare solo a colonna presente */}
+        {goalAvailable && (
+          <div className="pt-3 space-y-2" style={{ borderTop: '1px solid var(--grey)' }}>
+            {weightGoal == null ? (
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor="weight-goal" className="block text-xs text-gray-400 mb-1">
+                    {profileText.weight.goal.inputLabel}
+                  </label>
+                  <input
+                    id="weight-goal"
+                    type="number"
+                    step="0.1"
+                    min={20}
+                    max={400}
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    className="input-dark w-full"
+                    placeholder={profileText.weight.goal.inputPlaceholder}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSetGoal}
+                  disabled={savingGoal || goalInput === ''}
+                  className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
+                >
+                  {profileText.weight.goal.setButton}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-white">
+                    <Target size={14} className="text-[var(--red)]" />
+                    {profileText.weight.goal.badge(Number(weightGoal))}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveGoal}
+                    disabled={savingGoal}
+                    aria-label={profileText.weight.goal.removeAria}
+                    className="p-1 text-gray-500 hover:text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">{goalHint}</p>
+              </>
+            )}
+            {goalError && (
+              <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
+                {goalError}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

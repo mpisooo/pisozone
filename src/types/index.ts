@@ -98,6 +98,10 @@ export interface Profile {
   // vista (NEWS_VERSION in WhatsNewOverlay); undefined = colonna assente,
   // annuncio disattivato.
   news_seen_version?: number
+  // Opzionale: esiste solo dopo la migrazione v43. Obiettivo di peso in kg
+  // (null = mai scelto); la proiezione si calcola dal client con lo storico
+  // pesate (lib/weightTrend.ts). undefined = colonna assente, UI nascosta.
+  weight_goal_kg?: number | null
   // Opzionali: esistono solo dopo la migrazione v28. undefined = colonna non
   // ancora creata (tutte le notifiche attive, nessuna fascia di silenzio).
   notif_reminder_enabled?: boolean
