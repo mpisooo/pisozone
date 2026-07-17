@@ -64,6 +64,14 @@ const log = {
     },
   },
 
+  // Log lampo (roadmap v3, pilastro 02): il chip sotto la griglia degli sport
+  // ricopia durata e distanza dell'ultima sessione dello sport selezionato.
+  quick: {
+    chip: (durationMin: number, distanceKm: number | null) =>
+      `Come l'ultima volta: ${durationMin} min${distanceKm ? ` · ${distanceKm.toLocaleString('it-IT')} km` : ''}`,
+    chipAria: 'Precompila durata e distanza dall\'ultimo allenamento di questo sport',
+  },
+
   new: {
     durationTotalPrefix: 'Totale:',
     caloriesLabel: 'Calorie bruciate',

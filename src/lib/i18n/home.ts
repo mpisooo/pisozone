@@ -49,6 +49,8 @@ const home = {
     title: 'Ultima attività',
     meta: (durationMin: number, calories: number | null | undefined, distanceKm: number | null | undefined) =>
       `${durationMin} min${calories ? ` · ${calories} kcal` : ''}${distanceKm ? ` · ${distanceKm} km` : ''}`,
+    // Log lampo (roadmap v3, pilastro 02): apre Registra col form già compilato.
+    repeat: 'Ripeti questo allenamento',
   },
 
   emptyState: {

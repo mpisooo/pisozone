@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
-import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite, RotateCcw } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
@@ -14,6 +14,7 @@ import {
 } from '../lib/exerciseSets'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { isPendingActivityId } from '../lib/offlineQueue'
+import { lastActivityOfType, prefillFromActivity, type QuickLogPrefill } from '../lib/quickLog'
 import { detectGpsRecords, type WorkoutRecapData } from '../lib/workoutRecap'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
@@ -79,7 +80,7 @@ export default function LogPage() {
     }
   }, [searchParams, setSearchParams])
 
-  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       type: 'corsa',
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -102,7 +103,57 @@ export default function LogPage() {
   const durationMin = hours * 60 + minutes
 
   const indoorVariant = INDOOR_VARIANTS[selectedType]
-  useEffect(() => { setIndoor(null) }, [selectedType])
+  // Il cambio di sport azzera indoor ("tapis roulant" non sopravvive a un
+  // passaggio corsa → calcio), TRANNE quando il cambio arriva dal log lampo:
+  // lì l'indoor da applicare viaggia nel ref e vince sull'azzeramento.
+  const pendingIndoorRef = useRef<boolean | null | undefined>(undefined)
+  useEffect(() => {
+    if (pendingIndoorRef.current !== undefined) {
+      setIndoor(pendingIndoorRef.current)
+      pendingIndoorRef.current = undefined
+    } else {
+      setIndoor(null)
+    }
+  }, [selectedType])
+
+  // Log lampo (roadmap v3, pilastro 02) — arrivo da Home con "Ripeti questo
+  // allenamento": il form si apre già compilato. Lo state viene consumato
+  // (replace) così chiudere/riaprire la pagina non riapplica il prefill.
+  const location = useLocation()
+  const navigate = useNavigate()
+  useEffect(() => {
+    const prefill = (location.state as { quickLog?: QuickLogPrefill } | null)?.quickLog
+    if (!prefill) return
+    navigate(location.pathname, { replace: true, state: null })
+    if (prefill.type !== watch('type')) pendingIndoorRef.current = prefill.indoor
+    else setIndoor(prefill.indoor)
+    reset({
+      type: prefill.type,
+      date: format(new Date(), 'yyyy-MM-dd'),
+      time: format(new Date(), 'HH:mm'),
+      hours: Math.floor(prefill.durationMin / 60),
+      minutes: prefill.durationMin % 60,
+      calories: '',
+      distance_km: prefill.distanceKm ?? '',
+      notes: '',
+    })
+  }, [location.state, location.pathname, navigate, reset, watch])
+
+  // Chip "Come l'ultima volta": ricopia durata/distanza/indoor dell'ultima
+  // sessione dello sport selezionato, senza toccare data, ora e note.
+  const lastOfSport = useMemo(
+    () => lastActivityOfType(activities, selectedType),
+    [activities, selectedType],
+  )
+  const applyQuickChip = () => {
+    if (!lastOfSport) return
+    const p = prefillFromActivity(lastOfSport)
+    setValue('hours', Math.floor(p.durationMin / 60))
+    setValue('minutes', p.durationMin % 60)
+    if (showDist) setValue('distance_km', p.distanceKm ?? '')
+    setIndoor(p.indoor)
+    haptic('light')
+  }
 
   // Storico esercizi: caricato solo quando serve (palestra selezionata),
   // alimenta i suggerimenti nomi e il confronto per i nuovi PR.
@@ -289,6 +340,21 @@ export default function LogPage() {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Log lampo (roadmap v3, pilastro 02): un tocco e durata/distanza
+              tornano quelle dell'ultima sessione di questo sport. */}
+          {lastOfSport && (
+            <button
+              type="button"
+              onClick={applyQuickChip}
+              aria-label={log.quick.chipAria}
+              className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-medium text-gray-400 transition-all active:scale-95 hover:text-white"
+              style={{ background: 'var(--grey)' }}
+            >
+              <RotateCcw size={13} />
+              {log.quick.chip(lastOfSport.duration_min, lastOfSport.distance_km ?? null)}
+            </button>
           )}
         </div>
 

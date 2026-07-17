@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, subDays, startOfWeek, parseISO, isAfter } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2, CloudOff } from 'lucide-react'
+import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2, CloudOff, RotateCcw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -19,6 +19,7 @@ import { calcStreak } from '../lib/challenges'
 import { daysSinceLastActivity, isComeback } from '../lib/comeback'
 import { getZoneByPercent } from '../lib/zones'
 import { isPendingActivityId } from '../lib/offlineQueue'
+import { prefillFromActivity } from '../lib/quickLog'
 import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
 import SkeletonCard from '../components/SkeletonCard'
@@ -303,43 +304,57 @@ export default function HomePage() {
       <div className="space-y-2">
         <SectionLabel>{home.sections.recent}</SectionLabel>
         {lastActivity && lastOpt ? (
-          <button
-            type="button"
-            className="card w-full text-left"
-            onClick={() => navigate('/calendar', { viewTransition: true })}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
-              <ChevronRight size={16} className="text-gray-600" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span
-                className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
-                style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
-              >
-                <ActivityIcon type={lastOpt.value} size={24} />
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-white">{activityLabel(lastActivity.type, lastActivity.indoor)}</p>
-                  {isPendingActivityId(lastActivity.id) && (
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded-full text-gray-400 flex items-center gap-1 flex-shrink-0"
-                      style={{ background: 'rgba(148,163,184,0.15)' }}
-                    >
-                      <CloudOff size={9} /> {common.pendingSyncBadge}
-                    </span>
-                  )}
+          <div className="card space-y-3">
+            <button
+              type="button"
+              className="w-full text-left"
+              onClick={() => navigate('/calendar', { viewTransition: true })}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-400">{home.lastActivity.title}</span>
+                <ChevronRight size={16} className="text-gray-600" />
+              </div>
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
+                  style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
+                >
+                  <ActivityIcon type={lastOpt.value} size={24} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-white">{activityLabel(lastActivity.type, lastActivity.indoor)}</p>
+                    {isPendingActivityId(lastActivity.id) && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full text-gray-400 flex items-center gap-1 flex-shrink-0"
+                        style={{ background: 'rgba(148,163,184,0.15)' }}
+                      >
+                        <CloudOff size={9} /> {common.pendingSyncBadge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-400">
-                  {home.lastActivity.meta(lastActivity.duration_min, lastActivity.calories, lastActivity.distance_km)}
+                <p className="text-xs text-gray-500 flex-shrink-0">
+                  {format(parseISO(lastActivity.date), 'd MMM', { locale: it })}
                 </p>
               </div>
-              <p className="text-xs text-gray-500 flex-shrink-0">
-                {format(parseISO(lastActivity.date), 'd MMM', { locale: it })}
-              </p>
-            </div>
-          </button>
+            </button>
+            {/* Log lampo (roadmap v3, pilastro 02): il form di Registra si apre
+                già compilato con sport, durata, distanza e indoor di questa
+                attività — data/ora di adesso, calorie di nuovo automatiche. */}
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg font-medium transition-all active:scale-95"
+              style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}
+              onClick={() => navigate('/log', { state: { quickLog: prefillFromActivity(lastActivity) }, viewTransition: true })}
+            >
+              <RotateCcw size={14} />
+              {home.lastActivity.repeat}
+            </button>
+          </div>
         ) : (
           <div className="card text-center py-10">
             <div
