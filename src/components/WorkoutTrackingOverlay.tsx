@@ -4,7 +4,7 @@ import { Loader2, AlertTriangle, Pause, Play, Square } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
-import { computeRecentSpeedKmh, formatPaceClock, type TrackedPoint } from '../lib/gps'
+import { computeRecentSpeedKmh, computeSplits, formatPaceClock, type TrackedPoint } from '../lib/gps'
 import { zoneForSpeed } from '../lib/zones'
 import { saveActivityRoute } from '../lib/activityRoutes'
 import { isPendingActivityId } from '../lib/offlineQueue'
@@ -81,6 +81,16 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     () => zoneForSpeed(activityType, computeRecentSpeedKmh(points)),
     [activityType, points],
   )
+
+  // Split live (roadmap v3, pilastro 02): riuso diretto di computeSplits sui
+  // punti già in memoria. Si mostrano solo i km COMPLETI — il tratto in corso
+  // uscirebbe come "partial" e un passo su mezzo km direbbe poco.
+  const liveSplits = useMemo(() => computeSplits(points).filter((s) => !s.partial), [points])
+  const prevSplitCountRef = useRef(0)
+  useEffect(() => {
+    if (liveSplits.length > prevSplitCountRef.current) haptic('light')
+    prevSplitCountRef.current = liveSplits.length
+  }, [liveSplits.length])
 
   useEffect(() => {
     if (startedRef.current) return
@@ -304,6 +314,28 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
               <p className="text-[10px] text-gray-500 uppercase tracking-wide">{log.tracking.kcalEstimateLabel}</p>
             </div>
           </div>
+
+          {/* Split live: gli ultimi 3 km completati, il più recente in evidenza */}
+          {liveSplits.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap justify-center" aria-label={log.tracking.splitsAria}>
+              {liveSplits.slice(-3).map((s, i, shown) => {
+                const isLatest = i === shown.length - 1
+                return (
+                  <span
+                    key={s.index}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium tabular-nums ${isLatest ? '' : 'text-gray-400'}`}
+                    style={isLatest
+                      ? { background: 'rgba(var(--accent-rgb),0.15)', color: 'var(--red)' }
+                      : { background: 'var(--grey)' }}
+                  >
+                    {activityType === 'bici'
+                      ? log.tracking.splitChipSpeed(s.index, (60 / s.paceMinPerKm).toLocaleString('it-IT', { maximumFractionDigits: 1 }))
+                      : log.tracking.splitChipPace(s.index, formatPaceClock(s.paceMinPerKm))}
+                  </span>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div className="px-6">

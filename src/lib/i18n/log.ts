@@ -165,6 +165,12 @@ const log = {
     // (l'etichetta — Recupero, Moderata... — è un dato di dominio di lib/zones).
     zoneLive: (label: string) => `Zona ${label}`,
     weakSignal: 'Segnale GPS debole',
+    // Split live (roadmap v3, pilastro 02): i chip con il tempo degli ultimi
+    // km completati durante il tracciamento. Per la bici si mostra la
+    // velocità del km, per gli altri sport il passo.
+    splitChipPace: (km: number, pace: string) => `Km ${km} · ${pace}`,
+    splitChipSpeed: (km: number, kmh: string) => `Km ${km} · ${kmh} km/h`,
+    splitsAria: 'Tempo degli ultimi chilometri completati',
     kmUnit: 'km',
     avgSpeedLabel: 'velocità media',
     avgPaceLabel: 'passo medio',
