@@ -15,6 +15,7 @@ const guide = {
         'Le calorie si calcolano da sole in base a peso, sesso e intensità dello sport (formula MET): puoi sempre scriverle a mano per sovrascriverle.',
         'Senza connessione l\'attività non va persa: resta in attesa sul telefono (lo vedi da un\'etichetta "In attesa di rete") e si sincronizza da sola appena torni online. Foto ed esercizi allegati in quel momento vanno però riaggiunti dopo la sincronizzazione.',
         'Ogni attività si modifica o elimina dal Calendario, toccandola (tranne quelle ancora in attesa di rete, non ancora modificabili).',
+        'Hai fretta? Dalla Home, sotto l\'ultima attività, "Ripeti questo allenamento" apre il form già compilato con sport, durata e distanza. E nella scheda Registra, scelto uno sport, il tocco su "Come l\'ultima volta" ricopia durata e distanza della tua ultima sessione di quel tipo.',
         'Su Android, tenendo premuta l\'icona dell\'app trovi le scorciatoie rapide: Registra, GPS, Sfide e Statistiche.',
       ],
     },
@@ -25,6 +26,7 @@ const guide = {
         'Per corsa, bici, camminata e trekking puoi avviare il tracciamento GPS dal pulsante nella scheda Registra: distanza, ritmo e calorie si misurano da soli, e il percorso viene salvato.',
         'Il tracciamento funziona a schermo acceso: l\'app tiene lo schermo attivo per te. I comandi sono protetti da uno "scorri per sbloccare", così i tocchi accidentali in tasca non fermano nulla.',
         'Mentre ti muovi la schermata si tinge della tua zona di intensità del momento — blu, verde, ambra o rosso, la stessa scala dello "Spettro di intensità" in Statistiche — con un badge che la nomina: un colpo d\'occhio e sai quanto stai spingendo.',
+        'A ogni chilometro completato compare il suo tempo (per la bici, la velocità), con una leggera vibrazione: sai subito se stai accelerando o rallentando, senza aspettare la fine.',
         'Quando termini e salvi, ti accoglie il recap: mappa del percorso, passo per km, altimetria, crediti e gli eventuali record — prima distanza per quello sport, distanza più lunga di sempre, passo (o velocità) più veloce di sempre. Da lì condividi tutto come immagine con un tocco.',
         'Il percorso lo ritrovi aprendo l\'attività dal Calendario, disegnato su una vera mappa (senza connessione resta la sagoma stilizzata), insieme al passo per ogni chilometro: una barra per km mostra dove hai spinto di più (l\'ultimo tratto sotto il km è indicato con la sua distanza reale). Mappa e passo valgono anche per i percorsi registrati in passato.',
         'Sotto al passo c\'è anche l\'altimetria: il profilo del percorso con il dislivello in salita (D+) e in discesa (D−). Vale per gli allenamenti tracciati d\'ora in poi, se il dispositivo fornisce la quota: i percorsi registrati in passato non ce l\'hanno salvata.',
@@ -46,6 +48,7 @@ const guide = {
       paragraphs: [
         'Su ogni attività puoi indicare quanto ti è costata (scala 1–10) e come ti senti dopo (5 stati). Sono facoltativi: se non li compili, restano vuoti.',
         'Servono a conoscerti meglio: la stessa corsa può essere una passeggiata o una battaglia, e contano entrambe le cose.',
+        'Compilare lo sforzo alimenta anche il "Carico settimanale" in Statistiche: sforzo × minuti (il metodo session-RPE), settimana per settimana. Se il carico sale di oltre il 50% rispetto alla settimana prima, l\'app ti avvisa: i salti bruschi sono la strada più corta verso un infortunio.',
       ],
     },
     {
@@ -113,9 +116,19 @@ const guide = {
       icon: '📊',
       title: 'Statistiche e calendario',
       paragraphs: [
-        'Nella sezione Analisi trovi il calendario con la heatmap dei giorni attivi e le statistiche: andamento nel tempo, spettro di intensità per zone, obiettivo vs reale, correlazione peso-allenamento e record personali.',
+        'Nella sezione Analisi trovi il calendario con la heatmap dei giorni attivi e le statistiche: andamento nel tempo, spettro di intensità per zone, obiettivo vs reale, carico settimanale, correlazione peso-allenamento e record personali.',
         'La card "Il tuo anno in pixel" è l\'anno intero in un colpo d\'occhio: un quadratino per giorno, colorato con la zona di intensità dominante di quel giorno (blu → rosso). Più l\'anno si riempie, più racconta.',
+        'Nel Calendario il bottone "Filtri" ti fa cercare tra le attività: per sport, solo quelle con GPS o con foto, o per testo nelle note ("pioggia", "gara"...). La heatmap si adatta e le attività trovate sono elencate lì sotto, pronte da aprire.',
         'Da lì puoi anche esportare le attività in CSV, pronto per Excel o Google Sheets.',
+      ],
+    },
+    {
+      icon: '⚖️',
+      title: 'Peso e obiettivo',
+      paragraphs: [
+        'Nel Profilo, la card "Storico peso" tiene il grafico delle tue pesate: con il peso compilato nei dati personali basta un tocco su "Salva" per registrare quella di oggi.',
+        'Puoi fissare un obiettivo di peso: compare come linea tratteggiata sul grafico e, con pesate regolari (almeno 3 in una settimana), l\'app calcola il tuo ritmo in kg a settimana e la data in cui, di questo passo, ci arrivi.',
+        'La proiezione è una stima onesta: se il peso è stabile, va nella direzione opposta o il traguardo è troppo lontano, te lo dice — senza inventare date.',
       ],
     },
     {
@@ -145,6 +158,7 @@ const guide = {
         'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
         'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
         'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, e i tuoi level-up. Si apre e si segna letta da sola; toccando una voce vai dritto al punto giusto. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
+        'Con l\'app installata (su iPhone: Condividi → Aggiungi a Home, con le notifiche attive), l\'icona mostra un numerino con i messaggi e le notifiche non letti — come le app native. Si azzera da solo quando li leggi.',
       ],
     },
     {
