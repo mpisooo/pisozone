@@ -17,6 +17,12 @@ import { isPendingActivityId, pendingLocalId } from '../lib/offlineQueue'
 import { savePendingAttachments } from '../lib/offlineAttachments'
 import { lastActivityOfType, prefillFromActivity, type QuickLogPrefill } from '../lib/quickLog'
 import { detectGpsRecords, type WorkoutRecapData } from '../lib/workoutRecap'
+import {
+  isValidIntervalPlan, INTERVAL_MIN_REPEATS, INTERVAL_MAX_REPEATS,
+  INTERVAL_MIN_WORK_M, INTERVAL_MAX_WORK_M, INTERVAL_MIN_RECOVERY_S, INTERVAL_MAX_RECOVERY_S,
+  type IntervalPlan,
+} from '../lib/intervalWorkout'
+import { ZONES, type ZoneId } from '../lib/zones'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
@@ -64,6 +70,23 @@ export default function LogPage() {
   const [indoor, setIndoor] = useState<boolean | null>(null)
   const [exerciseDrafts, setExerciseDrafts] = useState<ExerciseDraft[]>([])
   const [prRecords, setPrRecords] = useState<PrRecord[]>([])
+
+  // Allenamento a intervalli (roadmap v4, pilastro 01): facoltativo, solo
+  // per sport GPS-trackable — vedi lib/intervalWorkout.ts.
+  const [intervalEnabled, setIntervalEnabled] = useState(false)
+  const [intervalRepeats, setIntervalRepeats] = useState(5)
+  const [intervalWorkM, setIntervalWorkM] = useState(800)
+  const [intervalWorkZone, setIntervalWorkZone] = useState<ZoneId>(4)
+  const [intervalRecoverySec, setIntervalRecoverySec] = useState(90)
+  const [intervalRecoveryZone, setIntervalRecoveryZone] = useState<ZoneId>(1)
+  const intervalPlan: IntervalPlan = {
+    repeats: intervalRepeats,
+    workDistanceM: intervalWorkM,
+    workZoneId: intervalWorkZone,
+    recoverySec: intervalRecoverySec,
+    recoveryZoneId: intervalRecoveryZone,
+  }
+  const intervalPlanValid = isValidIntervalPlan(intervalPlan)
 
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -382,6 +405,93 @@ export default function LogPage() {
         </div>
 
         {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
+          <div className="card space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm text-gray-300">{log.intervals.toggleLabel}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{log.intervals.toggleHint}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={intervalEnabled ? 'true' : 'false'}
+                aria-label={log.intervals.toggleLabel}
+                onClick={() => { haptic('light'); setIntervalEnabled((v) => !v) }}
+                className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${intervalEnabled ? 'bg-[var(--red)]' : 'bg-gray-600'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${intervalEnabled ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+
+            {intervalEnabled && (
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1" htmlFor="interval-repeats">{log.intervals.repeatsLabel}</label>
+                  <input
+                    id="interval-repeats"
+                    type="number"
+                    className="input-dark"
+                    min={INTERVAL_MIN_REPEATS}
+                    max={INTERVAL_MAX_REPEATS}
+                    value={intervalRepeats}
+                    onChange={(e) => setIntervalRepeats(Number(e.target.value))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">{log.intervals.workHeading}</p>
+                    <label className="block text-xs text-gray-400 mb-1" htmlFor="interval-work-m">{log.intervals.workDistanceLabel}</label>
+                    <input
+                      id="interval-work-m"
+                      type="number"
+                      className="input-dark"
+                      min={INTERVAL_MIN_WORK_M}
+                      max={INTERVAL_MAX_WORK_M}
+                      value={intervalWorkM}
+                      onChange={(e) => setIntervalWorkM(Number(e.target.value))}
+                    />
+                    <label className="block text-xs text-gray-400 mt-2 mb-1" htmlFor="interval-work-zone">{log.intervals.zoneLabel}</label>
+                    <select
+                      id="interval-work-zone"
+                      className="input-dark"
+                      value={intervalWorkZone}
+                      onChange={(e) => setIntervalWorkZone(Number(e.target.value) as ZoneId)}
+                    >
+                      {ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">{log.intervals.recoveryHeading}</p>
+                    <label className="block text-xs text-gray-400 mb-1" htmlFor="interval-recovery-s">{log.intervals.recoverySecLabel}</label>
+                    <input
+                      id="interval-recovery-s"
+                      type="number"
+                      className="input-dark"
+                      min={INTERVAL_MIN_RECOVERY_S}
+                      max={INTERVAL_MAX_RECOVERY_S}
+                      value={intervalRecoverySec}
+                      onChange={(e) => setIntervalRecoverySec(Number(e.target.value))}
+                    />
+                    <label className="block text-xs text-gray-400 mt-2 mb-1" htmlFor="interval-recovery-zone">{log.intervals.zoneLabel}</label>
+                    <select
+                      id="interval-recovery-zone"
+                      className="input-dark"
+                      value={intervalRecoveryZone}
+                      onChange={(e) => setIntervalRecoveryZone(Number(e.target.value) as ZoneId)}
+                    >
+                      {ZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <p className={`text-xs ${intervalPlanValid ? 'text-gray-500' : 'text-amber-400'}`}>
+                  {intervalPlanValid ? log.intervals.summary(intervalRepeats, intervalWorkM, intervalRecoverySec) : log.intervals.invalidHint}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
           <button
             type="button"
             onClick={() => setTracking(true)}
@@ -605,6 +715,7 @@ export default function LogPage() {
       {tracking && (
         <WorkoutTrackingOverlay
           activityType={selectedType as GpsTrackableType}
+          intervalPlan={intervalEnabled && intervalPlanValid ? intervalPlan : undefined}
           addActivity={addActivity}
           onClose={() => setTracking(false)}
           onSaved={({ activity, points, pending, routeSaved }) => {

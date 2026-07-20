@@ -112,6 +112,15 @@ const it = {
       min >= 60 ? `${Math.floor(min / 60)}h ${min % 60}min` : `${min}min`,
   },
 
+  // Passo gara previsto (roadmap v4, pilastro 01): stima Riegel dal miglior
+  // passo corso negli ultimi 90 giorni. Card indipendente dal filtro periodo
+  // della pagina — la stima guarda sempre agli ultimi 90 giorni veri.
+  racePredictor: {
+    heading: 'PASSO GARA PREVISTO',
+    subheading: (km: number, time: string) => `Stima dal tuo passo migliore recente: ${km.toLocaleString('it-IT')} km in ${time}`,
+    chartAriaLabel: 'Tempi di gara previsti per 5K, 10K, mezza maratona e maratona',
+  },
+
   export: {
     heading: 'ESPORTA I DATI',
     description: 'Scarica le attività del periodo selezionato in formato CSV, pronto per Excel o Google Sheets.',
@@ -247,6 +256,12 @@ const en: Widen<typeof it> = {
     busiestDay: 'Busiest day',
     busiestDayDuration: (min: number) =>
       min >= 60 ? `${Math.floor(min / 60)}h ${min % 60}min` : `${min}min`,
+  },
+
+  racePredictor: {
+    heading: 'PREDICTED RACE PACE',
+    subheading: (km: number, time: string) => `Estimated from your best recent pace: ${km.toLocaleString('en-US')} km in ${time}`,
+    chartAriaLabel: 'Predicted race times for 5K, 10K, half marathon and marathon',
   },
 
   export: {

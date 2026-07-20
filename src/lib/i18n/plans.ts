@@ -26,6 +26,14 @@ const it = {
     claimedToastBody: (credits: number) => `+${credits} 💎 crediti per il programma completato`,
     expiredBanner: 'La finestra del programma è terminata',
     expiredHint: 'Non tutte le sessioni sono state completate. Puoi chiuderlo e ripartire quando vuoi.',
+    // Coach automatico (roadmap v4, pilastro 01): incrocia l'avanzamento del
+    // piano col carico settimanale — vedi lib/planCoach.ts.
+    coach: {
+      behindTitle: (n: number) => `Sei indietro di ${n} sessioni`,
+      behindHint: 'Nessun dramma: recupera quando puoi, salta la sessione più vecchia o allunga il piano di qualche giorno.',
+      loadConflictTitle: 'Indietro col piano, e il carico sta già salendo',
+      loadConflictHint: 'Meglio non affrettare il recupero: qualche giorno più leggero prima di rimettersi in pari.',
+    },
     abandonButton: 'Abbandona programma',
     abandonConfirm: 'Confermi l\'abbandono?',
     closeExpiredButton: 'Chiudi programma',
@@ -86,6 +94,12 @@ const en: Widen<typeof it> = {
     claimedToastBody: (credits: number) => `+${credits} 💎 credits for completing the plan`,
     expiredBanner: 'The plan\'s window has ended',
     expiredHint: 'Not all sessions were completed. You can close it and start over whenever you want.',
+    coach: {
+      behindTitle: (n: number) => `You're ${n} sessions behind`,
+      behindHint: 'No drama: catch up when you can, skip the oldest session, or stretch the plan by a few days.',
+      loadConflictTitle: 'Behind on the plan, and your load is already climbing',
+      loadConflictHint: 'Better not to rush the catch-up: a few lighter days before getting back on track.',
+    },
     abandonButton: 'Abandon plan',
     abandonConfirm: 'Abandon this plan?',
     closeExpiredButton: 'Close plan',

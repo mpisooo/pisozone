@@ -6,6 +6,8 @@ import { useActivities } from '../hooks/useActivities'
 import { useTrainingPlan } from '../hooks/useTrainingPlan'
 import { useProfile } from '../hooks/useProfile'
 import { PLAN_CATALOG, getPlanTemplate, computePlanProgress } from '../lib/plans'
+import { buildTrainingLoadSeries, loadJumpPct } from '../lib/trainingLoad'
+import { computePlanCoachAdvice } from '../lib/planCoach'
 import { getZoneByPercent } from '../lib/zones'
 import { haptic } from '../lib/haptics'
 import SkeletonCard from '../components/SkeletonCard'
@@ -36,6 +38,14 @@ export default function PlansPage() {
 
   const pct = progress ? (progress.doneCount / progress.totalCount) * 100 : 0
   const zone = getZoneByPercent(pct)
+
+  // Coach automatico (roadmap v4, pilastro 01): incrocia l'avanzamento del
+  // piano col carico settimanale, entrambi già calcolati altrove.
+  const coachAdvice = useMemo(() => {
+    if (!progress) return null
+    const loadJump = loadJumpPct(buildTrainingLoadSeries(activities))
+    return computePlanCoachAdvice(progress, loadJump)
+  }, [progress, activities])
 
   async function handleClaim() {
     if (!activeEnrollment || !activeTemplate) return
@@ -127,6 +137,24 @@ export default function PlansPage() {
               >
                 {working ? plansText.active.claiming : plansText.active.claimButton(activeTemplate.credits)}
               </button>
+            </div>
+          )}
+
+          {coachAdvice && (
+            <div className="rounded-xl p-3 flex items-start gap-2.5" style={{ background: 'rgba(251,191,36,0.1)' }}>
+              <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-amber-400 font-medium">
+                  {coachAdvice.kind === 'load_conflict'
+                    ? plansText.active.coach.loadConflictTitle
+                    : plansText.active.coach.behindTitle(coachAdvice.missedSessions)}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {coachAdvice.kind === 'load_conflict'
+                    ? plansText.active.coach.loadConflictHint
+                    : plansText.active.coach.behindHint}
+                </p>
+              </div>
             </div>
           )}
 

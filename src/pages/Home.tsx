@@ -22,9 +22,11 @@ import { isPendingActivityId } from '../lib/offlineQueue'
 import { prefillFromActivity } from '../lib/quickLog'
 import { haptic } from '../lib/haptics'
 import { pushSupported, isSubscribed } from '../lib/push'
+import { computeReadiness } from '../lib/readiness'
 import SkeletonCard from '../components/SkeletonCard'
 import PushNotificationPrompt from '../components/PushNotificationPrompt'
 import ComebackCard from '../components/ComebackCard'
+import ReadinessCard from '../components/ReadinessCard'
 import RecoveryCard from '../components/RecoveryCard'
 import GoalsCard from '../components/GoalsCard'
 import PisoRing from '../components/PisoRing'
@@ -156,6 +158,14 @@ export default function HomePage() {
     [activeEnrollment, activePlanTemplate, activities],
   )
 
+  // Punteggio di Prontezza (roadmap v4, pilastro 01, FLAGSHIP): sintesi di
+  // sforzo percepito, carico settimanale, sonno e riposo — tutti dati già
+  // raccolti altrove in questa stessa pagina.
+  const readiness = useMemo(
+    () => computeReadiness(activities, [...recoveryLogs.values()]),
+    [activities, recoveryLogs],
+  )
+
   const stats = useMemo(() => computeStats(activities, weeklyGoal), [activities, weeklyGoal])
   const nearestMedal = useMemo(() => {
     return MEDALS
@@ -249,6 +259,12 @@ export default function HomePage() {
             <span className="text-xs font-semibold text-white flex-shrink-0">{home.ring.streakDaysLabel(streak)}</span>
           </div>
         </div>
+      </div>
+
+      {/* Punteggio di Prontezza (roadmap v4, pilastro 01, FLAGSHIP) */}
+      <div className="space-y-2">
+        <SectionLabel>{home.sections.readiness}</SectionLabel>
+        <ReadinessCard readiness={readiness} />
       </div>
 
       {/* Bentornato: rientro morbido dopo un'assenza (pilastro 04) */}

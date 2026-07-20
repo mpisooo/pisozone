@@ -83,6 +83,17 @@ const it = {
       ],
     },
     {
+      icon: '🧠',
+      title: 'Il coach: prontezza, gara e intervalli',
+      paragraphs: [
+        'In Home, la card "Prontezza" riassume in un numero da 0 a 100 come stai messo oggi: incrocia sforzo percepito, carico settimanale, sonno e riposo — tutti dati che inserisci già altrove, nessun sensore richiesto. Sotto il numero trovi il consiglio: spingi, mantieni il ritmo o riposa.',
+        'Serve almeno un po\' di storico (uno sforzo percepito compilato o qualche giorno di Recupero) prima che compaia: senza dati a sufficienza, niente numero inventato.',
+        'In Statistiche, se hai corso negli ultimi 90 giorni, trovi anche il "Passo gara previsto": dalla tua corsa più veloce recente stima il tempo su 5K, 10K, mezza maratona e maratona. Si aggiorna da solo a ogni nuovo record.',
+        'Nella pagina Programmi, se sei indietro di almeno due sessioni rispetto alla settimana in corso, un avviso te lo segnala — e se in più il carico sta già salendo, il consiglio cambia: prima recuperare piano, poi rimettersi in pari.',
+        'Prima di tracciare col GPS (corsa, bici, camminata, trekking), nella scheda Registra puoi attivare "Allenamento a intervalli": scegli quante ripetute, la distanza e la zona target per il lavoro, la durata e la zona per il recupero. Durante il tracciamento un indicatore ti segue passo per passo e ti avvisa se esci dalla zona giusta.',
+      ],
+    },
+    {
       icon: '🔥',
       title: 'Streak e freeze',
       paragraphs: [
@@ -255,6 +266,17 @@ const en: Widen<typeof it> = {
         'In the "Today\'s recovery" card in Home you can declare a rest day: your streak won\'t break. You get 2 a week, and it only applies to the current day.',
         'The same card tracks your water (250 ml glasses toward a 2-liter goal) and hours slept.',
         'On rest days, the evening reminder leaves you alone.',
+      ],
+    },
+    {
+      icon: '🧠',
+      title: 'The coach: readiness, race pace and intervals',
+      paragraphs: [
+        'In Home, the "Readiness" card sums up how you\'re doing today in one number from 0 to 100: it combines perceived effort, weekly load, sleep and rest — all data you already log elsewhere, no sensor required. Below the number you get the advice: push, keep steady, or rest.',
+        'It needs a bit of history first (a logged perceived effort or a few days of Recovery) before it shows up: without enough data, no invented number.',
+        'In Stats, if you\'ve run in the last 90 days, you\'ll also find "Predicted race pace": from your fastest recent run it estimates your time over 5K, 10K, half marathon and marathon. It updates itself with every new record.',
+        'On the Plans page, if you\'re at least two sessions behind the current week, a warning lets you know — and if your load is already climbing on top of that, the advice changes: ease back in first, then catch up.',
+        'Before tracking with GPS (running, cycling, walking, trekking), the Log tab lets you turn on "Interval workout": choose how many repeats, the distance and target zone for the work, the duration and zone for the recovery. During tracking, an indicator follows you step by step and warns you if you drift out of the right zone.',
       ],
     },
     {

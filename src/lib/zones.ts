@@ -28,6 +28,10 @@ export function getZoneByMet(met: number): ZoneDefinition {
   return ZONES.find((z) => met <= z.maxMet) ?? ZONES[ZONES.length - 1]
 }
 
+export function getZoneById(id: ZoneId): ZoneDefinition {
+  return ZONES.find((z) => z.id === id) ?? ZONES[0]
+}
+
 export function getZoneForActivity(type: ActivityType): ZoneDefinition {
   return getZoneByMet(MET[type])
 }

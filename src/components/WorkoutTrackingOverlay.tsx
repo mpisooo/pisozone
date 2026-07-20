@@ -5,7 +5,8 @@ import { useProfile } from '../hooks/useProfile'
 import { useGpsTracking, type GpsTrackingSummary } from '../hooks/useGpsTracking'
 import { calcCaloriesFromSpeed, type GpsTrackableType } from '../lib/constants'
 import { computeElevationProfile, computeRecentSpeedKmh, computeSplits, formatPaceClock, type TrackedPoint } from '../lib/gps'
-import { zoneForSpeed } from '../lib/zones'
+import { zoneForSpeed, getZoneById } from '../lib/zones'
+import { buildIntervalSteps, nextStepIndex, type IntervalPlan } from '../lib/intervalWorkout'
 import { saveActivityRoute } from '../lib/activityRoutes'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
@@ -16,6 +17,9 @@ import type { Activity } from '../types'
 
 interface Props {
   activityType: GpsTrackableType
+  // Allenamento a intervalli (roadmap v4, pilastro 01): facoltativo, seguito
+  // passo-passo durante il tracciamento — vedi lib/intervalWorkout.ts.
+  intervalPlan?: IntervalPlan
   addActivity: (
     activity: Omit<Activity, 'id' | 'user_id' | 'created_at' | 'credits_earned'>
   ) => Promise<{ data: Activity | null; error: Error | null }>
@@ -59,7 +63,7 @@ function formatSpeed(speedKmh: number): string {
 // per un tocco accidentale. Struttura full-screen come ActivityEditModal, ma
 // senza useFocusTrap: il suo Esc-per-chiudere immediato contraddice il
 // concetto di schermata bloccata, e non c'è nulla "dietro" da raggiungere.
-export default function WorkoutTrackingOverlay({ activityType, addActivity, onClose, onSaved }: Props) {
+export default function WorkoutTrackingOverlay({ activityType, intervalPlan, addActivity, onClose, onSaved }: Props) {
   const { profile } = useProfile()
   const { status, error, weakSignal, elapsedMs, stats, points, start, pause, resume, finish, cancel } =
     useGpsTracking(activityType)
@@ -91,6 +95,40 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
     if (liveSplits.length > prevSplitCountRef.current) haptic('light')
     prevSplitCountRef.current = liveSplits.length
   }, [liveSplits.length])
+
+  // Allenamento a intervalli (roadmap v4, pilastro 01): la sequenza di step
+  // è fissa per tutta la sessione (calcolata una sola volta dal piano), lo
+  // stato che cambia è solo l'indice corrente e il punto (distanza/tempo)
+  // da cui è iniziato lo step in corso — elapsedMs/stats.distanceKm sono già
+  // "pause-aware" (vedi useGpsTracking), quindi la sottrazione resta corretta
+  // anche se l'utente mette in pausa a metà step.
+  const intervalSteps = useMemo(() => (intervalPlan ? buildIntervalSteps(intervalPlan) : []), [intervalPlan])
+  const [stepIndex, setStepIndex] = useState(0)
+  const [stepStart, setStepStart] = useState({ distanceKm: 0, elapsedMs: 0 })
+  const currentStep = intervalSteps[stepIndex] ?? null
+  const offTargetHapticRef = useRef(0)
+
+  useEffect(() => {
+    if (!currentStep || status !== 'tracking') return
+    const distanceSinceStepStartM = (stats.distanceKm - stepStart.distanceKm) * 1000
+    const secondsSinceStepStart = (elapsedMs - stepStart.elapsedMs) / 1000
+    const next = nextStepIndex(intervalSteps, stepIndex, distanceSinceStepStartM, secondsSinceStepStart)
+    if (next !== stepIndex) {
+      haptic('success')
+      setStepStart({ distanceKm: stats.distanceKm, elapsedMs })
+      setStepIndex(next)
+    }
+  }, [stats.distanceKm, elapsedMs, status, intervalSteps, stepIndex, currentStep, stepStart])
+
+  const offTarget = currentStep != null && status === 'tracking' && points.length >= 2 && liveZone.id !== currentStep.zoneId
+  useEffect(() => {
+    if (!offTarget) return
+    const now = Date.now()
+    if (now - offTargetHapticRef.current > 5000) {
+      haptic('error')
+      offTargetHapticRef.current = now
+    }
+  }, [offTarget, liveZone.id])
 
   useEffect(() => {
     if (startedRef.current) return
@@ -292,6 +330,40 @@ export default function WorkoutTrackingOverlay({ activityType, addActivity, onCl
               <span className="text-xs text-yellow-500">{log.tracking.weakSignal}</span>
             )}
           </div>
+
+          {/* Allenamento a intervalli (roadmap v4, pilastro 01): step
+              corrente con progresso e avviso se la zona live esce dal
+              target — sempre in aggiunta al badge Zona Live sopra, mai al
+              suo posto. */}
+          {currentStep && status === 'tracking' && intervalPlan && (
+            <div className="flex flex-col items-center gap-1 -mt-2">
+              <span
+                className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+                style={{
+                  background: offTarget ? 'rgba(244,67,82,0.15)' : `color-mix(in srgb, ${getZoneById(currentStep.zoneId).cssVar} 16%, transparent)`,
+                  color: offTarget ? 'var(--red)' : getZoneById(currentStep.zoneId).cssVar,
+                  transition: 'background 0.5s ease, color 0.5s ease',
+                }}
+              >
+                {currentStep.kind === 'work'
+                  ? log.intervals.stepWork(currentStep.repNumber, intervalPlan.repeats)
+                  : log.intervals.stepRecovery(currentStep.repNumber, intervalPlan.repeats)}
+                {' · '}
+                {currentStep.kind === 'work'
+                  ? log.intervals.stepProgressWork(
+                      Math.min(currentStep.target, Math.max(0, Math.round((stats.distanceKm - stepStart.distanceKm) * 1000))),
+                      currentStep.target,
+                    )
+                  : log.intervals.stepProgressRecovery(
+                      Math.max(0, Math.ceil(currentStep.target - (elapsedMs - stepStart.elapsedMs) / 1000)),
+                    )}
+              </span>
+              {offTarget && <span className="text-[10px]" style={{ color: 'var(--red)' }}>{log.intervals.offTarget}</span>}
+            </div>
+          )}
+          {intervalPlan && !currentStep && status === 'tracking' && (
+            <p className="text-[11px] text-gray-500 -mt-2">{log.intervals.allDone}</p>
+          )}
 
           <div className="font-bebas text-7xl text-white tracking-wider" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {formatElapsed(elapsedMs)}

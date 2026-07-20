@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ZONES, getZoneByMet, getZoneForActivity, getZoneByPercent, zoneForSpeed } from './zones'
+import { ZONES, getZoneByMet, getZoneForActivity, getZoneByPercent, zoneForSpeed, getZoneById } from './zones'
 import { MET } from './constants'
 import type { ActivityType } from '../types'
 
@@ -59,6 +59,14 @@ describe('zoneForSpeed', () => {
     expect(zoneForSpeed('bici', 21).id).toBe(3) // MET 8.0
     expect(zoneForSpeed('corsa', 7).id).toBe(2) // MET 6.0
     expect(zoneForSpeed('trekking', 5).id).toBe(2) // MET 6.0
+  })
+})
+
+describe('getZoneById', () => {
+  it('restituisce la zona con quell\'id', () => {
+    for (const z of ZONES) {
+      expect(getZoneById(z.id)).toEqual(z)
+    }
   })
 })
 

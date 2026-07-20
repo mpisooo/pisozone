@@ -164,6 +164,29 @@ const it = {
     pendingExtrasHint: 'Foto ed esercizi non sono modificabili finché l\'attività è in attesa di rete.',
   },
 
+  // Allenamenti a intervalli strutturati (roadmap v4, pilastro 01): builder
+  // in Log.tsx (repeats × lavoro a distanza + recupero a tempo, ciascuno con
+  // una zona target) e stringhe di stato durante il tracciamento live in
+  // WorkoutTrackingOverlay.tsx. Vedi lib/intervalWorkout.ts.
+  intervals: {
+    toggleLabel: 'Allenamento a intervalli',
+    toggleHint: 'Facoltativo — costruisci una sessione a ripetute prima di partire',
+    repeatsLabel: 'Ripetute',
+    workHeading: 'Lavoro',
+    workDistanceLabel: 'Distanza (m)',
+    zoneLabel: 'Zona target',
+    recoveryHeading: 'Recupero',
+    recoverySecLabel: 'Durata (s)',
+    summary: (repeats: number, workM: number, recoverySec: number) => `${repeats} × ${workM} m, recupero ${recoverySec}s`,
+    invalidHint: 'Controlla i valori: ripetute 2-20, distanza 100-10.000 m, recupero 15-600 s.',
+    stepWork: (rep: number, total: number) => `Ripetuta ${rep}/${total}`,
+    stepRecovery: (rep: number, total: number) => `Recupero ${rep}/${total}`,
+    stepProgressWork: (doneM: number, targetM: number) => `${doneM}/${targetM} m`,
+    stepProgressRecovery: (remainingSec: number) => `${remainingSec}s`,
+    offTarget: 'Fuori zona',
+    allDone: 'Serie completata — continua libero o termina quando vuoi',
+  },
+
   tracking: {
     dialogAriaLabel: 'Allenamento in corso',
     acquiringTitle: 'In cerca del segnale GPS…',
@@ -407,6 +430,25 @@ const en: Widen<typeof it> = {
     // esercizi vanno allegati al momento del log, non da qui — qui non c'è
     // ancora un id reale a cui agganciarli.
     pendingExtrasHint: 'Photo and exercises cannot be edited while the activity is waiting for network.',
+  },
+
+  intervals: {
+    toggleLabel: 'Interval workout',
+    toggleHint: 'Optional — build a repeat session before you start',
+    repeatsLabel: 'Repeats',
+    workHeading: 'Work',
+    workDistanceLabel: 'Distance (m)',
+    zoneLabel: 'Target zone',
+    recoveryHeading: 'Recovery',
+    recoverySecLabel: 'Duration (s)',
+    summary: (repeats: number, workM: number, recoverySec: number) => `${repeats} × ${workM} m, ${recoverySec}s recovery`,
+    invalidHint: 'Check the values: repeats 2-20, distance 100-10,000 m, recovery 15-600 s.',
+    stepWork: (rep: number, total: number) => `Repeat ${rep}/${total}`,
+    stepRecovery: (rep: number, total: number) => `Recovery ${rep}/${total}`,
+    stepProgressWork: (doneM: number, targetM: number) => `${doneM}/${targetM} m`,
+    stepProgressRecovery: (remainingSec: number) => `${remainingSec}s`,
+    offTarget: 'Off target',
+    allDone: 'Set complete — keep going freely or finish whenever you want',
   },
 
   tracking: {

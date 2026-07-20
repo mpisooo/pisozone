@@ -15,6 +15,7 @@ import {
   activitiesToCsv, formatMinutesCompact,
 } from '../lib/stats'
 import { buildTrainingLoadSeries, loadJumpPct } from '../lib/trainingLoad'
+import { predictRaceTimes, formatRaceTime } from '../lib/racePredictor'
 import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wrapped'
 import { downloadAsCsv } from '../lib/dataExport'
 import type { Activity } from '../types'
@@ -208,6 +209,10 @@ export default function StatsPage() {
   const longestSession = filtered.reduce((best, a) => a.duration_min > (best?.duration_min ?? 0) ? a : best, null as Activity | null)
   const mostCalories = filtered.reduce((best, a) => (a.calories ?? 0) > (best?.calories ?? 0) ? a : best, null as Activity | null)
   const longestDistance = filtered.reduce((best, a) => (a.distance_km ?? 0) > (best?.distance_km ?? 0) ? a : best, null as Activity | null)
+
+  // Passo gara previsto (roadmap v4, pilastro 01): sempre sugli ultimi 90
+  // giorni veri, indipendente dal filtro periodo della pagina.
+  const racePrediction = useMemo(() => predictRaceTimes(activities), [activities])
   const busiestDay = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of filtered) {
@@ -572,6 +577,26 @@ export default function StatsPage() {
               <span className="text-2xl">📆</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Passo gara previsto (roadmap v4, pilastro 01): stima Riegel dal
+          miglior passo corso negli ultimi 90 giorni, indipendente dal
+          filtro periodo. Nessuna card se non ci sono corse comparabili. */}
+      {racePrediction && (
+        <div className="card space-y-3">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.racePredictor.heading}</h2>
+          <p className="text-xs text-gray-500">
+            {stats.racePredictor.subheading(racePrediction.referenceKm, formatRaceTime(racePrediction.referenceMinutes))}
+          </p>
+          <div className="grid grid-cols-2 gap-3" role="img" aria-label={stats.racePredictor.chartAriaLabel}>
+            {racePrediction.predictions.map((p) => (
+              <div key={p.key} className="rounded-xl p-3" style={{ background: 'var(--grey)' }}>
+                <p className="text-xs text-gray-400">{p.label}</p>
+                <p className="font-bebas text-2xl text-white leading-tight">{formatRaceTime(p.minutes)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

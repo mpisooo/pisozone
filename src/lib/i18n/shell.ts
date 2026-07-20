@@ -93,14 +93,14 @@ const it = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '⛰️',
-        title: 'Dislivello a mano',
-        text: 'Trekking, arrampicata, corsa, bici, camminata e motocross: ora puoi segnare i metri di salita anche senza tracciare col GPS — contano lo stesso per le medaglie della montagna.',
+        icon: '🧠',
+        title: 'Il coach di PisoZone',
+        text: 'Un nuovo Punteggio di Prontezza in Home (sforzo, sonno, carico e riposo in un numero solo) e una stima del tuo passo gara in Statistiche — nessun sensore richiesto, solo i dati che inserisci già.',
       },
       {
-        icon: '📶',
-        title: 'Offline ancora più solido',
-        text: 'Le attività registrate senza rete sono modificabili ed eliminabili dal Calendario come le altre, e foto ed esercizi allegati si sincronizzano da soli — niente più scartati.',
+        icon: '⏱️',
+        title: 'Allenamenti a intervalli',
+        text: 'Costruisci una sessione a ripetute prima di tracciare col GPS: l\'app ti segue zona per zona, passo dopo passo. E se un programma attivo va fuori rotta, ora te lo dice.',
       },
     ],
   },
@@ -201,14 +201,14 @@ const en: Widen<typeof it> = {
     openGuide: 'Open the full guide',
     items: [
       {
-        icon: '⛰️',
-        title: 'Manual elevation gain',
-        text: 'Trekking, climbing, running, cycling, walking and motocross: you can now log climbing meters even without GPS tracking — they still count for the mountain medals.',
+        icon: '🧠',
+        title: 'The PisoZone coach',
+        text: 'A new Readiness score in Home (effort, sleep, load and rest in one number) and a predicted race pace in Stats — no sensor required, just the data you already log.',
       },
       {
-        icon: '📶',
-        title: 'Offline is even sturdier',
-        text: 'Activities logged without a connection can now be edited and deleted from the Calendar just like any other, and attached photos and exercises sync on their own — nothing gets dropped anymore.',
+        icon: '⏱️',
+        title: 'Interval workouts',
+        text: 'Build a repeat session before tracking with GPS: the app follows you zone by zone, step by step. And if an active plan drifts off track, it now tells you.',
       },
     ],
   },

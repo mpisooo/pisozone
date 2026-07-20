@@ -36,11 +36,30 @@ const it = {
       `Obiettivo settimanale: ${sessions} su ${goal} sessioni. Calorie di oggi: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'giorno' : 'giorni'}.`,
   },
 
+  // Punteggio di Prontezza (roadmap v4, pilastro 01, FLAGSHIP): sintesi 0-100
+  // di sforzo percepito, carico settimanale, sonno e riposo — dati già
+  // raccolti, mai un sensore richiesto. Vedi lib/readiness.ts.
+  readiness: {
+    cardTitle: 'PRONTEZZA',
+    scoreSuffix: '/100',
+    advicePush: 'Buona prontezza — giornata da spingere',
+    adviceSteady: 'Prontezza nella norma — mantieni il ritmo',
+    adviceRest: 'Prontezza bassa — oggi meglio andarci piano',
+    hint: 'Calcolata da sforzo percepito, carico settimanale, sonno e riposo recenti — niente sensori.',
+    emptyTitle: 'Prontezza non ancora calcolabile',
+    emptyHint: 'Compila lo sforzo percepito dopo un allenamento o usa la card Recupero: il punteggio comparirà qui.',
+    factorLoad: 'Carico',
+    factorSleep: 'Sonno',
+    factorRpe: 'Sforzo recente',
+    factorRest: 'Riposo',
+  },
+
   // Etichette dei "capitoli" che raggruppano la Home in una storia leggibile
   // scorrendo (roadmap v2, pilastro 01 punto 6): il colpo d'occhio del
   // PisoRing, poi il dettaglio. Niente etichetta per le sfide di oggi: il
   // titolo della card ("Sfide di oggi") la renderebbe ridondante.
   sections: {
+    readiness: 'La tua prontezza',
     recovery: 'Recupero',
     recent: 'Attività recente',
     progress: 'Il tuo percorso',
@@ -125,7 +144,23 @@ const en: Widen<typeof it> = {
       `Weekly goal: ${sessions} of ${goal} sessions. Today's calories: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'day' : 'days'}.`,
   },
 
+  readiness: {
+    cardTitle: 'READINESS',
+    scoreSuffix: '/100',
+    advicePush: 'Good readiness — a day to push',
+    adviceSteady: 'Readiness is normal — keep the pace',
+    adviceRest: 'Low readiness — better to take it easy today',
+    hint: 'Computed from recent perceived effort, weekly load, sleep and rest — no sensors needed.',
+    emptyTitle: 'Readiness not available yet',
+    emptyHint: 'Log a perceived effort after a workout or use the Recovery card: your score will show up here.',
+    factorLoad: 'Load',
+    factorSleep: 'Sleep',
+    factorRpe: 'Recent effort',
+    factorRest: 'Rest',
+  },
+
   sections: {
+    readiness: 'Your readiness',
     recovery: 'Recovery',
     recent: 'Recent activity',
     progress: 'Your journey',
