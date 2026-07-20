@@ -1,8 +1,4 @@
 import { useState, useMemo } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, AreaChart, Area, LineChart, Line, ReferenceLine,
-} from 'recharts'
 import { startOfDay, startOfWeek, startOfMonth, startOfYear, parseISO, format, isAfter, isEqual } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { AlertTriangle } from 'lucide-react'
@@ -12,7 +8,6 @@ import { useWeightLogs } from '../hooks/useWeightLogs'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { buildGymRecords, buildExerciseProgression, progressionExercises } from '../lib/exerciseSets'
 import { useProfile } from '../hooks/useProfile'
-import { useTheme } from '../context/ThemeContext'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
@@ -29,6 +24,10 @@ import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import InsightsCard from '../components/InsightsCard'
 import ExerciseProgressionChart from '../components/ExerciseProgressionChart'
+import AreaTrendChart from '../components/AreaTrendChart'
+import BarStatChart from '../components/BarStatChart'
+import DonutChart from '../components/DonutChart'
+import WeightLineChart from '../components/WeightLineChart'
 import EmptyState from '../components/EmptyState'
 import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
@@ -100,18 +99,9 @@ export default function StatsPage() {
   const { logs: weightLogs } = useWeightLogs()
   const { profile } = useProfile()
   const navigate = useNavigate()
-  const { theme } = useTheme()
   const [period, setPeriod] = useState<Period>('week')
   const [metric, setMetric] = useState<Metric>('minutes')
   const [openWrapped, setOpenWrapped] = useState<WrappedData | null>(null)
-
-  const chartGrid   = theme === 'dark' ? '#2a2a2a' : '#E0E0E0'
-  const chartTick   = theme === 'dark' ? '#9ca3af' : '#777777'
-  const tooltipBg   = theme === 'dark' ? '#1a1a1a' : '#ffffff'
-  const tooltipBdr  = theme === 'dark' ? '#2a2a2a' : '#E0E0E0'
-  const tooltipText = theme === 'dark' ? '#f5f5f5' : '#111111'
-  const legendColor = theme === 'dark' ? '#9ca3af' : '#555555'
-  const tooltipStyle = { background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8 }
 
   const filtered = useMemo(() => filterByPeriod(activities, period), [activities, period])
 
@@ -183,7 +173,6 @@ export default function StatsPage() {
   const loadSeries = useMemo(() => buildTrainingLoadSeries(activities), [activities])
   const loadWeeksWithData = useMemo(() => loadSeries.filter((w) => w.load > 0).length, [loadSeries])
   const loadJump = useMemo(() => loadJumpPct(loadSeries), [loadSeries])
-  const maxLoad = Math.max(...loadSeries.map((w) => w.load), 1)
   const loadTotals = useMemo(
     () => loadSeries.reduce(
       (acc, w) => ({ withRpe: acc.withRpe + w.sessionsWithRpe, total: acc.total + w.sessions }),
@@ -350,29 +339,11 @@ export default function StatsPage() {
               </button>
             ))}
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={trendData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke={chartGrid} vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={20} />
-              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={effectiveMetric === 'km'} />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [`${value}${metricInfo.unit}`, metricInfo.label]}
-              />
-              <Area
-                type="monotone"
-                dataKey={effectiveMetric}
-                stroke="var(--red)"
-                strokeWidth={2}
-                fill="rgba(var(--accent-rgb),0.18)"
-                dot={false}
-                activeDot={{ r: 4 }}
-                name={metricInfo.label}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AreaTrendChart
+            points={trendData.map((d) => ({ label: d.label, value: d[effectiveMetric] }))}
+            ariaLabel={stats.trend.chartAriaLabel}
+            formatValue={(v) => `${v}${metricInfo.unit}`}
+          />
         </div>
       )}
 
@@ -380,19 +351,11 @@ export default function StatsPage() {
       {(period === 'month' || period === 'year' || period === 'all') && filtered.length > 0 && (
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{stats.weekdays.heading}</h2>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={weekdayData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke={chartGrid} vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: 'var(--red)' }}
-              />
-              <Bar dataKey="sessions" fill="var(--red)" radius={[4, 4, 0, 0]} name={stats.weekdays.seriesName} />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarStatChart
+            items={weekdayData.map((d) => ({ key: d.label, label: d.label, value: d.sessions }))}
+            ariaLabel={stats.weekdays.chartAriaLabel}
+            height={144}
+          />
         </div>
       )}
 
@@ -403,36 +366,18 @@ export default function StatsPage() {
           <p className="text-xs text-gray-400 mb-3">
             {stats.goal.reachedBefore}<span className="text-[var(--red)] font-semibold">{weeksMet}</span>{stats.goal.reachedAfter}
           </p>
-          <ResponsiveContainer width="100%" height={170}>
-            <BarChart data={goalData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke={chartGrid} vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={8} />
-              <YAxis
-                tick={{ fill: chartTick, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                allowDecimals={false}
-                domain={[0, (dataMax: number) => Math.max(dataMax, weeklyGoal) + 1]}
-              />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [stats.goal.tooltipValue(value, weeklyGoal), stats.goal.tooltipName]}
-              />
-              <ReferenceLine
-                y={weeklyGoal}
-                stroke={chartTick}
-                strokeDasharray="6 3"
-                label={{ value: stats.goal.referenceLabel(weeklyGoal), position: 'insideTopRight', fill: chartTick, fontSize: 10 }}
-              />
-              <Bar dataKey="sessions" radius={[4, 4, 0, 0]} name={stats.goal.tooltipName}>
-                {goalData.map((w) => (
-                  <Cell key={w.key} fill={w.met ? 'var(--red)' : 'rgba(var(--accent-rgb),0.35)'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <BarStatChart
+            items={goalData.map((w) => ({
+              key: w.key,
+              label: w.label,
+              value: w.sessions,
+              color: w.met ? 'var(--red)' : 'rgba(var(--accent-rgb),0.35)',
+            }))}
+            referenceValue={weeklyGoal}
+            referenceLabel={stats.goal.referenceLabel(weeklyGoal)}
+            ariaLabel={stats.goal.chartAriaLabel}
+            height={144}
+          />
         </div>
       )}
 
@@ -440,28 +385,10 @@ export default function StatsPage() {
       {pieData.length > 0 && (
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{stats.pie.heading}</h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {pieData.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={tooltipStyle}
-                itemStyle={{ color: tooltipText }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12, color: legendColor }} />
-            </PieChart>
-          </ResponsiveContainer>
+          <DonutChart
+            slices={pieData.map((d, i) => ({ key: d.name, label: d.name, value: d.value, color: PIE_COLORS[i % PIE_COLORS.length] }))}
+            ariaLabel={stats.pie.chartAriaLabel}
+          />
         </div>
       )}
 
@@ -487,38 +414,23 @@ export default function StatsPage() {
         </div>
       )}
 
-      {/* Carico settimanale session-RPE: sforzo percepito × minuti (grafico a
-          colonne in puro CSS — niente recharts sulle card nuove, il pilastro 04
-          della roadmap v3 lo pensiona del tutto) */}
+      {/* Carico settimanale session-RPE: sforzo percepito × minuti (BarStatChart,
+          il primo grafico in puro CSS della roadmap v3 — il modello che il
+          pilastro 04 ha esteso a tutta la pagina al posto di recharts) */}
       {loadWeeksWithData >= 2 && filtered.length > 0 && (
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-1">{stats.trainingLoad.heading}</h2>
           <p className="text-xs text-gray-400 mb-3">{stats.trainingLoad.subtitle}</p>
-          <div className="flex items-end gap-1.5 h-28" role="img" aria-label={stats.trainingLoad.chartAriaLabel}>
-            {loadSeries.map((w, i) => (
-              <div
-                key={w.key}
-                className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0 h-full"
-                aria-label={stats.trainingLoad.barAria(w.label, w.load)}
-              >
-                {w.load > 0 && (
-                  <span className="text-[9px] text-gray-500 tabular-nums leading-none">{w.load}</span>
-                )}
-                <div
-                  className="w-full rounded-t"
-                  style={{
-                    height: `${Math.max(w.load > 0 ? 4 : 2, Math.round((w.load / maxLoad) * 88))}px`,
-                    background: i === loadSeries.length - 1 ? 'var(--red)' : 'rgba(var(--accent-rgb),0.45)',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-1.5 mt-1">
-            {loadSeries.map((w) => (
-              <span key={w.key} className="flex-1 text-center text-[9px] text-gray-500 truncate">{w.label}</span>
-            ))}
-          </div>
+          <BarStatChart
+            items={loadSeries.map((w, i) => ({
+              key: w.key,
+              label: w.label,
+              value: w.load,
+              color: i === loadSeries.length - 1 ? 'var(--red)' : 'rgba(var(--accent-rgb),0.45)',
+            }))}
+            ariaLabel={stats.trainingLoad.chartAriaLabel}
+            height={108}
+          />
           {/* Ambra semantica di avvertimento (come la scala BMI), non il tema */}
           {loadJump != null && (
             <div className="flex items-start gap-2 mt-3 px-3 py-2 rounded-lg text-xs leading-relaxed" style={{ background: 'rgba(250,204,21,0.1)', color: '#facc15' }}>
@@ -599,43 +511,20 @@ export default function StatsPage() {
             {stats.weightTraining.subtitle}
           </p>
           <p className="text-xs text-gray-400 mb-1">{stats.weightTraining.weightLabel}</p>
-          <ResponsiveContainer width="100%" height={120}>
-            <LineChart data={weightData} syncId="pesoAllenamento" margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke={chartGrid} vertical={false} />
-              <XAxis dataKey="label" hide />
-              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [stats.weightTraining.weightTooltipValue(value), stats.weightTraining.weightSeriesName]}
-              />
-              <Line
-                type="monotone"
-                dataKey="weightKg"
-                stroke="var(--red)"
-                strokeWidth={2}
-                dot={{ r: 3, fill: 'var(--red)', strokeWidth: 0 }}
-                connectNulls
-                name={stats.weightTraining.weightSeriesName}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <WeightLineChart
+            points={weightData.map((w) => ({ label: w.label, value: w.weightKg }))}
+            ariaLabel={stats.weightTraining.weightChartAriaLabel}
+            formatValue={(v) => `${v} kg`}
+            height={110}
+          />
           <p className="text-xs text-gray-400 mb-1 mt-2">{stats.weightTraining.trainingLabel}</p>
-          <ResponsiveContainer width="100%" height={110}>
-            <BarChart data={weightData} syncId="pesoAllenamento" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid stroke={chartGrid} vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: chartTick, fontSize: 10 }} axisLine={false} tickLine={false} minTickGap={8} />
-              <YAxis tick={{ fill: chartTick, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                labelStyle={{ color: tooltipText }}
-                itemStyle={{ color: 'var(--red)' }}
-                formatter={(value) => [stats.weightTraining.trainingTooltipValue(value), stats.weightTraining.trainingTooltipName]}
-              />
-              <Bar dataKey="minutes" fill="rgba(var(--accent-rgb),0.55)" radius={[4, 4, 0, 0]} name={stats.weightTraining.trainingSeriesName} />
-            </BarChart>
-          </ResponsiveContainer>
+          <BarStatChart
+            items={weightData.map((w) => ({ key: w.key, label: w.label, value: w.minutes }))}
+            ariaLabel={stats.weightTraining.trainingChartAriaLabel}
+            color="rgba(var(--accent-rgb),0.55)"
+            formatValue={(v) => `${v}min`}
+            height={100}
+          />
         </div>
       )}
 

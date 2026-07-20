@@ -5,7 +5,7 @@ import { format, formatISO } from 'date-fns'
 import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite, RotateCcw } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
-import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, type GpsTrackableType } from '../lib/constants'
+import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, ELEVATION_CAPABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { uploadActivityPhoto } from '../lib/activityPhotos'
 import { saveActivityExercises } from '../lib/activityExercises'
 import {
@@ -13,7 +13,8 @@ import {
   type ExerciseDraft, type PrRecord,
 } from '../lib/exerciseSets'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
-import { isPendingActivityId } from '../lib/offlineQueue'
+import { isPendingActivityId, pendingLocalId } from '../lib/offlineQueue'
+import { savePendingAttachments } from '../lib/offlineAttachments'
 import { lastActivityOfType, prefillFromActivity, type QuickLogPrefill } from '../lib/quickLog'
 import { detectGpsRecords, type WorkoutRecapData } from '../lib/workoutRecap'
 import { haptic } from '../lib/haptics'
@@ -34,6 +35,7 @@ type FormValues = {
   minutes: number
   calories: number | ''
   distance_km: number | ''
+  elevation_gain_m: number | ''
   notes: string
 }
 
@@ -89,6 +91,7 @@ export default function LogPage() {
       minutes: 30,
       calories: '',
       distance_km: '',
+      elevation_gain_m: '',
       notes: '',
     },
   })
@@ -101,6 +104,7 @@ export default function LogPage() {
   const selectedActivity = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)
   const showDist = selectedActivity?.hasDist ?? false
   const durationMin = hours * 60 + minutes
+  const showElevation = (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true
 
   const indoorVariant = INDOOR_VARIANTS[selectedType]
   // Il cambio di sport azzera indoor ("tapis roulant" non sopravvive a un
@@ -135,6 +139,7 @@ export default function LogPage() {
       minutes: prefill.durationMin % 60,
       calories: '',
       distance_km: prefill.distanceKm ?? '',
+      elevation_gain_m: (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(prefill.type) ? prefill.elevationGainM ?? '' : '',
       notes: '',
     })
   }, [location.state, location.pathname, navigate, reset, watch])
@@ -151,6 +156,7 @@ export default function LogPage() {
     setValue('hours', Math.floor(p.durationMin / 60))
     setValue('minutes', p.durationMin % 60)
     if (showDist) setValue('distance_km', p.distanceKm ?? '')
+    if ((ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(p.type)) setValue('elevation_gain_m', p.elevationGainM ?? '')
     setIndoor(p.indoor)
     haptic('light')
   }
@@ -184,6 +190,7 @@ export default function LogPage() {
       duration_min: dur,
       calories: cal,
       distance_km: values.distance_km !== '' ? Number(values.distance_km) : null,
+      elevation_gain_m: values.elevation_gain_m !== '' ? Math.round(Number(values.elevation_gain_m)) : null,
       notes: values.notes || null,
       rpe,
       mood,
@@ -200,9 +207,9 @@ export default function LogPage() {
     }
 
     // Attività in coda offline (roadmap v2, pilastro 05): non ha ancora un id
-    // reale, quindi foto/esercizi (che viaggiano dopo l'insert) fallirebbero
-    // comunque — tentarli produrrebbe solo un avviso "riprova dal calendario"
-    // fuorviante, dato che una pending non è ancora modificabile da lì.
+    // reale, quindi foto/esercizi (che viaggiano dopo l'insert) non possono
+    // essere salvati subito — vengono accodati anche loro (v3, pilastro 04,
+    // vedi sotto) invece di essere scartati.
     const pending = data ? isPendingActivityId(data.id) : false
 
     // La foto viaggia dopo l'insert (serve l'id per il path stabile). Se
@@ -236,9 +243,24 @@ export default function LogPage() {
       }
     }
 
-    // Catturato prima del reset dei campi: se offline, foto/esercizi non sono
-    // stati tentati (vedi sopra) — l'utente va avvisato che vanno riaggiunti.
-    const offlineExtrasSkipped = pending && (Boolean(photoFile) || entries.length > 0)
+    // Offline: foto ed esercizi vengono accodati in IndexedDB invece di
+    // essere scartati — flushQueue li applica non appena l'attività ottiene
+    // un id vero. I PR si possono comunque rilevare subito: il confronto è
+    // locale (storico già caricato), non richiede che gli esercizi siano
+    // già salvati sul server.
+    const offlineExtrasQueued = pending && (Boolean(photoFile) || entries.length > 0)
+    if (offlineExtrasQueued && data) {
+      await savePendingAttachments({
+        localId: pendingLocalId(data.id),
+        photoFile: photoFile ?? undefined,
+        exerciseEntries: entries.length > 0 ? entries : undefined,
+      })
+      if (entries.length > 0 && historyLoaded) {
+        newPrs = detectNewPrs(entries, buildPrMap(exerciseHistory))
+          .sort((a, b) => b.weightKg - a.weightKg)
+        appendLocal(entries)
+      }
+    }
 
     setSaving(false)
     setPhotoFile(null)
@@ -253,7 +275,7 @@ export default function LogPage() {
     setPrRecords(newPrs)
     if (photoOk && setsOk) {
       // Offline: in coda, non ancora nel DB (roadmap v2, pilastro 05).
-      if (pending) { setSavedOfflineExtras(offlineExtrasSkipped); setSavedOffline(true) }
+      if (pending) { setSavedOfflineExtras(offlineExtrasQueued); setSavedOffline(true) }
       else setSaved(true)
     }
     else if (!setsOk) {
@@ -271,6 +293,7 @@ export default function LogPage() {
       minutes: 30,
       calories: '',
       distance_km: '',
+      elevation_gain_m: '',
       notes: '',
     })
     // Con un PR da leggere il toast resta un po' di più
@@ -515,6 +538,26 @@ export default function LogPage() {
             </div>
           )}
 
+          {showElevation && (
+            <div>
+              <label htmlFor="log-elevation" className="block text-xs text-gray-400 mb-1">{log.form.elevationLabel}</label>
+              <input
+                id="log-elevation"
+                type="number"
+                {...register('elevation_gain_m', {
+                  min: { value: 0, message: log.form.validation.distanceNotNegative },
+                  max: { value: 10000, message: log.form.validation.unrealisticValue },
+                })}
+                className="input-dark"
+                placeholder={log.form.elevationPlaceholder}
+                min={0}
+              />
+              {errors.elevation_gain_m
+                ? <p className="text-xs text-red-400 mt-1">{errors.elevation_gain_m.message}</p>
+                : <p className="text-[10px] text-gray-600 mt-1">{log.form.elevationHint}</p>}
+            </div>
+          )}
+
           <div>
             <label htmlFor="log-notes" className="block text-xs text-gray-400 mb-1">{log.new.notesLabel}</label>
             <textarea
@@ -607,7 +650,7 @@ export default function LogPage() {
           <div>
             <p className="text-white font-semibold text-sm">{log.new.savedOfflineToast.title}</p>
             <p className="text-green-400 text-xs">
-              {savedOfflineExtras ? log.new.savedOfflineToast.bodyExtrasSkipped : log.new.savedOfflineToast.body}
+              {savedOfflineExtras ? log.new.savedOfflineToast.bodyExtrasQueued : log.new.savedOfflineToast.body}
             </p>
           </div>
         </div>

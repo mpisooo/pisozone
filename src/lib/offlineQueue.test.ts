@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   pendingActivityId,
   isPendingActivityId,
+  pendingLocalId,
   toPendingActivity,
   mergeWithPending,
   isNetworkFailure,
@@ -45,6 +46,12 @@ describe('pendingActivityId / isPendingActivityId', () => {
 
   it('non riconosce come pending un id reale del DB', () => {
     expect(isPendingActivityId('real-1')).toBe(false)
+  })
+})
+
+describe('pendingLocalId', () => {
+  it('è l\'inversa di pendingActivityId', () => {
+    expect(pendingLocalId(pendingActivityId('abc123'))).toBe('abc123')
   })
 })
 

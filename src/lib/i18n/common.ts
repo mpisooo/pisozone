@@ -12,7 +12,7 @@ const common = {
   back: 'Indietro',
   retryHint: 'Controlla la connessione e riprova.',
   // Attività registrata offline, ancora in coda sul dispositivo (roadmap v2,
-  // pilastro 05, offline-first): non ancora modificabile, si sincronizza da sola.
+  // pilastro 05, offline-first): si sincronizza da sola, ma è già modificabile.
   pendingSyncBadge: 'In attesa di rete',
 } as const
 

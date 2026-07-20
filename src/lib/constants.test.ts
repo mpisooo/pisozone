@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcCalories, calcCaloriesFromSpeed, MET, ACTIVITY_OPTIONS, GPS_TRACKABLE_TYPES, INDOOR_VARIANTS, activityLabel } from './constants'
+import { calcCalories, calcCaloriesFromSpeed, MET, ACTIVITY_OPTIONS, GPS_TRACKABLE_TYPES, ELEVATION_CAPABLE_TYPES, INDOOR_VARIANTS, activityLabel } from './constants'
 import { ACTIVITY_ICON_PATHS } from './activityIconPaths'
 
 describe('calcCalories', () => {
@@ -48,6 +48,23 @@ describe('calcCaloriesFromSpeed', () => {
 describe('GPS_TRACKABLE_TYPES', () => {
   it('contiene solo attività outdoor con telefono trasportabile', () => {
     expect(GPS_TRACKABLE_TYPES).toEqual(['corsa', 'bici', 'camminata', 'trekking'])
+  })
+})
+
+describe('ELEVATION_CAPABLE_TYPES', () => {
+  it('include tutti i tipi GPS-trackable più arrampicata e motocross', () => {
+    for (const type of GPS_TRACKABLE_TYPES) {
+      expect(ELEVATION_CAPABLE_TYPES).toContain(type)
+    }
+    expect(ELEVATION_CAPABLE_TYPES).toContain('arrampicata')
+    expect(ELEVATION_CAPABLE_TYPES).toContain('motocross')
+  })
+
+  it('ogni tipo è tra gli sport validi', () => {
+    const valid = new Set(ACTIVITY_OPTIONS.map((o) => o.value))
+    for (const type of ELEVATION_CAPABLE_TYPES) {
+      expect(valid.has(type)).toBe(true)
+    }
   })
 })
 

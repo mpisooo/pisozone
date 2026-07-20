@@ -39,14 +39,14 @@ export default defineConfig({
     sourcemap: uploadSourceMaps ? 'hidden' : false,
     rollupOptions: {
       output: {
-        // @supabase/supabase-js e recharts sono le librerie più pesanti:
-        // senza un chunk dedicato, Rollup le duplica dentro ogni chunk che le
-        // importa (successo prima di questo intervento: due chunk da ~360kB
-        // quasi identici). Isolarle in vendor chunk stabili le fa scaricare
-        // e cachare una sola volta, condivisa da tutte le pagine.
+        // @supabase/supabase-js è la libreria più pesante rimasta (recharts,
+        // roadmap v3 pilastro 04, è stata rimossa del tutto — tutti i grafici
+        // sono SVG/CSS propri, vedi BarStatChart/AreaTrendChart/WeightLineChart/
+        // DonutChart): senza un chunk dedicato Rollup la duplicherebbe dentro
+        // ogni chunk che la importa. Isolarla in un vendor chunk stabile la fa
+        // scaricare e cachare una sola volta, condivisa da tutte le pagine.
         manualChunks(id) {
           if (id.includes('node_modules/@supabase')) return 'vendor-supabase'
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-recharts'
           // Leaflet è già caricato pigro (React.lazy in ActivityEditModal):
           // il chunk dedicato lo tiene stabile in cache tra i deploy.
           if (id.includes('node_modules/leaflet')) return 'vendor-leaflet'

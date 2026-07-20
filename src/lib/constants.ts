@@ -96,6 +96,18 @@ export type GpsTrackableType = 'corsa' | 'bici' | 'camminata' | 'trekking'
 // ACTIVITY_OPTIONS hanno hasDist: true per l'inserimento manuale.
 export const GPS_TRACKABLE_TYPES: GpsTrackableType[] = ['corsa', 'bici', 'camminata', 'trekking']
 
+export type ElevationCapableType = 'corsa' | 'bici' | 'camminata' | 'trekking' | 'arrampicata' | 'motocross'
+
+// Sport dove il dislivello positivo (D+) ha senso come dato manuale: gli
+// stessi del GPS (per chi non traccia comunque lo vuole segnare a mano) più
+// arrampicata (mai tracciabile via GPS, ma il dislivello È la sessione) e
+// motocross (fuoristrada). Il campo compare nel form solo per questi tipi,
+// e solo quando l'attività non è già tracciata via GPS (lì il dato arriva
+// da computeElevationProfile, non va sovrascritto a mano).
+export const ELEVATION_CAPABLE_TYPES: ElevationCapableType[] = [
+  'corsa', 'bici', 'camminata', 'trekking', 'arrampicata', 'motocross',
+]
+
 // MET per fascia di velocità media (km/h), valori approssimati dal Compendium
 // of Physical Activities: a parità di durata, correre a 8 km/h e a 16 km/h
 // bruciano calorie molto diverse, cosa che il MET fisso di calcCalories non
@@ -302,10 +314,13 @@ export const MEDALS: MedalDefinition[] = [
     icon: '📆',
     checkProgress: (s: AchievementStats) => ({ current: Math.min(s.maxActivitiesInMonth, 20), target: 20 }),
   },
-  // MONTAGNA (roadmap v3, pilastro 03): premiano il tracciamento GPS — km
-  // tracciati e D+ cumulato. Il dislivello arriva da elevation_gain_m (v44),
-  // quindi conta solo dalle attività tracciate da lì in poi: non è un bug,
-  // è il costo dichiarato di tenere achievementStats su una colonna.
+  // MONTAGNA (roadmap v3, pilastro 03): km tracciati col GPS (Esploratore,
+  // Cartografo) e D+ cumulato (Scalatore, Ottomila) da elevation_gain_m
+  // (v44) — che ora può arrivare anche da inserimento manuale per gli sport
+  // in ELEVATION_CAPABLE_TYPES (nessuna nuova colonna: stesso campo, fonte
+  // diversa), non solo dal GPS. Conta solo dalle attività registrate da lì
+  // in poi: non è un bug, è il costo dichiarato di tenere achievementStats
+  // su una colonna.
   {
     key: 'esploratore',
     name: 'Esploratore',
@@ -325,7 +340,7 @@ export const MEDALS: MedalDefinition[] = [
   {
     key: 'scalatore',
     name: 'Scalatore',
-    description: '1.000 m di dislivello in salita accumulati col GPS',
+    description: '1.000 m di dislivello in salita accumulati',
     tier: 'silver',
     icon: '⛰️',
     checkProgress: (s: AchievementStats) => ({ current: Math.min(s.totalElevationGainM, 1000), target: 1000 }),

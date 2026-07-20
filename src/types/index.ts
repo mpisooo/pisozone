@@ -48,9 +48,11 @@ export interface Activity {
   // Ha senso solo per gli sport in INDOOR_VARIANTS (lib/constants).
   indoor?: boolean | null
   // Opzionale: esiste solo dopo la migrazione v44. Dislivello positivo (D+)
-  // in metri, calcolato al salvataggio di un'attività GPS con la stessa
-  // logica dell'altimetria (computeElevationProfile). Sempre nullable:
-  // attività manuali, pre-v44 o senza quota non hanno un D+ — non si inventa.
+  // in metri — o calcolato al salvataggio di un'attività GPS con la stessa
+  // logica dell'altimetria (computeElevationProfile), o inserito a mano per
+  // gli sport in ELEVATION_CAPABLE_TYPES quando non si traccia col GPS
+  // (trekking, arrampicata...). Sempre nullable: attività senza quota/senza
+  // dato manuale non hanno un D+ — non si inventa.
   elevation_gain_m?: number | null
   // Opzionale: esiste solo dopo la migrazione v45. true = il percorso GPS è
   // visibile agli amici nel feed (consenso esplicito per attività, default

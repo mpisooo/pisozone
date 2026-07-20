@@ -246,16 +246,12 @@ export default function CalendarPage() {
           ) : (
             searchResults.map((a) => {
               const opt = ACTIVITY_OPTIONS.find((o) => o.value === a.type)
-              const pending = isPendingActivityId(a.id)
               return (
                 <button
                   key={a.id}
                   type="button"
-                  disabled={pending}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] ${
-                    pending ? 'opacity-70 cursor-default' : 'hover:brightness-110 active:brightness-90'
-                  }`}
-                  onClick={() => { if (!pending) setEditingActivity(a) }}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] hover:brightness-110 active:brightness-90"
+                  onClick={() => setEditingActivity(a)}
                 >
                   <ActivityIcon type={opt?.value ?? 'corsa'} size={22} className="text-[var(--red)] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -412,18 +408,16 @@ export default function CalendarPage() {
           ) : (
             selectedDayActivities.map((a) => {
               const opt = ACTIVITY_OPTIONS.find((o) => o.value === a.type)
-              // Ancora in coda offline (roadmap v2, pilastro 05): non esiste
-              // ancora una riga DB da aprire in modifica, si sincronizza da sola.
+              // Ancora in coda offline (roadmap v2, pilastro 05): il badge lo
+              // segnala, ma dal v3 pilastro 04 è comunque modificabile —
+              // updateActivity scrive nel payload in coda invece che su Supabase.
               const pending = isPendingActivityId(a.id)
               return (
                 <button
                   key={a.id}
                   type="button"
-                  disabled={pending}
-                  className={`w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] ${
-                    pending ? 'opacity-70 cursor-default' : 'hover:brightness-110 active:brightness-90'
-                  }`}
-                  onClick={() => { if (!pending) setEditingActivity(a) }}
+                  className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] hover:brightness-110 active:brightness-90"
+                  onClick={() => setEditingActivity(a)}
                 >
                   <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="text-[var(--red)] flex-shrink-0" />
                   <div className="flex-1 min-w-0">

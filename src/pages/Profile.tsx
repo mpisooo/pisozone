@@ -4,9 +4,6 @@ import { useForm } from 'react-hook-form'
 import { differenceInYears, parseISO, format } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2, BookOpen, Target, X } from 'lucide-react'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
-} from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useWeightLogs } from '../hooks/useWeightLogs'
@@ -23,6 +20,7 @@ import {
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
+import WeightLineChart from '../components/WeightLineChart'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
@@ -57,7 +55,7 @@ export default function ProfilePage() {
   const { user } = useAuth()
   const { profile, loading, updateProfile, refetch: refetchProfile } = useProfile()
   const { logs: weightLogs, addLog: addWeightLog } = useWeightLogs()
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -99,10 +97,6 @@ export default function ProfilePage() {
     })
   }, [user])
 
-  const chartGrid  = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#2a2a2a'
-  const chartTick  = theme === 'light' || theme === 'white' ? '#777777' : '#9ca3af'
-  const tooltipBg  = theme === 'light' || theme === 'white' ? '#ffffff' : '#1a1a1a'
-  const tooltipBdr = theme === 'light' || theme === 'white' ? '#E0E0E0' : '#3a3a3a'
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>()
 
@@ -294,10 +288,6 @@ export default function ProfilePage() {
     date: format(parseISO(l.logged_at), 'd MMM', { locale: it }),
     peso: Number(l.weight_kg),
   }))
-  // L'asse Y include anche l'obiettivo, o la sua linea finirebbe fuori scala.
-  const chartValues = [...chartData.map((d) => d.peso), ...(weightGoal != null ? [Number(weightGoal)] : [])]
-  const minWeight = chartValues.length > 0 ? Math.min(...chartValues) - 2 : 50
-  const maxWeight = chartValues.length > 0 ? Math.max(...chartValues) + 2 : 100
 
   // Proiezione verso l'obiettivo: trend dalle pesate recenti (regressione),
   // messaggio onesto se il trend è piatto, contrario o troppo lento.
@@ -802,46 +792,14 @@ export default function ProfilePage() {
               : profileText.weight.needMoreEntries}
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
-              <XAxis
-                dataKey="date"
-                tick={{ fill: chartTick, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                domain={[minWeight, maxWeight]}
-                tick={{ fill: chartTick, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{ background: tooltipBg, border: `1px solid ${tooltipBdr}`, borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: chartTick }}
-                itemStyle={{ color: 'var(--red)' }}
-                formatter={(v) => [profileText.weight.tooltipValue(v), profileText.weight.tooltipLabel]}
-              />
-              {weightGoal != null && (
-                <ReferenceLine
-                  y={Number(weightGoal)}
-                  stroke={chartTick}
-                  strokeDasharray="6 3"
-                  label={{ value: profileText.weight.goal.chartLineLabel, position: 'insideBottomRight', fill: chartTick, fontSize: 10 }}
-                />
-              )}
-              <Line
-                type="monotone"
-                dataKey="peso"
-                stroke="var(--red)"
-                strokeWidth={2}
-                dot={{ fill: 'var(--red)', r: 3, strokeWidth: 0 }}
-                activeDot={{ r: 5, fill: 'var(--red)' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <WeightLineChart
+            points={chartData.map((d) => ({ label: d.date, value: d.peso }))}
+            ariaLabel={profileText.weight.chartAriaLabel}
+            referenceValue={weightGoal != null ? Number(weightGoal) : null}
+            referenceLabel={weightGoal != null ? profileText.weight.goal.chartLineLabel : undefined}
+            formatValue={(v) => profileText.weight.tooltipValue(v)}
+            height={160}
+          />
         )}
 
         {chartData.length > 0 && (

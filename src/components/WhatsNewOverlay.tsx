@@ -8,7 +8,7 @@ import shell from '../lib/i18n/shell'
 // Versione corrente dell'"ondata" di novità: incrementarla (e aggiornare
 // shell.whatsNew.items) quando c'è una nuova infornata da annunciare. Chi ha
 // profiles.news_seen_version più basso vede il pannello una volta al rientro.
-export const NEWS_VERSION = 13
+export const NEWS_VERSION = 14
 
 // Annuncio one-shot delle novità per gli utenti esistenti (v35): si mostra
 // solo a tour di benvenuto già visto (i nuovi utenti hanno il tour, che copre

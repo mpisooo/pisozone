@@ -19,19 +19,21 @@ function act(partial: Partial<Activity>): Activity {
 }
 
 describe('prefillFromActivity', () => {
-  it('ricopia sport, durata, distanza e indoor', () => {
-    expect(prefillFromActivity(act({ indoor: true }))).toEqual({
+  it('ricopia sport, durata, distanza, indoor e dislivello', () => {
+    expect(prefillFromActivity(act({ indoor: true, elevation_gain_m: 320 }))).toEqual({
       type: 'corsa',
       durationMin: 45,
       distanceKm: 7.5,
       indoor: true,
+      elevationGainM: 320,
     })
   })
 
   it('normalizza a null i campi assenti (pre-migrazione o mai compilati)', () => {
-    const p = prefillFromActivity(act({ distance_km: null, indoor: undefined }))
+    const p = prefillFromActivity(act({ distance_km: null, indoor: undefined, elevation_gain_m: undefined }))
     expect(p.distanceKm).toBeNull()
     expect(p.indoor).toBeNull()
+    expect(p.elevationGainM).toBeNull()
   })
 })
 

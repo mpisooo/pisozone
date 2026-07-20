@@ -10,6 +10,7 @@ export interface QuickLogPrefill {
   durationMin: number
   distanceKm: number | null
   indoor: boolean | null
+  elevationGainM: number | null
 }
 
 export function prefillFromActivity(a: Activity): QuickLogPrefill {
@@ -18,6 +19,7 @@ export function prefillFromActivity(a: Activity): QuickLogPrefill {
     durationMin: a.duration_min,
     distanceKm: a.distance_km ?? null,
     indoor: a.indoor ?? null,
+    elevationGainM: a.elevation_gain_m ?? null,
   }
 }
 

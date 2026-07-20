@@ -3,9 +3,11 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useChallengesBadge } from '../context/ChallengesBadgeContext'
-import { removeActivityPhoto } from '../lib/activityPhotos'
+import { removeActivityPhoto, uploadActivityPhoto } from '../lib/activityPhotos'
+import { saveActivityExercises } from '../lib/activityExercises'
+import { loadPendingAttachments, deletePendingAttachments } from '../lib/offlineAttachments'
 import {
-  mergeWithPending, toPendingActivity, pendingActivityId, isNetworkFailure, isPendingActivityId,
+  mergeWithPending, toPendingActivity, pendingActivityId, pendingLocalId, isNetworkFailure, isPendingActivityId,
   type QueuedActivity, type QueuedActivityPayload,
 } from '../lib/offlineQueue'
 import log from '../lib/i18n/log'
@@ -90,6 +92,31 @@ export function useActivities() {
     return result
   }, [])
 
+  // Foto/esercizi accodati offline (offlineAttachments, IndexedDB): applicati
+  // best effort appena l'attività ha un id vero, stesso pattern "dopo
+  // l'insert" di Log.tsx online. Un fallimento qui non tocca l'attività, già
+  // sincronizzata: si avvisa e l'allegato va riaggiunto a mano dal Calendario.
+  const applyPendingAttachments = useCallback(async (localId: string, activity: Activity, userId: string) => {
+    const attachments = await loadPendingAttachments(localId)
+    if (!attachments) return
+    let ok = true
+    if (attachments.photoFile) {
+      const { url, error } = await uploadActivityPhoto(userId, activity.id, attachments.photoFile)
+      if (error || !url) ok = false
+      else {
+        const { error: linkError } = await supabase.from('activities').update({ photo_url: url }).eq('id', activity.id)
+        if (linkError) ok = false
+        else setServerActivities((prev) => prev.map((a) => a.id === activity.id ? { ...a, photo_url: url } : a))
+      }
+    }
+    if (attachments.exerciseEntries?.length) {
+      const { error } = await saveActivityExercises(userId, activity.id, attachments.exerciseEntries)
+      if (error) ok = false
+    }
+    await deletePendingAttachments(localId)
+    if (!ok) showError(log.errors.offlineAttachmentsFailed)
+  }, [showError])
+
   const flushQueue = useCallback(async () => {
     if (!user || flushingRef.current || queue.length === 0) return
     flushingRef.current = true
@@ -100,17 +127,19 @@ export function useActivities() {
         setQueue((prev) => prev.filter((q) => q.localId !== item.localId))
         setServerActivities((prev) => [data as Activity, ...prev])
         synced++
+        await applyPendingAttachments(item.localId, data as Activity, user.id)
       } else if (error && !isNetworkFailure(status)) {
         // Errore vero (non di rete): tenerla in coda per sempre non la
-        // risolverebbe, meglio avvisare e scartarla.
+        // risolverebbe, meglio avvisare e scartarla (e con lei i suoi allegati).
         setQueue((prev) => prev.filter((q) => q.localId !== item.localId))
         showError(log.errors.syncFailed)
+        await deletePendingAttachments(item.localId)
       }
       // Fallimento di rete: resta in coda, si riprova al prossimo trigger.
     }
     flushingRef.current = false
     if (synced > 0) refreshChallengesBadge()
-  }, [user, queue, showError, refreshChallengesBadge, insertActivity])
+  }, [user, queue, showError, refreshChallengesBadge, insertActivity, applyPendingAttachments])
 
   useEffect(() => {
     const onOnline = () => { flushQueue() }
@@ -155,8 +184,17 @@ export function useActivities() {
     id: string,
     updates: Partial<Omit<Activity, 'id' | 'user_id' | 'created_at' | 'credits_earned'>>
   ) => {
-    // Non ancora sincronizzata: non esiste ancora una riga DB da aggiornare.
-    if (isPendingActivityId(id)) return { data: null, error: new Error('Pending, not yet synced') }
+    // Non ancora sincronizzata: non esiste ancora una riga DB, si aggiorna il
+    // payload dentro la coda locale (roadmap v3, pilastro 04, "offline senza
+    // asterischi" — le pending sono modificabili dal Calendario come le altre).
+    if (isPendingActivityId(id)) {
+      const localId = pendingLocalId(id)
+      const current = queue.find((q) => q.localId === localId)
+      if (!current || !user) return { data: null, error: new Error('Pending, not yet synced') }
+      const updated: QueuedActivity = { ...current, payload: { ...current.payload, ...updates } }
+      setQueue((prev) => prev.map((q) => q.localId === localId ? updated : q))
+      return { data: toPendingActivity(updated, user.id), error: null }
+    }
     const { data, error } = await supabase
       .from('activities')
       .update(updates)
@@ -171,9 +209,12 @@ export function useActivities() {
   }
 
   const deleteActivity = async (id: string) => {
-    // Non ancora sincronizzata: rimuoverla dalla coda locale basta, niente da cancellare sul server.
+    // Non ancora sincronizzata: rimuoverla dalla coda locale basta, niente da
+    // cancellare sul server — ma un eventuale allegato accodato in IndexedDB
+    // (offlineAttachments) sì, o resterebbe orfano per sempre.
     if (isPendingActivityId(id)) {
       setQueue((prev) => prev.filter((q) => pendingActivityId(q.localId) !== id))
+      deletePendingAttachments(pendingLocalId(id))
       return { error: null }
     }
     const target = serverActivities.find((a) => a.id === id)

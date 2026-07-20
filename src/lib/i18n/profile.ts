@@ -86,9 +86,8 @@ const profile = {
     saveFailed: 'Salvataggio non riuscito. Controlla la connessione e riprova.',
     emptyHint: 'Nessuna pesata registrata. Inserisci il tuo peso e clicca "Salva peso".',
     needMoreEntries: 'Registra almeno 2 pesate per vedere il grafico.',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- valore Recharts (number | string | array)
-    tooltipValue: (v: any) => `${v} kg`,
-    tooltipLabel: 'Peso',
+    tooltipValue: (v: number) => `${v} kg`,
+    chartAriaLabel: 'Grafico dello storico del peso',
     entriesCount: (n: number) => `${n} ${n === 1 ? 'pesata' : 'pesate'} registrate`,
 
     // Obiettivo peso con proiezione (roadmap v3, pilastro 02): traguardo su

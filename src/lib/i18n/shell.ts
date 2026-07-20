@@ -91,29 +91,14 @@ const shell = {
     openGuide: 'Apri la guida completa',
     items: [
       {
-        icon: '🗺️',
-        title: 'Il percorso nel feed',
-        text: 'Ora puoi mostrare agli amici la sagoma del tuo giro GPS: lo scegli tu, allenamento per allenamento — di base resta privato.',
+        icon: '⛰️',
+        title: 'Dislivello a mano',
+        text: 'Trekking, arrampicata, corsa, bici, camminata e motocross: ora puoi segnare i metri di salita anche senza tracciare col GPS — contano lo stesso per le medaglie della montagna.',
       },
       {
-        icon: '⚔️',
-        title: 'Io vs te',
-        text: 'Sul profilo di un amico trovi il confronto della settimana: allenamenti, minuti, km e calorie — tu da un lato, l\'amico dall\'altro.',
-      },
-      {
-        icon: '🏔️',
-        title: 'Medaglie della montagna',
-        text: '4 nuove medaglie per chi traccia col GPS: chilometri percorsi e metri di dislivello in salita, fino agli 8.848 m dell\'Everest.',
-      },
-      {
-        icon: '🔔',
-        title: 'Duelli nel centro notifiche',
-        text: 'Sfide ricevute, accettate e concluse ora compaiono nella campanella — e se finisci sul podio di un evento stagionale, ti avvisiamo lì.',
-      },
-      {
-        icon: '🍁',
-        title: 'Nuove sfide stagionali',
-        text: 'La "Maratona d\'autunno" (minuti, ottobre-novembre) e il "Fuoco d\'inverno" (calorie, fino a gennaio): c\'è sempre una classifica aperta.',
+        icon: '📶',
+        title: 'Offline ancora più solido',
+        text: 'Le attività registrate senza rete sono modificabili ed eliminabili dal Calendario come le altre, e foto ed esercizi allegati si sincronizzano da soli — niente più scartati.',
       },
     ],
   },

@@ -20,6 +20,13 @@ export function isPendingActivityId(id: string): boolean {
   return id.startsWith(PENDING_PREFIX)
 }
 
+// Inversa di pendingActivityId: dall'id sintetico mostrato in UI torna al
+// localId con cui la coda (e gli allegati in IndexedDB, vedi offlineAttachments)
+// indicizzano l'attività non ancora sincronizzata.
+export function pendingLocalId(id: string): string {
+  return id.slice(PENDING_PREFIX.length)
+}
+
 // Attività "provvisoria" mostrata in UI finché la coda non la sincronizza:
 // id sintetico riconoscibile, crediti a zero — non si finge un valore che
 // solo il server (award_challenge_credits e affini) può calcolare davvero.

@@ -24,6 +24,11 @@ const log = {
     minutesLabel: 'Minuti',
     detailsTitle: 'DETTAGLI',
     distanceLabel: 'Distanza (km)',
+    // Dislivello manuale: per chi non traccia con il GPS ma vuole comunque
+    // segnare i metri di salita (trekking, arrampicata...).
+    elevationLabel: 'Dislivello (m)',
+    elevationPlaceholder: 'es. 450',
+    elevationHint: 'Facoltativo — metri di salita, se non hai tracciato con il GPS',
     perceived: {
       rpeTitle: 'SFORZO PERCEPITO',
       rpeHint: 'Facoltativo — quanto ti è costata questa sessione?',
@@ -119,11 +124,12 @@ const log = {
     },
     // Salvataggio senza rete (roadmap v2, pilastro 05): l'attività resta in
     // coda sul dispositivo e si sincronizza da sola al ritorno online, senza
-    // che l'utente debba fare nulla.
+    // che l'utente debba fare nulla. Da v3 pilastro 04 anche foto ed esercizi
+    // restano in coda (IndexedDB) invece di essere scartati.
     savedOfflineToast: {
       title: 'Attività salvata, in attesa di rete',
       body: 'Si sincronizzerà da sola appena torni online',
-      bodyExtrasSkipped: 'Si sincronizzerà da sola appena torni online. Foto ed esercizi non sono stati inclusi: aggiungili di nuovo modificandola in seguito.',
+      bodyExtrasQueued: 'Si sincronizzerà da sola appena torni online, foto ed esercizi compresi.',
     },
     errorToast: {
       title: 'Salvataggio non riuscito',
@@ -150,6 +156,10 @@ const log = {
     updateFailed: 'Modifica non riuscita. Controlla la connessione e riprova.',
     setsUpdateFailed: 'Attività aggiornata, ma esercizi non salvati. Controlla la connessione e salva di nuovo.',
     deleteFailed: 'Eliminazione non riuscita. Controlla la connessione e riprova.',
+    // Attività ancora in coda offline (roadmap v3, pilastro 04): foto ed
+    // esercizi vanno allegati al momento del log, non da qui — qui non c'è
+    // ancora un id reale a cui agganciarli.
+    pendingExtrasHint: 'Foto ed esercizi non sono modificabili finché l\'attività è in attesa di rete.',
   },
 
   tracking: {
@@ -233,6 +243,10 @@ const log = {
     // rifiutata dal server per un motivo NON di rete (validazione, RLS): non
     // ha senso tenerla in coda per sempre, si avvisa e si scarta.
     syncFailed: 'Un\'attività in attesa di rete non è stata accettata dal server ed è stata scartata.',
+    // Foto/esercizi accodati offline (IndexedDB): l'attività si è comunque
+    // sincronizzata, solo l'allegato non è stato applicato — si riprova dalla
+    // modifica, come per l'equivalente fallimento online.
+    offlineAttachmentsFailed: 'Attività sincronizzata, ma foto o esercizi in attesa non sono stati salvati. Riprova modificandola dal Calendario.',
   },
 } as const
 

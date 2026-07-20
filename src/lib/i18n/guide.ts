@@ -12,9 +12,10 @@ const guide = {
       paragraphs: [
         'Dalla scheda Registra scegli uno dei 20 sport, imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
         'Per corsa, bici, camminata, nuoto e arrampicata puoi indicare anche il "dove": al chiuso l\'attività prende il suo nome vero — tapis roulant, cyclette, piscina. È facoltativo: tocca di nuovo per azzerare.',
+        'Per corsa, bici, camminata, trekking, arrampicata e motocross puoi anche segnare a mano il dislivello positivo (metri di salita), utile quando non tracci con il GPS — una gita in montagna o una falesia contano comunque per le medaglie della montagna.',
         'Le calorie si calcolano da sole in base a peso, sesso e intensità dello sport (formula MET): puoi sempre scriverle a mano per sovrascriverle.',
-        'Senza connessione l\'attività non va persa: resta in attesa sul telefono (lo vedi da un\'etichetta "In attesa di rete") e si sincronizza da sola appena torni online. Foto ed esercizi allegati in quel momento vanno però riaggiunti dopo la sincronizzazione.',
-        'Ogni attività si modifica o elimina dal Calendario, toccandola (tranne quelle ancora in attesa di rete, non ancora modificabili).',
+        'Senza connessione l\'attività non va persa: resta in attesa sul telefono (lo vedi da un\'etichetta "In attesa di rete") e si sincronizza da sola appena torni online, foto ed esercizi allegati compresi.',
+        'Ogni attività si modifica o elimina dal Calendario, toccandola — anche quelle ancora in attesa di rete.',
         'Hai fretta? Dalla Home, sotto l\'ultima attività, "Ripeti questo allenamento" apre il form già compilato con sport, durata e distanza. E nella scheda Registra, scelto uno sport, il tocco su "Come l\'ultima volta" ricopia durata e distanza della tua ultima sessione di quel tipo.',
         'Su Android, tenendo premuta l\'icona dell\'app trovi le scorciatoie rapide: Registra, GPS, Sfide e Statistiche.',
       ],
@@ -110,7 +111,7 @@ const guide = {
       title: 'Medaglie',
       paragraphs: [
         'Ci sono 22 medaglie in 4 livelli (bronzo, argento, oro, diamante), legate a traguardi reali: chilometri totali, sessioni in palestra, streak, costanza settimanale…',
-        'Quattro sono le medaglie della montagna, e si guadagnano col tracciamento GPS: chilometri tracciati (Esploratore, Cartografo) e metri di dislivello in salita accumulati (Scalatore, e Ottomila — gli 8.848 m dell\'Everest, un po\' alla volta). Il dislivello conta per gli allenamenti tracciati d\'ora in poi, quota del dispositivo permettendo.',
+        'Quattro sono le medaglie della montagna: chilometri tracciati col GPS (Esploratore, Cartografo) e metri di dislivello in salita accumulati (Scalatore, e Ottomila — gli 8.848 m dell\'Everest, un po\' alla volta), dal GPS o inseriti a mano. Contano solo gli allenamenti registrati d\'ora in poi.',
         'Ogni medaglia sbloccata vale crediti una tantum. Il progresso verso la più vicina lo vedi in Home.',
       ],
     },

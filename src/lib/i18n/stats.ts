@@ -38,24 +38,25 @@ const stats = {
 
   trend: {
     heading: 'ANDAMENTO',
+    chartAriaLabel: 'Grafico dell\'andamento nel tempo',
   },
 
   weekdays: {
     heading: 'IN QUALI GIORNI TI ALLENI',
-    seriesName: 'Sessioni',
+    chartAriaLabel: 'Grafico delle sessioni per giorno della settimana',
   },
 
   goal: {
     heading: 'OBIETTIVO VS REALE',
     reachedBefore: 'Obiettivo raggiunto in ',
     reachedAfter: ' delle ultime 8 settimane',
-    tooltipValue: (value: unknown, goal: number) => `${value} su ${goal}`,
-    tooltipName: 'Sessioni',
     referenceLabel: (goal: number) => `Obiettivo: ${goal}`,
+    chartAriaLabel: 'Grafico delle sessioni settimanali rispetto all\'obiettivo',
   },
 
   pie: {
     heading: 'DISTRIBUZIONE ATTIVITÀ',
+    chartAriaLabel: 'Grafico della distribuzione delle attività per tipo',
   },
 
   zones: {
@@ -69,7 +70,6 @@ const stats = {
     heading: 'CARICO SETTIMANALE',
     subtitle: 'Sforzo percepito × minuti (session-RPE), settimana per settimana (ultime 8)',
     chartAriaLabel: 'Grafico del carico allenante settimanale',
-    barAria: (label: string, load: number) => `Settimana del ${label}: carico ${load}`,
     jumpWarning: (pct: number) =>
       `Carico in forte aumento: +${pct}% rispetto alla settimana scorsa. Sali gradualmente per ridurre il rischio di infortuni.`,
     coverageHint: (withRpe: number, total: number) =>
@@ -80,12 +80,9 @@ const stats = {
     heading: 'PESO E ALLENAMENTO',
     subtitle: 'Peso medio e minuti di allenamento, settimana per settimana (ultime 12)',
     weightLabel: 'Peso (kg)',
-    weightSeriesName: 'Peso medio',
-    weightTooltipValue: (value: unknown) => `${value} kg`,
+    weightChartAriaLabel: 'Grafico del peso medio settimanale',
     trainingLabel: 'Minuti di allenamento',
-    trainingSeriesName: 'Minuti',
-    trainingTooltipName: 'Allenamento',
-    trainingTooltipValue: (value: unknown) => `${value} min`,
+    trainingChartAriaLabel: 'Grafico dei minuti di allenamento settimanali',
   },
 
   gymRecords: {

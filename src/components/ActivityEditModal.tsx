@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
 import { X, Trash2, Save, Share2, AlertTriangle } from 'lucide-react'
-import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories } from '../lib/constants'
+import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, ELEVATION_CAPABLE_TYPES } from '../lib/constants'
 import { buildActivityShareData, shareCardImage } from '../lib/shareCard'
 import { haptic } from '../lib/haptics'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
@@ -13,6 +13,7 @@ import { rowsToDrafts, draftsToEntries, exerciseSuggestions, type ExerciseDraft 
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
+import { isPendingActivityId } from '../lib/offlineQueue'
 import ActivityIcon from './ActivityIcon'
 import PhotoPickerField from './PhotoPickerField'
 import PerceivedMetricsFields from './PerceivedMetricsFields'
@@ -39,6 +40,7 @@ type FormValues = {
   minutes: number
   calories: number | ''
   distance_km: number | ''
+  elevation_gain_m: number | ''
   notes: string
 }
 
@@ -51,6 +53,11 @@ interface Props {
 
 export default function ActivityEditModal({ activity, onClose, updateActivity, deleteActivity }: Props) {
   const { profile } = useProfile()
+  // Ancora in coda offline (roadmap v3, pilastro 04): i campi base sono
+  // modificabili (updateActivity scrive nel payload in coda), ma foto ed
+  // esercizi restano bloccati qui — non hanno ancora un id reale a cui
+  // agganciarsi, andrebbero allegati in fase di log (vedi lib/offlineAttachments).
+  const isPending = isPendingActivityId(activity.id)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -128,12 +135,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       minutes: activity.duration_min % 60,
       calories: activity.calories ?? '',
       distance_km: activity.distance_km ?? '',
+      elevation_gain_m: activity.elevation_gain_m ?? '',
       notes: activity.notes ?? '',
     },
   })
 
   const selectedType = watch('type')
   const showDist = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)?.hasDist ?? false
+  // Sola lettura per le attività tracciate col GPS: lì il D+ arriva
+  // dall'altimetria del percorso (RouteInsights), non va sovrascritto a mano.
+  const showElevation = (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(selectedType) && !activity.gps_tracked
   const indoorVariant = INDOOR_VARIANTS[selectedType]
   useEffect(() => {
     setIndoor(selectedType === activity.type ? activity.indoor ?? null : null)
@@ -154,9 +165,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     // nessuna modifica viene applicata a metà. La rimozione del file, invece,
     // avviene DOPO l'update riuscito: al peggio resta un orfano nello Storage,
     // mai un photo_url che punta a un file cancellato.
+    // Ancora in coda offline: niente id reale a cui agganciare un file nello
+    // Storage — il picker foto resta nascosto per questo caso (vedi JSX).
     const photoUpdates: { photo_url?: string | null } = {}
-    const wantsRemoval = !photoFile && photoRemoved && !!activity.photo_url
-    if (photoFile) {
+    const wantsRemoval = !isPending && !photoFile && photoRemoved && !!activity.photo_url
+    if (!isPending && photoFile) {
       const { url, error: photoError } = await uploadActivityPhoto(activity.user_id, activity.id, photoFile)
       if (photoError || !url) {
         setSaving(false)
@@ -180,6 +193,12 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       // La chiave viaggia solo se c'è qualcosa da scrivere o da azzerare:
       // pre-migrazione v38 la colonna non esiste e l'update fallirebbe.
       ...(indoor !== null || activity.indoor != null ? { indoor } : {}),
+      // Dislivello manuale: solo a colonna presente (v44). Se il campo non è
+      // mostrato (GPS o sport non idoneo) il valore resta quello di default,
+      // cioè quello già salvato — niente sovrascritture indesiderate.
+      ...(activity.elevation_gain_m !== undefined
+        ? { elevation_gain_m: v.elevation_gain_m !== '' ? Math.round(Number(v.elevation_gain_m)) : null }
+        : {}),
       // Solo a colonna presente (v45): se l'attività l'ha riportata dal
       // select *, esiste; pre-migrazione la chiave non viaggia.
       ...(activity.route_visible !== undefined ? { route_visible: routeVisible } : {}),
@@ -195,7 +214,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     // palestra i set esistenti vanno rimossi (entries vuoto). In caso di
     // errore la schermata resta aperta: le bozze sono ancora lì e si riprova.
     const entries = v.type === 'palestra' ? draftsToEntries(exerciseDrafts) : []
-    if (setsLoaded && (entries.length > 0 || hadSets)) {
+    if (!isPending && setsLoaded && (entries.length > 0 || hadSets)) {
       const { error: setsError } = await replaceActivityExercises(activity.user_id, activity.id, entries)
       if (setsError) {
         setSaving(false)
@@ -370,8 +389,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
           )}
         </div>
 
-        {/* Log palestra strutturato: esercizi serie×rip×peso */}
-        {isGym && (
+        {/* Log palestra strutturato: esercizi serie×rip×peso — non disponibile
+            finché l'attività è in coda offline, non ha ancora un id reale. */}
+        {isGym && !isPending && (
           <ExerciseSetsFields
             drafts={exerciseDrafts}
             onChange={setExerciseDrafts}
@@ -457,20 +477,43 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             )}
           </div>
 
+          {showElevation && (
+            <div>
+              <label htmlFor="edit-elevation" className="block text-xs text-gray-400 mb-1">{log.form.elevationLabel}</label>
+              <input
+                id="edit-elevation"
+                type="number"
+                {...register('elevation_gain_m', {
+                  min: { value: 0, message: log.form.validation.distanceNotNegative },
+                  max: { value: 10000, message: log.form.validation.unrealisticValue },
+                })}
+                className="input-dark"
+                placeholder={log.form.elevationPlaceholder}
+                min={0}
+              />
+              {errors.elevation_gain_m && <p className="text-xs text-red-400 mt-1">{errors.elevation_gain_m.message}</p>}
+            </div>
+          )}
+
           <div>
             <label htmlFor="edit-notes" className="block text-xs text-gray-400 mb-1">{log.edit.notesLabel}</label>
             <textarea id="edit-notes" {...register('notes')} className="input-dark resize-none" rows={2} />
           </div>
 
-          <div>
-            <p className="text-xs text-gray-400 mb-1">{log.edit.photoLabel}</p>
-            <PhotoPickerField
-              previewUrl={photoPreview}
-              onSelect={(f) => { setPhotoFile(f); setPhotoRemoved(false) }}
-              onClear={() => { setPhotoFile(null); setPhotoRemoved(true) }}
-              inputId="edit-photo"
-            />
-          </div>
+          {/* Foto: non disponibile finché l'attività è in coda offline, non
+              ha ancora un id reale a cui agganciare un file nello Storage. */}
+          {!isPending && (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">{log.edit.photoLabel}</p>
+              <PhotoPickerField
+                previewUrl={photoPreview}
+                onSelect={(f) => { setPhotoFile(f); setPhotoRemoved(false) }}
+                onClear={() => { setPhotoFile(null); setPhotoRemoved(true) }}
+                inputId="edit-photo"
+              />
+            </div>
+          )}
+          {isPending && <p className="text-xs text-gray-500">{log.edit.pendingExtrasHint}</p>}
         </div>
 
         <PerceivedMetricsFields rpe={rpe} mood={mood} onRpeChange={setRpe} onMoodChange={setMood} />
