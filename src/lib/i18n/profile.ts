@@ -1,10 +1,13 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace della pagina Profilo (dati personali, BMI, sport preferiti, livello,
 // crediti, temi, storico peso, privacy/export) e dei componenti che vive solo lì:
-// NotificationSettingsCard, RecoveryEmailCard, DeleteAccountModal, CreditsInfoModal.
+// NotificationSettingsCard, RecoveryEmailCard, DeleteAccountModal, CreditsInfoModal,
+// LanguageSettingsCard.
 // `errors` raccoglie i messaggi di showError() di ProfileContext/useWeightLogs;
 // gli altri errori mostrati inline (upload avatar, peso, export...) restano vicino
 // alla loro sezione per restare leggibili nel contesto d'uso.
-const profile = {
+const it = {
   pageTitle: 'PROFILO',
   creditsAmount: (n: number) => `${n} 💎`,
 
@@ -76,6 +79,15 @@ const profile = {
     active: 'Attivo',
     activate: 'Attiva',
     unlock: (cost: number) => `Sblocca ${cost} 💎`,
+  },
+
+  // Switch lingua (roadmap v3, pilastro 04): puramente client (localStorage),
+  // nessuna colonna DB. Vedi lib/i18n/language.ts + LanguageSettingsCard.
+  language: {
+    title: 'LINGUA',
+    hint: 'Cambia la lingua di tutta l\'app. Il cambio si applica subito.',
+    italian: 'Italiano',
+    english: 'Inglese',
   },
 
   weight: {
@@ -203,5 +215,210 @@ const profile = {
     fieldFailed: (key: string, message: string) => `Export di "${key}" non riuscito: ${message}`,
   },
 } as const
+
+const en: Widen<typeof it> = {
+  pageTitle: 'PROFILE',
+  creditsAmount: (n: number) => `${n} 💎`,
+
+  publicStats: {
+    title: 'IN NUMBERS',
+    hint: 'This is the calling card others see when they open your profile.',
+    activities: 'Activities',
+    hours: 'Total hours',
+    km: 'Total km',
+    medals: 'Medals',
+  },
+
+  account: {
+    usernameLabel: 'Username',
+    levelPrefix: 'LV.',
+    avatarUploadAriaLabel: 'Upload profile photo',
+    avatarUploadError: (message: string) => `Upload error: ${message}`,
+    changePhotoHint: 'Tap to change photo',
+    formTitle: 'PERSONAL INFO',
+    nameLabel: 'Name (optional)',
+    namePlaceholder: 'Your name',
+    genderLabel: 'Gender',
+    genderMale: '♂ Male',
+    genderFemale: '♀ Female',
+    genderHint: 'Used to better estimate calories burned',
+    birthDateLabel: 'Date of birth',
+    ageSuffix: (age: number) => `${age} years`,
+    heightLabel: 'Height (cm)',
+    weightLabel: 'Weight (kg)',
+    valueTooLow: 'Value too low',
+    valueTooHigh: 'Value too high',
+    weeklyGoalLabel: 'Weekly goal',
+    dailyCalorieGoalLabel: 'Calories/day (kcal)',
+    dailyCalorieGoalPlaceholder: 'optional',
+    bmiTitle: 'BMI',
+    bmiUnderweight: 'Underweight',
+    bmiNormal: 'Normal',
+    bmiOverweight: 'Overweight',
+    bmiObese: 'Obese',
+    sportTitle: 'FAVORITE SPORTS',
+    sportSelectedCount: (n: number) => `${n}/3 selected`,
+    sportHint: 'Choose up to 3 activities you practice most',
+    saved: '✅ Saved!',
+    saving: 'Saving...',
+    save: 'Save profile',
+  },
+
+  level: {
+    title: 'YOUR LEVEL',
+    creditsLabel: (n: number) => `${n} 💎 credits`,
+    levelOfTen: (level: number) => `Level ${level} of 10`,
+    nextPrefix: 'Next: ',
+    upgradeButton: (level: number, cost: number) => `Reach Lv.${level} — ${cost} 💎`,
+    needMoreCredits: (missing: number) => `Need ${missing} more 💎`,
+    maxLevelTitle: '👑 MAX LEVEL REACHED',
+    maxLevelSubtitle: 'You\'re among the best PisoZone athletes',
+    errorWithMessage: (message: string) => `Error: ${message}`,
+    insufficientCredits: 'Insufficient credits',
+    purchaseError: 'Purchase error',
+    themeUnlockedActivated: 'Theme unlocked and activated!',
+    celebrationTitle: (level: number) => `LEVEL ${level}!`,
+    celebrationSubtitle: (title: string) => `New title: ${title}`,
+  },
+
+  theme: {
+    title: 'THEMES',
+    active: 'Active',
+    activate: 'Activate',
+    unlock: (cost: number) => `Unlock ${cost} 💎`,
+  },
+
+  language: {
+    title: 'LANGUAGE',
+    hint: 'Changes the language of the whole app. It applies immediately.',
+    italian: 'Italian',
+    english: 'English',
+  },
+
+  weight: {
+    title: 'WEIGHT HISTORY',
+    saveButtonSaving: '...',
+    saveButton: (kg: number) => `Save ${kg} kg`,
+    outOfRange: 'Weight must be between 20 and 400 kg.',
+    saveFailed: 'Save failed. Check your connection and try again.',
+    emptyHint: 'No weigh-ins recorded yet. Enter your weight and tap "Save weight".',
+    needMoreEntries: 'Log at least 2 weigh-ins to see the chart.',
+    tooltipValue: (v: number) => `${v} kg`,
+    chartAriaLabel: 'Weight history chart',
+    entriesCount: (n: number) => `${n} weigh-in${n === 1 ? '' : 's'} logged`,
+
+    goal: {
+      inputLabel: 'Weight goal (kg)',
+      inputPlaceholder: 'e.g. 78',
+      setButton: 'Set',
+      badge: (kg: number) => `Goal: ${kg.toLocaleString('en-US')} kg`,
+      chartLineLabel: 'Goal',
+      removeAria: 'Remove weight goal',
+      outOfRange: 'The goal must be between 20 and 400 kg.',
+      saveFailed: 'Save failed. Check your connection and try again.',
+      ratePerWeek: (kg: string) => `${kg} kg/week`,
+      needMoreData: 'Log a few more weigh-ins (at least 3 in a week) to see the projection.',
+      onTrack: (rate: string, date: string) => `At your current pace (${rate}) you'll get there around ${date}.`,
+      onTrackWeeks: (weeks: number) => weeks === 1 ? 'About one week left.' : `About ${weeks} weeks left.`,
+      reached: 'Goal reached! 🎉 Now it\'s about keeping it up.',
+      flat: 'Weight has been stable in the last few weeks: the projection will appear once the trend picks a direction.',
+      away: (rate: string) => `At your current pace (${rate}) you're moving away from the goal.`,
+      tooFar: 'At this pace it would take over a year: the projection will appear once the trend speeds up.',
+    },
+  },
+
+  guide: {
+    title: 'PISOZONE GUIDE',
+    body: 'Every feature of the app explained in one place: workouts, GPS, gym, programs, recovery, credits, social…',
+    button: 'Open the guide',
+  },
+
+  privacy: {
+    title: 'PRIVACY & DATA',
+    body: 'Your data belongs to you: you can download a full copy in JSON format or permanently delete your account and everything in it.',
+    privacyPolicyLink: 'Privacy Policy',
+    termsLink: 'Terms of Service',
+    exportButton: 'Export my data (JSON)',
+    exportingButton: 'Preparing the file…',
+    exportFailed: 'Export failed. Check your connection and try again.',
+    deleteAccountButton: 'Delete account',
+  },
+
+  notifications: {
+    title: 'NOTIFICATIONS',
+    unsupported: 'Push notifications aren\'t supported on this browser/device. On iPhone they only work if you add PisoZone to your Home Screen (Share → Add to Home Screen).',
+    active: 'Notifications active',
+    inactive: 'Notifications disabled',
+    disable: 'Disable',
+    enable: 'Enable',
+    categoriesTitle: 'Notification types',
+    categoryWorkoutReminder: 'Evening workout reminder',
+    categoryNewMessages: 'New messages',
+    categoryFriendRequests: 'Friend requests',
+    categoryQuietHours: 'Quiet hours',
+    quietFromLabel: 'From',
+    quietToLabel: 'To',
+    quietStartAriaLabel: 'Quiet hours start time',
+    quietEndAriaLabel: 'Quiet hours end time',
+    quietHint: 'No push notifications during this time window, for all categories above.',
+    iosHint: 'On iPhone notifications only work if you add PisoZone to your Home Screen.',
+    prefSaveFailed: 'Couldn\'t save the preference. Try again.',
+  },
+
+  recoveryEmail: {
+    title: 'RECOVERY EMAIL',
+    verifiedSuffix: (email: string) => `${email} verified`,
+    introHint: 'Add and verify an email so you can recover access if you forget your password. Without a verified email, password reset isn\'t possible.',
+    emailPlaceholder: 'your-email@example.com',
+    emailAriaLabel: 'Recovery email',
+    sendCodeButton: 'Send code',
+    alreadyAssociated: 'This email is already associated with another account.',
+    sendFailed: 'Send failed. Check the address and try again.',
+    codeSentInfo: 'Code sent! Check your email and enter it below.',
+    invalidCode: 'Invalid or expired code. Try again.',
+    codePlaceholder: '6-digit code',
+    codeAriaLabel: 'Verification code',
+    verifyButton: 'Verify',
+    changeEmailButton: 'Change email / resend',
+  },
+
+  deleteAccount: {
+    ariaLabel: 'Delete account',
+    title: 'DELETE ACCOUNT',
+    warningBefore: 'This action is ',
+    warningEmphasis: 'final and irreversible',
+    warningAfter: ': your profile, activities, stats, medals, credits, messages, friendships and photos will all be deleted. No data can be recovered.',
+    exportHint: 'Want a copy of your data first? Close this window and use "Export my data".',
+    confirmLabelPrefix: 'To confirm, type your username: ',
+    deleting: 'Deleting…',
+    confirmButton: 'Delete forever',
+    sessionExpired: 'Session expired: log in again and retry.',
+    deleteFailed: 'Deletion failed. Check your connection and try again.',
+  },
+
+  credits: {
+    ariaLabel: 'How to earn credits',
+    title: '💎 HOW TO EARN CREDITS',
+    logActivityTitle: 'Log activities',
+    logActivityDescription: '1 💎 every 10 minutes of activity, up to a max of 10 💎 per day.',
+    dailyChallengesTitle: 'Daily challenges',
+    dailyChallengesDescription: (min: number, max: number) => `From ${min} to ${max} 💎 per completed challenge, up to 3 challenges a day.`,
+    achievementsTitle: 'Unlocked medals',
+    achievementsDescription: (bronze: number, silver: number, gold: number, diamond: number) =>
+      `One-time bonus on unlock: 🥉 ${bronze} · 🥈 ${silver} · 🥇 ${gold} · 💎 ${diamond}`,
+    footer: 'Use credits to unlock levels, themes and frames on the Profile page.',
+  },
+
+  errors: {
+    profileLoadFailed: 'Error loading profile. Try again.',
+    weightLoadFailed: 'Error loading weight history. Try again.',
+  },
+
+  export: {
+    fieldFailed: (key: string, message: string) => `Export of "${key}" failed: ${message}`,
+  },
+}
+
+const profile = createNamespaceProxy(it, en)
 
 export default profile

@@ -1,3 +1,5 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace di Social.tsx (1412 righe: messaggi diretti, chat di gruppo, feed
 // attività, classifica, amici/richieste) e dei relativi hook (useFriends,
 // useMessages, useGroups, useFeed, useLeaderboard, useComments). Diviso in
@@ -5,7 +7,7 @@
 // non deve leggere le stringhe della chat.
 // `shared` raccoglie le poche stringhe davvero trasversali (unità di misura,
 // prefisso livello, label di default) usate da più di una sotto-sezione.
-const social = {
+const it = {
   pageTitle: 'SOCIAL',
 
   shared: {
@@ -207,5 +209,210 @@ const social = {
     },
   },
 } as const
+
+const en: Widen<typeof it> = {
+  pageTitle: 'SOCIAL',
+
+  shared: {
+    unknownUser: 'User',
+    selfFallbackName: 'You',
+    levelPrefix: 'Lv.',
+    units: {
+      min: 'min',
+      kcal: 'kcal',
+      km: 'km',
+    },
+    actionSheetDefaultLabel: 'Actions',
+  },
+
+  chat: {
+    tabLabel: 'Chat',
+    sendFailedRetry: '⚠ Not sent · Retry',
+    messageInputPlaceholder: 'Write a message...',
+    sendAria: 'Send',
+    writeToFriendHeading: 'Message a friend',
+    emptyTitle: 'NO MESSAGES',
+    emptyHint: 'Message a friend to start a chat',
+    conversationActionsLabel: 'Conversation actions',
+    deleteConversationHint: 'Deleting the conversation removes the messages for both of you',
+    deleteConversationLabel: 'Delete conversation',
+
+    dm: {
+      emptyState: 'Start the conversation',
+      editedLabel: 'edited',
+      editMessageLabel: 'Edit message',
+      editMessagePlaceholder: 'Edit message...',
+      cancelEditAria: 'Cancel edit',
+      messageActionsLabel: 'Message actions',
+      messagePreviewHeading: 'Message',
+      deleteMessageLabel: 'Delete message',
+    },
+
+    group: {
+      showMembersAria: 'Show members',
+    },
+
+    errors: {
+      rateLimited: 'You are sending messages too fast. Wait a moment and try again.',
+      conversationsLoadFailed: 'Error loading conversations. Try again.',
+      messagesLoadFailed: 'Error loading messages. Try again.',
+      groupMessagesLoadFailed: 'Error loading group messages. Try again.',
+    },
+  },
+
+  feed: {
+    tabLabel: 'Feed',
+    emptyTitle: 'EMPTY FEED',
+    emptyHint: 'Add friends to see their activities here',
+    activityPhotoAlt: (username: string) => `${username}'s activity photo`,
+    openPhotoAria: 'Open photo fullscreen',
+    showCommentsAria: 'Show comments',
+    closeCommentsAria: 'Close comments',
+
+    reactions: {
+      openPickerAria: 'React to the activity',
+      closePickerAria: 'Close reactions',
+      pickerLabel: 'Choose a reaction',
+      reactWithAria: (label: string) => `React with ${label}`,
+      removeAria: (label: string) => `Remove ${label} reaction`,
+      kindLabels: {
+        heart: 'Heart',
+        muscle: 'Muscle',
+        fire: 'Fire',
+        clap: 'Clap',
+        rocket: 'Rocket',
+      },
+    },
+
+    comments: {
+      loading: 'Loading comments…',
+      empty: 'No comments yet — be the first!',
+      deleteAria: 'Delete comment',
+      inputPlaceholder: 'Write a comment…',
+      sendAria: 'Send comment',
+      errors: {
+        rateLimited: 'You are commenting too fast. Wait a moment and try again.',
+        sendFailed: 'Comment not sent. Try again.',
+        deleteFailed: 'Delete failed. Try again.',
+      },
+    },
+
+    errors: {
+      loadFailed: 'Error loading the feed. Try again.',
+    },
+  },
+
+  leaderboard: {
+    tabLabel: 'Leaderboard',
+    scopeFriendsLabel: 'Friends',
+    scopeGlobalLabel: 'Global',
+    weekHeading: 'This week',
+    meSuffix: ' (you)',
+    sessionSingular: 'session',
+    sessionPlural: 'sessions',
+    emptyFriendsTitle: 'NO FRIENDS',
+    emptyGlobalTitle: 'NOBODY YET',
+    emptyFriendsHint: 'Add friends to see the weekly leaderboard',
+    emptyGlobalHint: 'No activities logged this week',
+    errors: {
+      globalUnavailable: 'Global leaderboard unavailable. Try again.',
+      loadFailed: 'Error loading the leaderboard. Try again.',
+    },
+  },
+
+  friends: {
+    tabLabel: 'Friends',
+    searchPlaceholder: 'Search by username…',
+    clearSearchAria: 'Clear search',
+    searchingLabel: 'Searching…',
+    friendBadge: 'Friend',
+    acceptLabel: 'Accept',
+    rejectAria: 'Decline',
+    addFriendAria: 'Add friend',
+    receivedRequestsHeading: (n: number) => `Received requests (${n})`,
+    yourFriendsHeading: (n: number) => `Your friends (${n})`,
+    sentRequestsHeading: (n: number) => `Sent requests (${n})`,
+    pendingLabel: 'Pending',
+    cancelRequestAria: 'Cancel request',
+    emptyTitle: 'No friends yet',
+    emptyHint: 'Search a username to add friends',
+
+    // Scoperta (v37): utenti attivi suggeriti quando la ricerca è vuota
+    suggestionsHeading: 'People to discover',
+    suggestionsSubtitle: 'The most active over the last 30 days',
+    suggestionSessions: (n: number) => (n === 1 ? '1 activity this month' : `${n} activities this month`),
+
+    profile: {
+      title: 'PROFILE',
+      favoriteSportsHeading: 'Favorite sports',
+      statsHeading: 'By the numbers',
+      statActivities: 'Activities',
+      statHours: 'Total hours',
+      statKm: 'Km covered',
+      statMedals: 'Medals',
+      vsHeading: 'Me vs you',
+      vsSubtitle: 'This week',
+      vsYouLabel: 'You',
+      vsMetricSessions: 'Workouts',
+      vsMetricMinutes: 'Minutes',
+      vsMetricKm: 'Km',
+      vsMetricKcal: 'Kcal',
+      removeFriendButton: 'Remove friend',
+      pendingSentButton: '⏳ Pending',
+      acceptRequestButton: '✓ Accept request',
+      addFriendButton: '+ Add friend',
+      reportButton: 'Report',
+      blockButton: 'Block',
+      confirmBlockButton: 'Confirm block?',
+      blockWarning: (username: string) => `Blocking @${username} removes the friendship — they won't be able to message you, send requests, or see your activities anymore.`,
+      reportSheetLabel: 'Report user',
+      reportSheetQuestion: (username: string) => `Why do you want to report @${username}?`,
+      reportSheetHint: 'The report is anonymous and will be reviewed.',
+      reportReasons: ['Spam', 'Inappropriate content', 'Offensive behavior', 'Fake profile'],
+      blockFailedMsg: 'Block failed. Try again.',
+      reportFailedMsg: 'Report not sent. Try again.',
+      reportSentMsg: 'Report sent, thanks. We will review it shortly.',
+    },
+
+    errors: {
+      rateLimited: 'Too many requests in a short time. Try again later.',
+      actionFailed: 'Action failed. Try again.',
+      loadFailed: 'Error loading friends. Try again.',
+      profilesLoadFailed: 'Error loading friend profiles. Try again.',
+    },
+  },
+
+  groups: {
+    tabLabel: 'Groups',
+    createButton: 'Create new group',
+    emptyTitle: 'NO GROUPS',
+    emptyHint: 'Create a group with your friends',
+    memberSingular: 'member',
+    memberPlural: 'members',
+    adminRole: 'Admin',
+    memberRole: 'Member',
+    leaveGroupButton: 'Leave group',
+
+    create: {
+      title: 'NEW GROUP',
+      nameLabel: 'Group name',
+      namePlaceholder: 'Group name...',
+      addFriendsHeading: (n: number) => `Add friends (${n} selected)`,
+      noFriendsHint: 'Add friends before creating a group',
+      creatingLabel: 'Creating...',
+      submitLabel: (n: number) => `Create group${n > 0 ? ` (${n + 1})` : ''}`,
+      errors: {
+        createFailed: 'Creation failed. Check your connection and try again.',
+      },
+    },
+
+    errors: {
+      loadFailed: 'Error loading groups. Try again.',
+      membersLoadFailed: 'Error loading group members. Try again.',
+    },
+  },
+}
+
+const social = createNamespaceProxy(it, en)
 
 export default social

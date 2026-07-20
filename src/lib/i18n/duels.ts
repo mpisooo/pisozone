@@ -1,6 +1,8 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace per le sfide 1v1 e di gruppo (lib/duels.ts, hooks/useDuels.ts,
 // components/DuelsSection.tsx e DuelCreateModal.tsx nella pagina Sfide).
-const duels = {
+const it = {
   heading: 'SFIDE CON GLI AMICI',
   subtitle: 'Duelli a tempo: chi fa di più vince i crediti.',
   newButton: '+ Nuova sfida',
@@ -57,5 +59,65 @@ const duels = {
     claimFailed: 'Riscatto non riuscito. Riprova.',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  heading: 'CHALLENGES WITH FRIENDS',
+  subtitle: 'Timed duels: whoever does more wins the credits.',
+  newButton: '+ New challenge',
+  emptyHint: 'No challenges in progress. Challenge a friend or your group to a duel!',
+
+  metricLabels: {
+    sessions: 'Sessions',
+    minutes: 'Minutes',
+    km: 'Kilometers',
+    kcal: 'Calories',
+  } as Record<string, string>,
+
+  card: {
+    vs: (name: string) => `vs @${name}`,
+    group: (name: string) => `Group ${name}`,
+    daysLeft: (n: number) => (n === 0 ? 'Last day' : n === 1 ? '1 day left' : `${n} days left`),
+    pendingIncoming: (name: string) => `@${name} is challenging you!`,
+    pendingOutgoing: 'Waiting for a response…',
+    declined: 'Challenge declined',
+    accept: 'Accept',
+    decline: 'Decline',
+    withdraw: 'Withdraw',
+    claim: (credits: number) => `Claim your win (+${credits} 💰)`,
+    claiming: 'Claiming…',
+    wonBy: (name: string) => `🏆 Won by @${name}`,
+    wonByYou: '🏆 You won!',
+    draw: 'Draw: no winner',
+    close: 'Archive',
+    youSuffix: ' (you)',
+  },
+
+  create: {
+    title: 'NEW CHALLENGE',
+    dialogAriaLabel: 'Create a new challenge',
+    typeLabel: 'Who are you challenging?',
+    friendTab: 'A friend',
+    groupTab: 'A group',
+    friendPlaceholder: 'Choose a friend',
+    groupPlaceholder: 'Choose a group',
+    noFriends: 'Add a friend from the Social section first.',
+    noGroups: "You're not part of any group.",
+    metricLabel: 'What are you competing on?',
+    durationLabel: 'For how many days?',
+    durationOption: (n: number) => `${n} days`,
+    submit: 'Launch challenge',
+    creating: 'Creating…',
+    createFailed: 'Failed to create. Please try again.',
+    groupHint: 'Group challenges start right away for all members.',
+    friendHint: 'Your friend needs to accept before the challenge starts.',
+  },
+
+  errors: {
+    respondFailed: 'Action failed. Please try again.',
+    claimFailed: 'Claim failed. Please try again.',
+  },
+}
+
+const duels = createNamespaceProxy(it, en)
 
 export default duels

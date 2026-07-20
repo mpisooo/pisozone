@@ -1,8 +1,10 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace per src/pages/Stats.tsx, src/components/AnalisiTabs.tsx e le
 // stringhe utente di src/lib/stats.ts (etichette giorni della settimana e
 // intestazione del CSV esportato). I valori del CSV/etichette giorni devono
 // restare identici byte-per-byte: src/lib/stats.test.ts li verifica.
-const stats = {
+const it = {
   tabs: {
     calendar: 'Calendario',
     stats: 'Statistiche',
@@ -141,5 +143,143 @@ const stats = {
     header: ['Data', 'Ora', 'Attività', 'Durata (min)', 'Calorie', 'Distanza (km)', 'Crediti', 'Note'],
   },
 } as const
+
+const en: Widen<typeof it> = {
+  tabs: {
+    calendar: 'Calendar',
+    stats: 'Stats',
+  },
+
+  periods: {
+    today: 'Today',
+    week: 'Week',
+    month: 'Month',
+    year: 'Year',
+    all: 'All time',
+  },
+
+  metrics: {
+    minutes: { label: 'Minutes', unit: ' min' },
+    sessions: { label: 'Sessions', unit: '' },
+    calories: { label: 'Calories', unit: ' kcal' },
+    km: { label: 'Km', unit: ' km' },
+  },
+
+  cards: {
+    sessions: 'Sessions',
+    totalMinutes: 'Total minutes',
+    calories: 'Calories',
+    km: 'Km covered',
+    emptyValue: '—',
+  },
+
+  topActivity: {
+    label: 'Most frequent activity',
+    sessionsCount: (n: number) => `${n} session${n === 1 ? '' : 's'}`,
+  },
+
+  trend: {
+    heading: 'TREND',
+    chartAriaLabel: 'Chart of trend over time',
+  },
+
+  weekdays: {
+    heading: 'WHICH DAYS YOU TRAIN',
+    chartAriaLabel: 'Chart of sessions by day of the week',
+  },
+
+  goal: {
+    heading: 'GOAL VS ACTUAL',
+    reachedBefore: 'Goal reached in ',
+    reachedAfter: ' of the last 8 weeks',
+    referenceLabel: (goal: number) => `Goal: ${goal}`,
+    chartAriaLabel: 'Chart of weekly sessions versus your goal',
+  },
+
+  pie: {
+    heading: 'ACTIVITY BREAKDOWN',
+    chartAriaLabel: 'Chart of activity breakdown by type',
+  },
+
+  zones: {
+    heading: 'INTENSITY SPECTRUM',
+    subtitle: 'How your trained minutes are spread across effort zones',
+  },
+
+  trainingLoad: {
+    heading: 'WEEKLY LOAD',
+    subtitle: 'Perceived effort × minutes (session-RPE), week by week (last 8)',
+    chartAriaLabel: 'Chart of weekly training load',
+    jumpWarning: (pct: number) =>
+      `Load rising sharply: +${pct}% versus last week. Ramp up gradually to lower your injury risk.`,
+    coverageHint: (withRpe: number, total: number) =>
+      `Calculated from ${withRpe} of ${total} sessions with a perceived effort logged: fill it in on every activity for a more accurate chart.`,
+  },
+
+  weightTraining: {
+    heading: 'WEIGHT AND TRAINING',
+    subtitle: 'Average weight and training minutes, week by week (last 12)',
+    weightLabel: 'Weight (kg)',
+    weightChartAriaLabel: 'Chart of average weekly weight',
+    trainingLabel: 'Training minutes',
+    trainingChartAriaLabel: 'Chart of weekly training minutes',
+  },
+
+  gymRecords: {
+    heading: 'GYM RECORDS',
+    subtitle: 'Your all-time max load, exercise by exercise',
+    weightValue: (kg: number) => `${kg.toLocaleString('en-US')} kg`,
+  },
+
+  progression: {
+    heading: 'LOAD PROGRESSION',
+    subtitle: 'Your max load each day, session after session',
+    chartAriaLabel: 'Chart of load progression for the selected exercise',
+    pointValue: (kg: number) => `${kg.toLocaleString('en-US')} kg`,
+    delta: (kg: number) => `${kg > 0 ? '+' : ''}${kg.toLocaleString('en-US')} kg since day one`,
+  },
+
+  records: {
+    heading: 'PERSONAL RECORDS',
+    longestSession: 'Longest session',
+    mostCalories: 'Most calories burned',
+    longestDistance: 'Longest distance',
+    busiestDay: 'Busiest day',
+    busiestDayDuration: (min: number) =>
+      min >= 60 ? `${Math.floor(min / 60)}h ${min % 60}min` : `${min}min`,
+  },
+
+  export: {
+    heading: 'EXPORT YOUR DATA',
+    description: 'Download the activities from the selected period as a CSV, ready for Excel or Google Sheets.',
+    button: (count: number) => `📄 Download CSV (${count} ${count === 1 ? 'activity' : 'activities'})`,
+  },
+
+  emptyState: {
+    titleNoActivities: 'Nothing yet!',
+    titleNoDataInPeriod: 'No data here',
+    descriptionNoActivities: 'Log your first activity to see your stats come to life.',
+    descriptionNoDataInPeriod: 'You have no activities in this period. Try changing the filter or log a workout.',
+    ctaFirstActivity: 'First activity',
+    ctaLogActivity: '+ Log a workout',
+  },
+
+  yearPixels: {
+    heading: (year: number) => `YOUR ${year} IN PIXELS`,
+    subtitle: 'One little square per day: color shows the dominant intensity zone',
+    activeDays: (n: number) => n === 1 ? '1 active day' : `${n} active days`,
+    restLegend: 'No activity',
+    gridAriaLabel: (year: number) => `Grid of active days in ${year} by intensity zone`,
+  },
+
+  weekdayLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  monthInitials: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+
+  csv: {
+    header: ['Date', 'Time', 'Activity', 'Duration (min)', 'Calories', 'Distance (km)', 'Credits', 'Notes'],
+  },
+}
+
+const stats = createNamespaceProxy(it, en)
 
 export default stats

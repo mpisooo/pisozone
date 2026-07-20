@@ -1,7 +1,9 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace per le card condivisibili come immagine (lib/shareCard.ts e i
 // punti di ingresso: ActivityEditModal, WrappedOverlay). I valori numerici
 // vengono formattati in lib/shareCard.ts; qui vivono etichette e messaggi.
-const share = {
+const it = {
   activityButton: "Condividi l'attività come immagine",
   error: 'Condivisione non riuscita. Riprova.',
 
@@ -25,5 +27,30 @@ const share = {
     footer: 'pisozone-app.vercel.app',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  activityButton: 'Share activity as image',
+  error: 'Sharing failed. Please try again.',
+
+  card: {
+    activityKicker: 'WORKOUT COMPLETED',
+    wrappedKicker: 'PISOZONE WRAPPED',
+    wrappedSubtitle: {
+      month: 'My month in motion',
+      year: 'My year in motion',
+    },
+    duration: 'Duration',
+    calories: 'Calories',
+    distance: 'Distance',
+    sessions: 'Sessions',
+    time: 'Total time',
+    km: 'Kilometers',
+    activeDays: 'Active days',
+    splitsKicker: (pace: string) => `Pace per km — fastest ${pace}`,
+    footer: 'pisozone-app.vercel.app',
+  },
+}
+
+const share = createNamespaceProxy(it, en)
 
 export default share

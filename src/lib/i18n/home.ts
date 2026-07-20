@@ -1,7 +1,9 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace esclusivo di Home.tsx (dashboard): saluto, streak, obiettivo
 // settimanale, streak freeze, obiettivo calorico, ultima attività, medaglia
 // più vicina, classifica e sfide di oggi in anteprima.
-const home = {
+const it = {
   athleteFallback: 'Atleta',
   greeting: (hour: number) => (hour < 12 ? 'Buongiorno' : hour < 18 ? 'Buon pomeriggio' : 'Buonasera'),
   streakUnit: (streak: number) => (streak === 1 ? 'giorno streak' : 'giorni streak'),
@@ -89,5 +91,90 @@ const home = {
 
   cta: 'Registra allenamento',
 } as const
+
+const en: Widen<typeof it> = {
+  athleteFallback: 'Athlete',
+  greeting: (hour: number) => (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'),
+  streakUnit: (streak: number) => (streak === 1 ? 'day streak' : 'day streak'),
+  weeklyGoalLabel: 'Weekly goal',
+  weekGoalReached: '🎉 Goal reached!',
+  weekGoalRemaining: (n: number) => `${n} session${n === 1 ? '' : 's'} to go`,
+
+  freezeOffer: {
+    title: 'Streak at risk!',
+    prefix: 'You didn\'t log anything yesterday. Protect your streak of',
+    dayUnit: (n: number) => (n === 1 ? 'day' : 'days'),
+    suffix: 'by spending 300 credits.',
+    freezing: 'Freezing...',
+    freezeButton: '🧊 Freeze streak (−300 💰)',
+    insufficientCredits: (credits: number) => `Not enough credits (${credits}/300)`,
+  },
+
+  dailyCalorieGoal: {
+    title: 'Calories burned today',
+    suffix: (goal: number) => ` / ${goal} kcal`,
+    noGoalSuffix: ' kcal',
+    reached: '🎉 Calorie goal reached!',
+  },
+
+  ring: {
+    centerLabel: 'Week',
+    streakLabel: 'Streak',
+    streakDaysLabel: (n: number) => (n === 1 ? '1 day' : `${n} days`),
+    srSummary: (sessions: number, goal: number, calories: number, streakDays: number) =>
+      `Weekly goal: ${sessions} of ${goal} sessions. Today's calories: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'day' : 'days'}.`,
+  },
+
+  sections: {
+    recovery: 'Recovery',
+    recent: 'Recent activity',
+    progress: 'Your journey',
+    circle: 'Your circle',
+  },
+
+  lastActivity: {
+    title: 'Last activity',
+    meta: (durationMin: number, calories: number | null | undefined, distanceKm: number | null | undefined) =>
+      `${durationMin} min${calories ? ` · ${calories} kcal` : ''}${distanceKm ? ` · ${distanceKm} km` : ''}`,
+    repeat: 'Repeat this workout',
+  },
+
+  emptyState: {
+    title: 'Ready to sweat?',
+    body: 'Log your first activity and start building your streak. Every great athlete had a day one.',
+    cta: '💪 Start now',
+  },
+
+  nearestMedal: {
+    title: 'Closest medal',
+  },
+
+  leaderboard: {
+    title: 'Weekly leaderboard',
+    youSuffix: ' (you)',
+    caloriesLabel: (n: number) => `${n} kcal`,
+    sessionsLabel: (n: number) => `${n} session${n === 1 ? '' : 's'}`,
+    addFriendsTitle: 'Add friends',
+    addFriendsBody: 'Challenge your friends on the weekly leaderboard',
+  },
+
+  challengesWidget: {
+    title: 'Today\'s challenges',
+    progress: (completed: number, total: number) => `${completed}/${total} completed`,
+    claimLabel: (credits: number) => `Claim +${credits} 💰`,
+    pendingLabel: (credits: number) => `+${credits} 💰`,
+  },
+
+  comeback: {
+    title: 'Welcome back!',
+    body: (days: number) => `It's been ${days} days since your last workout. No worries: you pick up right where you left off, not from zero.`,
+    hint: 'Just 15 minutes to get everything moving again — and today\'s challenges are waiting for you.',
+    cta: 'Ease back in',
+  },
+
+  cta: 'Log a workout',
+}
+
+const home = createNamespaceProxy(it, en)
 
 export default home

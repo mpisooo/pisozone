@@ -1,8 +1,10 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Componenti globali montati una volta in App.tsx/AppLayout (non specifici
 // di una singola pagina): TopBar, Navbar, ErrorBoundary, PushNotificationPrompt,
 // OnboardingTour, PhotoLightbox, SplashScreen. I nomi di brand ("PISOZONE",
 // "PISO"/"ZONE") restano scritti a mano nel JSX, non sono testo da tradurre.
-const shell = {
+const it = {
   errorBoundary: {
     title: 'QUALCOSA È ANDATO STORTO',
     body: 'Si è verificato un errore imprevisto. Ricarica la pagina per riprovare.',
@@ -109,5 +111,115 @@ const shell = {
     tagline: 'ALLENATI · CRESCI · DOMINA',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  errorBoundary: {
+    title: 'SOMETHING WENT WRONG',
+    body: 'An unexpected error occurred. Reload the page to try again.',
+    reload: 'Reload page',
+  },
+  navbar: {
+    home: 'Home',
+    log: 'Log',
+    analysis: 'Stats',
+    challenges: 'Challenges',
+    social: 'Social',
+  },
+  topBar: {
+    profileMenuLabel: 'Profile menu',
+    levelPrefix: 'Lv.',
+    creditsSuffix: 'credits',
+    creditsInfoLabel: 'How to earn credits',
+    profileSettings: 'Profile settings',
+    signOut: 'Sign out',
+  },
+  pushPrompt: {
+    dialogAriaLabel: 'Enable notifications',
+    title: 'ENABLE NOTIFICATIONS',
+    body: 'Get a reminder if you haven\'t worked out by 10 PM, plus alerts for new messages and friend requests — even with the app closed.',
+    notNow: 'Not now',
+    enable: 'Enable',
+    enabling: 'Enabling...',
+    understood: 'Got it',
+    retryHint: 'You can try again anytime from Profile → Notifications.',
+    toggleHint: 'You can turn them on or off anytime from Profile → Notifications.',
+  },
+  onboarding: {
+    ariaLabel: 'Welcome to PisoZone',
+    stepIndicator: (step: number, total: number) => `Step ${step} of ${total}`,
+    back: 'Back',
+    next: 'Next',
+    finish: 'Log your first workout!',
+    skip: 'Skip tour',
+    steps: [
+      {
+        icon: '🏃',
+        title: 'WELCOME TO PISOZONE!',
+        text: 'Log every workout: 15 sports to choose from, with calories calculated automatically based on your profile.',
+      },
+      {
+        icon: '🏋️',
+        title: 'LOG IT YOUR WAY',
+        text: 'Running, cycling and walking track with GPS. At the gym you log exercises, sets and loads: the app spots your personal records on its own.',
+      },
+      {
+        icon: '🎯',
+        title: 'TRAINING PLANS',
+        text: 'Pick a multi-week goal — 5K, 10K, gym, yoga — and train: the plan\'s sessions tick themselves off.',
+      },
+      {
+        icon: '💎',
+        title: 'EARN CREDITS',
+        text: 'Every activity earns you credits, and every day you get 3 personalized challenges worth even more. Complete them before midnight!',
+      },
+      {
+        icon: '🔥',
+        title: 'STREAK AND RECOVERY',
+        text: 'Train consistently to grow your streak. Need a break? Mark a rest day from Home and your streak won\'t break. 22 medals and 10 levels are waiting for you.',
+      },
+      {
+        icon: '🎨',
+        title: 'MAKE IT YOURS',
+        text: 'Spend your credits on the Profile page: 6 color themes for the whole app and special frames for your avatar.',
+      },
+      {
+        icon: '👥',
+        title: 'BETTER TOGETHER',
+        text: 'In the Friends section you\'ll find a feed with reactions and comments, a weekly leaderboard, messages and groups: add your friends and challenge them.',
+      },
+    ],
+    guideHint: 'Every feature is explained in the Guide: find it in your Profile.',
+  },
+
+  // Annuncio one-shot delle novità per chi usa già l'app (WhatsNewOverlay):
+  // gli item descrivono l'ondata corrente (NEWS_VERSION nel componente).
+  whatsNew: {
+    ariaLabel: 'What\'s new on PisoZone',
+    title: 'WHAT\'S NEW ON PISOZONE',
+    subtitle: 'Here\'s what\'s new since last time:',
+    gotIt: 'Got it',
+    openGuide: 'Open the full guide',
+    items: [
+      {
+        icon: '⛰️',
+        title: 'Manual elevation gain',
+        text: 'Trekking, climbing, running, cycling, walking and motocross: you can now log climbing meters even without GPS tracking — they still count for the mountain medals.',
+      },
+      {
+        icon: '📶',
+        title: 'Offline is even sturdier',
+        text: 'Activities logged without a connection can now be edited and deleted from the Calendar just like any other, and attached photos and exercises sync on their own — nothing gets dropped anymore.',
+      },
+    ],
+  },
+  photoLightbox: {
+    close: 'Close',
+  },
+  splash: {
+    tagline: 'TRAIN · GROW · DOMINATE',
+  },
+}
+
+const shell = createNamespaceProxy(it, en)
 
 export default shell

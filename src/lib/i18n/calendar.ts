@@ -1,5 +1,7 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace per src/pages/Calendar.tsx (mese, streak, pannello del giorno).
-const calendar = {
+const it = {
   prevMonthAria: 'Mese precedente',
   nextMonthAria: 'Mese successivo',
 
@@ -47,5 +49,56 @@ const calendar = {
     noResults: 'Nessuna attività corrisponde ai filtri.',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  prevMonthAria: 'Previous month',
+  nextMonthAria: 'Next month',
+
+  weekdayShortLabels: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+
+  dayAriaLabel: (dateLabel: string, count: number) =>
+    `${dateLabel}, ${count} ${count === 1 ? 'activity' : 'activities logged'}`,
+
+  legendLabel: 'Activities/day:',
+
+  streakCount: (days: number) => `${days} DAY STREAK`,
+  streakHint: "Keep it up, don't stop!",
+
+  restDayTitle: 'Rest day',
+  restDaySubtitle: 'No workout logged',
+
+  // Giorno di riposo intenzionale (recovery_logs, v33): distinto dal semplice
+  // "nessun allenamento" — qui la streak è protetta.
+  plannedRestBadge: 'Rest logged — your streak is safe',
+  restDotAria: 'rest day',
+
+  dayPanel: {
+    durationLabel: (min: number) => `${min} min`,
+    caloriesSuffix: (cal: number) => ` · ${cal} kcal`,
+    distanceSuffix: (km: number) => ` · ${km} km`,
+  },
+
+  editHint: 'Tap an activity to edit it',
+
+  // Filtri e ricerca (roadmap v3, pilastro 02): sport, GPS, foto, note.
+  // Con filtri attivi la heatmap mostra solo le attività corrispondenti e
+  // sotto compare la lista dei risultati più recenti.
+  filters: {
+    toggle: 'Filters',
+    toggleAria: 'Show or hide activity filters',
+    searchPlaceholder: 'Search notes…',
+    searchAria: 'Search activity notes',
+    sportsLabel: 'Sport',
+    gpsChip: 'With GPS',
+    photoChip: 'With photo',
+    clear: 'Clear filters',
+    heatmapHint: 'The calendar shows only filtered activities',
+    resultsCount: (n: number) => (n === 1 ? '1 activity found' : `${n} activities found`),
+    resultsShownHint: (shown: number) => `Showing the ${shown} most recent below`,
+    noResults: 'No activities match the filters.',
+  },
+}
+
+const calendar = createNamespaceProxy(it, en)
 
 export default calendar

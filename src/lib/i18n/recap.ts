@@ -1,6 +1,8 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace del recap dopo-allenamento GPS (components/WorkoutRecapOverlay.tsx):
 // l'overlay celebrativo che accoglie il salvataggio di un allenamento tracciato.
-const recap = {
+const it = {
   ariaLabel: 'Riepilogo allenamento completato',
   kicker: 'Allenamento completato',
   credits: (n: number) => `+${n} 💎 crediti guadagnati`,
@@ -36,5 +38,42 @@ const recap = {
   shareError: 'Condivisione non riuscita. Riprova.',
   close: 'Chiudi',
 } as const
+
+const en: Widen<typeof it> = {
+  ariaLabel: 'Workout summary',
+  kicker: 'Workout completed',
+  credits: (n: number) => `+${n} 💎 credits earned`,
+
+  stats: {
+    duration: 'Duration',
+    distance: 'Distance',
+    avgPace: 'Avg. pace',
+    avgSpeed: 'Avg. speed',
+    calories: 'Calories',
+  },
+
+  records: {
+    firstOfSport: (km: string) => `First distance logged for this sport: ${km} km. Everything starts here.`,
+    longestDistance: (km: string) => `Longest distance ever: ${km} km`,
+    fastestPace: (pace: string) => `Fastest pace ever: ${pace}/km`,
+    fastestSpeed: (kmh: string) => `Highest average speed ever: ${kmh} km/h`,
+  },
+
+  offlineNote: "Saved on your phone: it will sync as soon as you're back online. The route and details on this screen won't be kept.",
+  routeWarning: 'Route not saved — duration, distance and calories are correct.',
+
+  routeShare: {
+    label: 'Show route to friends in the feed',
+    hint: 'Just the route outline, never the real map. You can change your mind anytime from the Calendar.',
+    error: 'Setting not saved. Please try again.',
+  },
+
+  share: 'Share as image',
+  sharing: 'Sharing…',
+  shareError: 'Sharing failed. Please try again.',
+  close: 'Close',
+}
+
+const recap = createNamespaceProxy(it, en)
 
 export default recap

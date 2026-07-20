@@ -7,6 +7,7 @@ import { ToastProvider } from './context/ToastContext'
 import { UnreadProvider } from './context/UnreadContext'
 import { ChallengesBadgeProvider } from './context/ChallengesBadgeContext'
 import { NotificationsProvider } from './context/NotificationsContext'
+import { useLanguage } from './lib/i18n/language'
 import ProtectedRoute from './components/ProtectedRoute'
 import ConsentGate from './components/ConsentGate'
 import OnboardingTour from './components/OnboardingTour'
@@ -33,11 +34,19 @@ const GuidePage      = lazy(() => import('./pages/Guide'))
 
 function AppLayout() {
   const location = useLocation()
+  // Il cambio lingua (roadmap v3, pilastro 04) non passa per un hook
+  // useStrings() in ogni pagina: i namespace restano import statici, ma il
+  // loro default export è un Proxy "vivo" (lib/i18n/proxy.ts) che legge la
+  // lingua corrente a ogni accesso. Perché le pagine già montate mostrino
+  // subito il nuovo testo senza reload manuale, il sottoalbero visibile va
+  // rimontato al cambio — da qui la key sul div, non su AppLayout stesso
+  // (badge/notifiche restano fuori, niente riconnessione realtime).
+  const language = useLanguage()
   return (
     <UnreadProvider>
     <ChallengesBadgeProvider>
     <NotificationsProvider>
-      <div className="app-layout">
+      <div className="app-layout" key={language}>
         <TopBar />
         <main className="app-main">
           {/* key sulla route: se una pagina va in errore, navigando altrove il boundary si resetta */}

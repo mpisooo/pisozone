@@ -1,3 +1,5 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace condiviso da Log.tsx (nuova attività), ActivityEditModal.tsx
 // (modifica), WorkoutTrackingOverlay.tsx (tracciamento GPS live), PhotoPickerField.tsx,
 // RouteShape.tsx e dagli errori di useActivities.ts/useGpsTracking.ts — sono
@@ -5,7 +7,7 @@
 // Le etichette comuni a Log e ActivityEditModal vivono in `form`; quelle che
 // invece differiscono leggermente tra le due schermate (es. "Note (opzionale)"
 // vs "Note") restano separate in `new`/`edit` per non cambiare il testo visibile.
-const log = {
+const it = {
   newActivityTitle: 'REGISTRA ATTIVITÀ',
   editActivityTitle: 'MODIFICA ATTIVITÀ',
   routeTitle: 'PERCORSO',
@@ -249,5 +251,252 @@ const log = {
     offlineAttachmentsFailed: 'Attività sincronizzata, ma foto o esercizi in attesa non sono stati salvati. Riprova modificandola dal Calendario.',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  newActivityTitle: 'LOG ACTIVITY',
+  editActivityTitle: 'EDIT ACTIVITY',
+  routeTitle: 'ROUTE',
+  gpsButton: 'Track with GPS',
+
+  form: {
+    activityTypeTitle: 'ACTIVITY TYPE',
+    // Selettore indoor/outdoor (solo per gli sport in INDOOR_VARIANTS):
+    // facoltativo come RPE/umore, tocca di nuovo per azzerare.
+    indoorQuestion: 'Where? Optional — changes the activity name',
+    dateTimeTitle: 'DATE AND TIME',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
+    durationTitle: 'DURATION',
+    hoursLabel: 'Hours',
+    minutesLabel: 'Minutes',
+    detailsTitle: 'DETAILS',
+    distanceLabel: 'Distance (km)',
+    // Dislivello manuale: per chi non traccia con il GPS ma vuole comunque
+    // segnare i metri di salita (trekking, arrampicata...).
+    elevationLabel: 'Elevation gain (m)',
+    elevationPlaceholder: 'e.g. 450',
+    elevationHint: 'Optional — meters climbed, if you didn\'t track with GPS',
+    perceived: {
+      rpeTitle: 'PERCEIVED EFFORT',
+      rpeHint: 'Optional — how tough was this session?',
+      rpeUnset: 'Not rated yet',
+      rpeAriaLabel: (value: number) => `Perceived effort: ${value} out of 10`,
+      clear: 'Clear',
+      moodTitle: 'MOOD AND ENERGY',
+      moodHint: 'Optional — how do you feel after the workout?',
+    },
+    gym: {
+      title: 'EXERCISES',
+      hint: 'Optional — log exercises, sets and loads to track progress and personal records.',
+      exerciseLabel: 'Exercise',
+      exercisePlaceholder: 'e.g. Bench press',
+      setsLabel: 'Sets',
+      repsLabel: 'Reps',
+      weightLabel: 'Weight (kg)',
+      weightPlaceholder: 'bodyweight',
+      addExercise: 'Add exercise',
+      removeAria: (name: string) => name ? `Remove ${name}` : 'Remove exercise',
+      incompleteRow: 'Fill in sets and reps, or this row won\'t be saved',
+      summary: (count: number, volumeKg: number) => {
+        const base = count === 1 ? '1 exercise' : `${count} exercises`
+        return volumeKg > 0
+          ? `${base} · total volume ${volumeKg.toLocaleString('en-US')} kg`
+          : base
+      },
+    },
+    validation: {
+      hoursNotNegative: 'Cannot be negative',
+      hoursMax: 'Maximum 12 hours',
+      minutesNotNegative: 'Cannot be negative',
+      minutesMax: 'Maximum 59 minutes',
+      minutesDurationZero: 'Enter a duration greater than zero',
+      caloriesNotNegative: 'Cannot be negative',
+      distanceNotNegative: 'Cannot be negative',
+      unrealisticValue: 'Unrealistic value',
+    },
+  },
+
+  // Log lampo (roadmap v3, pilastro 02): il chip sotto la griglia degli sport
+  // ricopia durata e distanza dell'ultima sessione dello sport selezionato.
+  quick: {
+    chip: (durationMin: number, distanceKm: number | null) =>
+      `Same as last time: ${durationMin} min${distanceKm ? ` · ${distanceKm.toLocaleString('en-US')} km` : ''}`,
+    chipAria: 'Prefill duration and distance from the last workout of this sport',
+  },
+
+  new: {
+    durationTotalPrefix: 'Total:',
+    caloriesLabel: 'Calories burned',
+    caloriesAutoHint: (kcal: number) => `(auto: ~${kcal} kcal)`,
+    caloriesPlaceholderAuto: (kcal: number) => `~${kcal} (auto-calculated)`,
+    caloriesPlaceholderManual: 'e.g. 350',
+    calorieInfoToggle: 'How is it calculated?',
+    calorieInfoAriaLabel: 'How calories are calculated',
+    calorieInfo: {
+      heading: 'Estimate based on MET',
+      intro: 'The calculation uses the standard metabolic equivalent (MET) formula:',
+      formula: 'kcal = MET × weight (kg) × duration (hours)',
+      metLabel: 'MET',
+      metDesc: 'activity intensity (e.g. running = 9.8, yoga = 2.5, swimming = 8.0)',
+      weightLabel: 'Weight',
+      weightDesc: (weightKg: number | null | undefined) => weightKg
+        ? `taken from your profile (${weightKg} kg)`
+        : 'taken from your profile — set it in Profile to enable auto-calculation',
+      durationLabel: 'Duration',
+      durationDesc: 'hours entered in the DURATION section',
+      genderLabel: 'Sex',
+      genderDesc: (gender: 'male' | 'female' | null | undefined) => gender === 'female'
+        ? 'female (−10% kcal for body composition)'
+        : gender === 'male'
+        ? 'male'
+        : 'not set — add it in Profile for a more accurate estimate',
+      estimateBefore: 'It\'s an ',
+      estimateEmphasis: 'estimate',
+      estimateAfter: ': the real value depends on actual intensity, heart rate and your fitness level. You can always override it manually.',
+    },
+    distancePlaceholder: 'e.g. 5.4',
+    notesLabel: 'Notes (optional)',
+    notesPlaceholder: 'How did you feel? Workout details...',
+    photoLabel: 'Photo (optional)',
+    photoHint: 'Will be visible to your friends in the feed.',
+    saving: 'Saving...',
+    save: 'Save activity',
+    savedToast: {
+      title: 'Activity saved!',
+      credits: (n: number) => `+${n} 💎 credits earned`,
+      noCredits: 'Keep it up 💪',
+      pr: (exercise: string, weightKg: number) =>
+        `🏆 New record: ${exercise} ${weightKg.toLocaleString('en-US')} kg`,
+      prExtra: (n: number) => n === 1 ? ' and one more record' : ` and ${n} more records`,
+    },
+    // Salvataggio senza rete (roadmap v2, pilastro 05): l'attività resta in
+    // coda sul dispositivo e si sincronizza da sola al ritorno online, senza
+    // che l'utente debba fare nulla. Da v3 pilastro 04 anche foto ed esercizi
+    // restano in coda (IndexedDB) invece di essere scartati.
+    savedOfflineToast: {
+      title: 'Activity saved, waiting for network',
+      body: 'It will sync automatically once you\'re back online',
+      bodyExtrasQueued: 'It will sync automatically once you\'re back online, photo and exercises included.',
+    },
+    errorToast: {
+      title: 'Save failed',
+      body: 'Check your connection and try again',
+    },
+    photoWarningToast: {
+      title: 'Activity saved, but photo not uploaded',
+      body: 'Try again from the calendar by editing the activity',
+    },
+    setsWarningToast: {
+      title: 'Activity saved, but exercises not saved',
+      body: 'Try again from the calendar by editing the activity',
+    },
+  },
+
+  edit: {
+    ariaLabel: 'Edit activity',
+    caloriesLabel: 'Calories',
+    caloriesPlaceholder: 'auto',
+    notesLabel: 'Notes',
+    photoLabel: 'Photo',
+    saveChanges: 'Save changes',
+    photoUploadFailed: 'Photo upload failed. Check your connection and try again.',
+    updateFailed: 'Update failed. Check your connection and try again.',
+    setsUpdateFailed: 'Activity updated, but exercises not saved. Check your connection and save again.',
+    deleteFailed: 'Delete failed. Check your connection and try again.',
+    // Attività ancora in coda offline (roadmap v3, pilastro 04): foto ed
+    // esercizi vanno allegati al momento del log, non da qui — qui non c'è
+    // ancora un id reale a cui agganciarli.
+    pendingExtrasHint: 'Photo and exercises cannot be edited while the activity is waiting for network.',
+  },
+
+  tracking: {
+    dialogAriaLabel: 'Workout in progress',
+    acquiringTitle: 'Searching for GPS signal…',
+    acquiringHint: 'For a faster lock, make sure you\'re outdoors',
+    startErrorTitle: 'Couldn\'t start tracking',
+    savingTitle: 'Saving workout…',
+    retry: 'Retry',
+    discard: 'Discard',
+    pausedBadge: 'Paused',
+    // Zone Live: il badge con la zona di intensità della velocità recente
+    // (l'etichetta — Recupero, Moderata... — è un dato di dominio di lib/zones).
+    zoneLive: (label: string) => `${label} Zone`,
+    weakSignal: 'Weak GPS signal',
+    // Split live (roadmap v3, pilastro 02): i chip con il tempo degli ultimi
+    // km completati durante il tracciamento. Per la bici si mostra la
+    // velocità del km, per gli altri sport il passo.
+    splitChipPace: (km: number, pace: string) => `Km ${km} · ${pace}`,
+    splitChipSpeed: (km: number, kmh: string) => `Km ${km} · ${kmh} km/h`,
+    splitsAria: 'Time of the last completed kilometers',
+    kmUnit: 'km',
+    avgSpeedLabel: 'average speed',
+    avgPaceLabel: 'average pace',
+    kcalEstimateLabel: 'estimated kcal',
+    slideToUnlock: 'Slide to unlock →',
+    slideAriaLabel: 'Slide to unlock workout controls',
+    pause: 'Pause',
+    resume: 'Resume',
+    finish: 'Finish',
+    saveAndFinish: 'Save and finish',
+    saveFailed: 'Save failed. Check your connection and try again.',
+    hookErrors: {
+      permissionDenied: 'GPS permission denied. Enable location in your browser settings to track the route.',
+      signalUnavailable: 'GPS signal unavailable. Try again in a more open area.',
+      notSupported: 'GPS is not supported on this device/browser.',
+      timeout: 'GPS signal not found. Make sure you\'re outdoors and try again.',
+    },
+  },
+
+  photoPicker: {
+    previewAlt: 'Preview of the attached photo',
+    removeAria: 'Remove photo',
+    addPhoto: 'Add a photo',
+  },
+
+  routeShapeAriaLabel: 'Shape of the recorded route',
+
+  // Percorso nel feed (v45): il consenso si rivede anche in modifica.
+  routeShare: {
+    label: 'Show the route to friends in the feed',
+    hint: 'Only the route shape, never the map.',
+  },
+
+  map: {
+    ariaLabel: 'Map of the recorded route',
+  },
+
+  // Split per km sotto la sagoma del percorso (ActivityEditModal): compaiono
+  // solo se il percorso ha almeno un km completo. L'ultimo tratto sotto il km
+  // mostra la sua distanza reale al posto del numero progressivo.
+  splits: {
+    title: 'Pace per km',
+    kmLabel: (n: number) => `Km ${n}`,
+    partialLabel: (km: string) => `${km} km`,
+  },
+
+  // Profilo altimetrico (v42): compare solo se il percorso ha la quota salvata
+  // (allenamenti tracciati dopo la migrazione, su dispositivi che la forniscono).
+  elevation: {
+    title: 'Elevation',
+    chartAriaLabel: 'Elevation profile of the route',
+    gain: (m: number) => `D+ ${m} m`,
+    loss: (m: number) => `D− ${m} m`,
+    range: (min: number, max: number) => `${min}–${max} m`,
+  },
+
+  errors: {
+    loadFailed: 'Error loading activities. Try again.',
+    // Un'attività in coda offline che al momento della sincronizzazione viene
+    // rifiutata dal server per un motivo NON di rete (validazione, RLS): non
+    // ha senso tenerla in coda per sempre, si avvisa e si scarta.
+    syncFailed: 'An activity waiting for network was rejected by the server and has been discarded.',
+    // Foto/esercizi accodati offline (IndexedDB): l'attività si è comunque
+    // sincronizzata, solo l'allegato non è stato applicato — si riprova dalla
+    // modifica, come per l'equivalente fallimento online.
+    offlineAttachmentsFailed: 'Activity synced, but pending photo or exercises weren\'t saved. Try again by editing it from the Calendar.',
+  },
+}
+
+const log = createNamespaceProxy(it, en)
 
 export default log

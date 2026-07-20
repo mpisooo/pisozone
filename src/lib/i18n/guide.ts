@@ -1,7 +1,9 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace della Guida (pages/Guide.tsx): la "wiki" di tutte le funzionalità
 // dell'app, raggiungibile dal Profilo e dall'annuncio Novità. Ogni sezione è
 // un accordion; i paragrafi sono frasi brevi, dalla parte dell'utente.
-const guide = {
+const it = {
   pageTitle: 'GUIDA',
   intro: 'Tutto quello che PisoZone sa fare, in un posto solo. Tocca una sezione per aprirla.',
 
@@ -175,5 +177,182 @@ const guide = {
     },
   ],
 } as const
+
+const en: Widen<typeof it> = {
+  pageTitle: 'GUIDE',
+  intro: 'Everything PisoZone can do, all in one place. Tap a section to open it.',
+
+  sections: [
+    {
+      icon: '🏃',
+      title: 'Logging an activity',
+      paragraphs: [
+        'From the Log tab, pick one of 20 sports, set the date, time and duration, and optionally add distance, notes and a photo (visible to friends in the feed).',
+        'For running, cycling, walking, swimming and climbing you can also specify "where": indoors, the activity takes its real name — treadmill, stationary bike, pool. It\'s optional: tap again to clear it.',
+        'For running, cycling, walking, trekking, climbing and motocross you can also log elevation gain by hand (climbing meters), handy when you\'re not tracking with GPS — a mountain hike or a climbing crag still counts toward the mountain medals.',
+        'Calories are calculated automatically based on your weight, sex and the sport\'s intensity (MET formula): you can always type them in by hand to override the value.',
+        'Without a connection, the activity isn\'t lost: it stays queued on your phone (you\'ll see a "Waiting for network" label) and syncs on its own as soon as you\'re back online, attached photos and exercises included.',
+        'Every activity can be edited or deleted from the Calendar by tapping it — even the ones still waiting for network.',
+        'In a hurry? From Home, under your last activity, "Repeat this workout" opens the form pre-filled with sport, duration and distance. And in the Log tab, once you\'ve picked a sport, tapping "Same as last time" copies over the duration and distance of your last session of that type.',
+        'On Android, long-pressing the app icon gives you quick shortcuts: Log, GPS, Challenges and Stats.',
+      ],
+    },
+    {
+      icon: '🛰️',
+      title: 'GPS tracking',
+      paragraphs: [
+        'For running, cycling, walking and trekking you can start GPS tracking from the button in the Log tab: distance, pace and calories are measured automatically, and the route is saved.',
+        'Tracking works with the screen on: the app keeps your screen active for you. The controls are protected by a "slide to unlock" gesture, so accidental taps in your pocket won\'t stop anything.',
+        'As you move, the screen tints itself with your current intensity zone — blue, green, amber or red, the same scale as the "Intensity spectrum" in Stats — with a badge naming it: one glance and you know how hard you\'re pushing.',
+        'At every completed kilometer its time appears (for cycling, its speed), with a light vibration: you know instantly whether you\'re speeding up or slowing down, without waiting for the end.',
+        'When you finish and save, a recap greets you: route map, pace per km, elevation profile, credits and any records — first-ever distance for that sport, longest distance ever, fastest-ever pace (or speed). From there you can share it all as an image with one tap.',
+        'You can find the route again by opening the activity from the Calendar, drawn on a real map (offline it falls back to the stylized shape), together with the pace for every kilometer: a bar per km shows where you pushed hardest (the last stretch under a km is shown with its real distance). The map and pace also apply to routes recorded in the past.',
+        'Below the pace there\'s also the elevation profile: the route\'s shape with elevation gain (D+) and elevation loss (D−). It applies to workouts tracked from now on, if your device provides altitude data: routes recorded in the past don\'t have it saved.',
+        'The route is private. If you want, you can show its shape to friends in the feed: you decide workout by workout, from the recap right after saving or by reopening the activity from the Calendar. Friends only see the shape of your route, never the map.',
+      ],
+    },
+    {
+      icon: '🏋️',
+      title: 'Gym: exercises and records',
+      paragraphs: [
+        'When you log a gym session you can record exercises with sets × reps × load (leave the weight empty for bodyweight).',
+        'Exercise names are suggested from the ones you\'ve already used: typing the same name consistently keeps your records reliable.',
+        'If you beat your max load on an exercise, the app announces it when you save. All your maxes live in the "Gym records" card in Stats.',
+        'From your second day on the same exercise, Stats also shows "Load progression": a chart of your max, day by day, exercise by exercise.',
+      ],
+    },
+    {
+      icon: '💪',
+      title: 'Perceived effort and mood',
+      paragraphs: [
+        'On every activity you can rate how much it took out of you (1–10 scale) and how you feel afterward (5 states). Both are optional: if you skip them, they stay empty.',
+        'They help the app get to know you better: the same run can be a stroll or a battle, and both versions matter.',
+        'Logging your effort also feeds "Weekly load" in Stats: effort × minutes (the session-RPE method), week by week. If your load jumps more than 50% over the previous week, the app warns you: sudden spikes are the shortest path to an injury.',
+      ],
+    },
+    {
+      icon: '🎯',
+      title: 'Training plans',
+      paragraphs: [
+        'From Home (the "Your journey" section) you\'ll find multi-week programs: 5K, 10K, gym, back to movement, yoga.',
+        'There\'s nothing to check off: you log activities as usual and the plan\'s sessions settle themselves. Each session unlocks in its own week — no jumping ahead — but you can catch up on ones you\'ve fallen behind on.',
+        'At the finish line you claim a credit reward. You can have one active program at a time and drop it whenever you want, with no penalty.',
+      ],
+    },
+    {
+      icon: '🎯',
+      title: 'Personal goals',
+      paragraphs: [
+        'Beyond the weekly goal, in Home you can set your own targets: "100 km of running this month", "20 gym sessions", "5,000 calories this week"…',
+        'Choose what to count (sessions, minutes, kilometers or calories), an optional sport, the target and the deadline: the bar fills in on its own as you log activities.',
+        'You can have up to 5 active goals; delete one with two taps on the trash icon.',
+      ],
+    },
+    {
+      icon: '🛌',
+      title: 'Recovery: rest, water and sleep',
+      paragraphs: [
+        'In the "Today\'s recovery" card in Home you can declare a rest day: your streak won\'t break. You get 2 a week, and it only applies to the current day.',
+        'The same card tracks your water (250 ml glasses toward a 2-liter goal) and hours slept.',
+        'On rest days, the evening reminder leaves you alone.',
+      ],
+    },
+    {
+      icon: '🔥',
+      title: 'Streak and freeze',
+      paragraphs: [
+        'Your streak counts consecutive days with at least one activity (or a declared rest day).',
+        'Missed yesterday and your streak is about to break? Home will offer to freeze it for 300 credits: the freeze covers the missed day.',
+      ],
+    },
+    {
+      icon: '⚡',
+      title: 'Daily challenges',
+      paragraphs: [
+        'Every day you get 3 personalized challenges (on the Challenges page and in Home). You complete them by training, and they expire at midnight.',
+        'When a challenge is marked complete, claim it to collect the credits. A little number on the Challenges tab at the bottom reminds you how many you have to claim.',
+        'At the bottom of the Challenges page are challenges with friends: launch a timed duel — sessions, minutes, kilometers or calories — against a friend (who has to accept) or against one of your groups (it starts right away for everyone). Once the window closes, whoever did more claims 100 credits; in case of a tie, there\'s no winner.',
+        'Even further down you\'ll find the current seasonal event: a timed leaderboard open to the WHOLE community, not just friends. Once the window closes, the podium (top 3) claims credits — more for first place — and if you\'re on it, a notification reminds you. Events run all year round: summer, back-to-school, fall, winter.',
+      ],
+    },
+    {
+      icon: '💎',
+      title: 'Credits, levels and shop',
+      paragraphs: [
+        'Credits are earned by logging activities, completing daily challenges, unlocking medals and finishing training plans.',
+        'Spend them in Profile: 10 levels to unlock in sequence, 6 color themes for the whole app, and special frames for your avatar. And on streak freezes.',
+      ],
+    },
+    {
+      icon: '🏅',
+      title: 'Medals',
+      paragraphs: [
+        'There are 22 medals across 4 tiers (bronze, silver, gold, diamond), tied to real milestones: total kilometers, gym sessions, streak, weekly consistency…',
+        'Four are the mountain medals: kilometers tracked with GPS (Esploratore, Cartografo) and meters of elevation gain accumulated (Scalatore, and Ottomila — Everest\'s 8,848 m, a little at a time), from GPS or entered by hand. Only workouts logged from now on count.',
+        'Every unlocked medal is worth a one-time credit reward. Your progress toward the nearest one is shown in Home.',
+      ],
+    },
+    {
+      icon: '📊',
+      title: 'Stats and calendar',
+      paragraphs: [
+        'In the Stats section you\'ll find the calendar with a heatmap of your active days, plus stats: trends over time, intensity spectrum by zone, goal vs actual, weekly load, weight-training correlation and personal records.',
+        'The "Your year in pixels" card is your whole year at a glance: one little square per day, colored with that day\'s dominant intensity zone (blue → red). The fuller the year, the more it tells you.',
+        'In the Calendar, the "Filters" button lets you search your activities: by sport, GPS-only or photo-only, or by text in the notes ("rain", "race"...). The heatmap adapts and the matching activities are listed right below, ready to open.',
+        'From there you can also export your activities to CSV, ready for Excel or Google Sheets.',
+      ],
+    },
+    {
+      icon: '⚖️',
+      title: 'Weight and goal',
+      paragraphs: [
+        'In Profile, the "Weight history" card charts your weigh-ins: with your weight filled in under personal data, one tap on "Save" logs today\'s.',
+        'You can set a weight goal: it shows up as a dashed line on the chart, and with regular weigh-ins (at least 3 in a week), the app calculates your pace in kg per week and the date you\'ll reach it at that rate.',
+        'The projection is an honest estimate: if your weight is stable, moving the other way, or the goal is too far off, it tells you so — without making up dates.',
+      ],
+    },
+    {
+      icon: '✨',
+      title: 'Wrapped, insights and sharing',
+      paragraphs: [
+        'In Stats you\'ll find "Your insights": observations drawn from your data — your record week, the day you train most often, your improving pace. They update on their own as you keep training.',
+        'PisoZone Wrapped is a story-style recap of the month that just ended (and of the year, when it wraps up): numbers, the period\'s sports, records and intensity spectrum, slide after slide. Open it from Stats.',
+        'Every activity — and Wrapped itself — turns into a shareable image: open an activity from the Calendar and tap the share icon at the top. The card with your numbers is ready for chat or stories. If the activity has a GPS route, the card also shows the route\'s shape and the per-km pace bars.',
+      ],
+    },
+    {
+      icon: '👥',
+      title: 'Social: friends, feed and leaderboard',
+      paragraphs: [
+        'Search for your friends by username and add them: in the feed you\'ll see their activities, with photos, reactions (❤️ 💪 🔥 👏 🚀) and comments. If a friend chose to share a GPS route, the feed also shows the shape of their route.',
+        'There\'s 1:1 chat, groups, and the weekly leaderboard — among friends or global. Tap anyone on the leaderboard to open their public profile, with level, numbers and favorite sports; in the Friends tab you\'ll also find "People to discover", the month\'s most active users.',
+        'On a friend\'s profile there\'s also "Me vs you": a comparison for the current week — workouts, minutes, kilometers and calories — you on one side, your friend on the other. Each row\'s bar shows at a glance who\'s ahead: the more red, the more it\'s you.',
+        'The "By the numbers" card that others see on your profile is also on YOUR Profile, right below your photo: total activities, hours, km and medals.',
+        'You can block or report anyone behaving badly: someone you\'ve blocked can\'t message you or send you requests.',
+      ],
+    },
+    {
+      icon: '🔔',
+      title: 'Notifications',
+      paragraphs: [
+        'Push notifications alert you for messages, friend requests, and with an evening reminder if you haven\'t logged anything by 10 PM. Tapping one opens the right place directly: the exact conversation for a message, the Friends tab for a request.',
+        'If you\'re away for a few days, the reminder won\'t hound you: it only shows up now and then, inviting you to ease back in. When you return, a dedicated card welcomes you back in Home.',
+        'From Profile you can turn them on or off per category and set a quiet hours window.',
+        'The bell at the top (notification center) keeps a history that push doesn\'t: friend requests, acceptances, reactions and comments received, your level-ups — and now also duels (challenge received, accepted, finished) and the seasonal event podium when there\'s something to claim. It opens and marks itself read automatically; tapping an entry takes you straight to the exact spot: the commented activity highlighted in the feed, the duels section, or the seasonal event at the bottom of Challenges. The trash icon on each entry deletes it, "Delete all" (with confirmation) clears the whole list.',
+        'With the app installed (on iPhone: Share → Add to Home Screen, with notifications enabled), the icon shows a badge with your unread messages and notifications — just like native apps. It clears itself once you\'ve read them.',
+      ],
+    },
+    {
+      icon: '🔒',
+      title: 'Privacy and your data',
+      paragraphs: [
+        'Your data is yours: from Profile you can download all of it as JSON — activities, point-by-point GPS routes, messages, comments, everything — or delete your account along with everything it contains.',
+        'The privacy policy and terms of service are always available via the links in Profile.',
+      ],
+    },
+  ],
+}
+
+const guide = createNamespaceProxy(it, en)
 
 export default guide

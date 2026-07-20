@@ -1,3 +1,5 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace per le pagine legali pubbliche (Privacy.tsx, Terms.tsx) e per il
 // loro wrapper condiviso LegalLayout.tsx. Ogni paragrafo/voce di lista del
 // testo legale ha una propria chiave (organizzate per rispecchiare le sezioni
@@ -5,7 +7,7 @@
 // frase per frase senza dover ritoccare la struttura JSX. Dove una frase
 // contiene un link o un grassetto in mezzo, il testo è spezzato in
 // before/middle/after e l'elemento JSX resta nel componente.
-const legal = {
+const it = {
   layout: {
     backLink: 'Torna a PisoZone',
     updatedPrefix: 'Ultimo aggiornamento:',
@@ -181,5 +183,184 @@ const legal = {
     },
   },
 } as const
+
+const en: Widen<typeof it> = {
+  layout: {
+    backLink: 'Back to PisoZone',
+    updatedPrefix: 'Last updated:',
+  },
+
+  privacy: {
+    title: 'PRIVACY POLICY',
+    updated: 'July 7, 2026',
+
+    controller: {
+      heading: '1. DATA CONTROLLER',
+      before: 'The data controller is Mattia Pisati, developer and operator of PisoZone. For any request regarding your data, you can write to',
+      after: '.',
+    },
+
+    dataCollected: {
+      heading: '2. WHAT DATA WE COLLECT',
+      intro: 'PisoZone only collects the data you enter to use the app:',
+      account: {
+        label: 'Account',
+        text: ' — username and password (stored encrypted); recovery email, only if you choose to add one.',
+      },
+      profile: {
+        label: 'Profile',
+        text: ' — name, date of birth, gender, height, weight and weigh-in history, profile photo, goals and favorite sports. All of these fields are optional.',
+      },
+      activities: {
+        label: 'Sports activities',
+        text: ' — sport type, date, duration, calories, distance, and any notes and photos you choose to attach.',
+      },
+      social: {
+        label: 'Social features',
+        text: ' — friendships, friend requests, private and group messages, "likes" on friends\' activities.',
+      },
+      gamification: {
+        label: 'Gamification',
+        text: ' — credits, level, medals, completed challenges, streak.',
+      },
+      push: {
+        label: 'Push notifications',
+        text: ' — if you enable them, the technical identifier (endpoint) provided by your browser to deliver them.',
+      },
+      technical: {
+        label: 'Technical data',
+        text: ' — in the event of app errors, diagnostic information (error type, page, browser) via the Sentry service, linked to your user id and username but to no other personal data.',
+      },
+      outro: 'We do not collect location data, we do not use advertising tracking, and we do not sell data to third parties.',
+    },
+
+    purpose: {
+      heading: '3. WHY WE PROCESS IT',
+      text: 'The data is used exclusively to make PisoZone work: calculating statistics and calories, showing your progress, managing the social features and the notifications you requested (legal basis: performance of the service, art. 6.1.b GDPR). Error monitoring is based on the legitimate interest of keeping the app working and secure (art. 6.1.f GDPR).',
+    },
+
+    storage: {
+      heading: '4. WHERE IT IS STORED',
+      intro: 'PisoZone relies on three technical providers, who act as data processors:',
+      privacyPolicyLinkText: 'privacy policy',
+      supabase: {
+        label: 'Supabase',
+        before: ' — database and photo storage (profile and activities) (',
+        after: ')',
+      },
+      vercel: {
+        label: 'Vercel',
+        before: ' — application hosting (',
+        after: ')',
+      },
+      sentry: {
+        label: 'Sentry',
+        before: ' — error monitoring, with data hosted in the European Union (',
+        after: ')',
+      },
+      outro: 'No other party has access to your data.',
+    },
+
+    whoSeesWhat: {
+      heading: '5. WHO SEES WHAT',
+      text: 'Some data is visible to other users only within the social features: your username, profile photo, level and frame are visible to anyone who looks you up; your activities (including any photos you attach to them), milestones and their comments appear in your friends\' feed; messages are visible only to their recipient. If you appear on the global weekly leaderboard, other users see your username, photo and your aggregated totals for the week (sessions, minutes, calories) — never individual activities. Weight, date of birth, gender, height and weigh-in history are never visible to other users. You can block a user at any time from their profile: they will no longer be able to message you, send you requests, or see your activities.',
+    },
+
+    retention: {
+      heading: '6. HOW LONG WE KEEP IT',
+      text: 'We keep your data for as long as your account is active. If you delete your account, all your data — profile, activities, messages, photos, friendships and any other content — is deleted immediately and permanently. No accessible backup copies exist once deletion is complete.',
+    },
+
+    rights: {
+      heading: '7. YOUR RIGHTS',
+      intro: 'At any time, directly from the Profile page → "Privacy and data" section, you can:',
+      export: {
+        label: 'Export',
+        text: ' a complete copy of all your data in JSON format (right to data portability, art. 20 GDPR).',
+      },
+      delete: {
+        label: 'Delete',
+        text: ' your account and all your data permanently (right to erasure, art. 17 GDPR).',
+      },
+      rectify: {
+        label: 'Correct',
+        text: ' your profile data by editing it directly.',
+      },
+      exerciseBefore: 'You also have the right to access, restrict and object to the processing (arts. 15–21 GDPR): to exercise these rights, write to',
+      exerciseMiddle: '. If you believe the processing violates the law, you can file a complaint with the Italian data protection authority, the Garante per la Protezione dei Dati Personali (',
+      exerciseAfter: ').',
+    },
+
+    cookies: {
+      heading: '8. COOKIES AND LOCAL STORAGE',
+      text: 'PisoZone does not use profiling cookies or analytics tools. Your browser stores locally only the technical data strictly necessary: your login session, your chosen color theme, and the app cache for offline functionality (PWA).',
+    },
+
+    minors: {
+      heading: '9. MINORS',
+      text: 'PisoZone is not intended for children under 14. If you are under 14, please do not create an account; if a parent or guardian believes a minor has provided us with personal data, they can contact us for its immediate removal.',
+    },
+
+    changes: {
+      heading: '10. CHANGES',
+      text: 'If this policy changes substantially, the update date at the top of the page will be revised and significant changes will be announced in the app.',
+    },
+  },
+
+  terms: {
+    title: 'TERMS OF SERVICE',
+    updated: 'July 7, 2026',
+
+    service: {
+      heading: '1. THE SERVICE',
+      before: 'PisoZone is a free app for personal fitness tracking, with social features among friends and game mechanics (credits, levels, medals, challenges). By creating an account you accept these terms and the',
+      privacyPolicyLinkText: 'Privacy Policy',
+      after: '.',
+    },
+
+    account: {
+      heading: '2. ACCOUNT',
+      text: 'You are responsible for safeguarding your credentials and for everything that happens through your account. The recovery email is optional, but without it you cannot reset your password: if you lose access, the account cannot be recovered.',
+    },
+
+    content: {
+      heading: '3. PROPER USE AND CONTENT',
+      text: 'Content you publish (messages, profile photos, activity notes, group names) must not include unlawful, offensive, discriminatory material, or material that violates the rights of others. You may not use the app for spam, harassment, or attempts to access other users\' data. Violations may result in the account being suspended or deleted.',
+    },
+
+    virtualItems: {
+      heading: '4. CREDITS AND VIRTUAL ITEMS',
+      text: 'Credits, levels, medals, themes and frames are purely virtual game elements: they have no monetary value, cannot be purchased with real money, are not transferable or refundable, and may be changed or reset for game-balancing purposes.',
+    },
+
+    notMedical: {
+      heading: '5. NOT A MEDICAL SERVICE',
+      text: 'PisoZone provides indicative estimates (for example calories, calculated from average MET values, or BMI) that in no way constitute medical, diagnostic or nutritional advice. Before starting or changing a training program, consult a doctor, especially if you have pre-existing health conditions.',
+    },
+
+    liability: {
+      heading: '6. LIMITATION OF LIABILITY',
+      text: 'The service is provided free of charge "as is", with no guarantee of continuous availability, error-free operation, or permanent data retention. We recommend periodically exporting your data from the Profile page. To the extent permitted by law, the controller is not liable for damages arising from use of the app or from unavailability of the service.',
+    },
+
+    accountClosure: {
+      heading: '7. ACCOUNT CLOSURE',
+      text: 'You can delete your account yourself at any time from the Profile page → "Privacy and data": deletion is immediate and irreversible. The controller reserves the right to suspend or close accounts that violate these terms, with prior notice where possible.',
+    },
+
+    termsChanges: {
+      heading: '8. CHANGES TO THESE TERMS',
+      text: 'These terms may be updated; substantial changes will be announced in the app. Continued use of the service after a change constitutes acceptance of it.',
+    },
+
+    lawAndContacts: {
+      heading: '9. GOVERNING LAW AND CONTACTS',
+      before: 'These terms are governed by Italian law. For any questions, write to',
+      after: '.',
+    },
+  },
+}
+
+const legal = createNamespaceProxy(it, en)
 
 export default legal

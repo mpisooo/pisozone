@@ -1,9 +1,11 @@
+import { createNamespaceProxy, type Widen } from './proxy'
+
 // Namespace condiviso da Auth.tsx (login/registrazione/recupero password) e
 // ConsentGate.tsx (blocco di accettazione Privacy Policy/Termini per chi si è
 // registrato prima della loro introduzione). Sono trattati come un solo
 // dominio perché entrambi gestiscono l'accesso/consenso dell'account, e
 // condividono le stesse due etichette dei link legali.
-const auth = {
+const it = {
   subtitle: 'IL TUO TRACKER DI ATTIVITÀ FISICA',
 
   legalLinks: {
@@ -85,5 +87,90 @@ const auth = {
     decline: 'Non accetto — esci dall\'account',
   },
 } as const
+
+const en: Widen<typeof it> = {
+  subtitle: 'YOUR FITNESS TRACKER',
+
+  legalLinks: {
+    privacyPolicy: 'Privacy Policy',
+    termsOfService: 'Terms of Service',
+  },
+
+  tabs: {
+    login: 'Log in',
+    register: 'Sign up',
+    backToLogin: 'Back to login',
+  },
+
+  errors: {
+    serverConfigMissing: 'Server configuration missing — contact the administrator',
+    invalidCredentials: 'Incorrect username or password',
+    connectionError: 'Connection error to the server',
+    usernameFormat: 'Username: 3-20 characters, letters, numbers and _ only',
+    passwordMismatch: 'Passwords don\'t match',
+    passwordTooShort: 'Password must be at least 6 characters',
+    mustAcceptTerms: 'To create an account you must accept the Privacy Policy and Terms of Service',
+    usernameTaken: 'Username already taken',
+    invalidOrExpiredCode: 'Invalid or expired code. Try again.',
+  },
+
+  fields: {
+    usernameLabel: 'Username',
+    usernamePlaceholder: 'your_username',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '••••••••',
+    confirmPasswordLabel: 'Confirm password',
+    newPasswordLabel: 'New password',
+    confirmNewPasswordLabel: 'Confirm new password',
+  },
+
+  login: {
+    forgotPassword: 'Forgot your password?',
+    submit: 'Log in',
+    submitting: 'Logging in...',
+  },
+
+  register: {
+    usernameHint: '3–20 characters, letters, numbers and _ only',
+    acceptBefore: 'I\'ve read and accept the',
+    acceptMiddle: 'and the',
+    submit: 'Create account',
+    submitting: 'Creating account...',
+  },
+
+  recover: {
+    email: {
+      intro: 'Enter the recovery email you verified in your profile. If it matches an account, you\'ll receive a code to reset your password.',
+      label: 'Email',
+      placeholder: 'your-email@example.com',
+      submit: 'Send code',
+      submitting: 'Sending...',
+    },
+    code: {
+      intro: 'Check your email: if the address is verified you\'ll receive a 6-digit code.',
+      label: 'Code',
+      placeholder: '123456',
+      submit: 'Reset password',
+      submitting: 'Verifying...',
+    },
+  },
+
+  consentGate: {
+    ariaLabel: 'Accept the terms',
+    heading: 'ONE MOMENT!',
+    intro: {
+      before: 'PisoZone now has a ',
+      middle: ' and ',
+      after: ': they explain what data we collect, how we protect it and your rights (including export and deletion). To keep using the app you need to accept them.',
+    },
+    checkboxLabel: 'I\'ve read and accept the Privacy Policy and Terms of Service',
+    saveFailed: 'Save failed. Check your connection and try again.',
+    accept: 'Accept and continue',
+    accepting: 'Saving…',
+    decline: 'Decline — sign out',
+  },
+}
+
+const auth = createNamespaceProxy(it, en)
 
 export default auth

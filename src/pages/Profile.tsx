@@ -24,6 +24,7 @@ import WeightLineChart from '../components/WeightLineChart'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
+import LanguageSettingsCard from '../components/LanguageSettingsCard'
 import DeleteAccountModal from '../components/DeleteAccountModal'
 import common from '../lib/i18n/common'
 import profileText from '../lib/i18n/profile'
@@ -352,6 +353,9 @@ export default function ProfilePage() {
 
       {/* Notifiche push */}
       <NotificationSettingsCard />
+
+      {/* Lingua (roadmap v3, pilastro 04): puramente client, nessuna colonna DB */}
+      <LanguageSettingsCard />
 
       {/* Avatar con cornice */}
       <div className="card flex flex-col items-center gap-3">
