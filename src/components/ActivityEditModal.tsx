@@ -26,6 +26,8 @@ import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
 import segmentsText from '../lib/i18n/segments'
 import { computeSplits, type TrackedPoint } from '../lib/gps'
+import { buildGpxDocument } from '../lib/gpxExport'
+import { downloadAsGpx } from '../lib/dataExport'
 
 // Mappa reale caricata pigra: Leaflet pesa ~150 kB e serve solo quando si
 // apre un'attività GPS — senza key (o senza rete: le tile non arriverebbero
@@ -251,6 +253,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
     else if (outcome !== 'cancelled') haptic('success')
   }
 
+  // Export GPX (roadmap v4, pilastro 04): il nome dell'attività nel file e
+  // nel <name> del GPX segue lo stesso schema label+data dell'export card.
+  const handleExportGpx = () => {
+    const typeLabel = ACTIVITY_OPTIONS.find((o) => o.value === activity.type)?.label ?? activity.type
+    const dateStr = format(parseISO(activity.date), 'yyyy-MM-dd')
+    const xml = buildGpxDocument(routePoints, `${typeLabel} - ${dateStr}`)
+    downloadAsGpx(xml, `pisozone-${activity.type}-${dateStr}.gpx`)
+    haptic('success')
+  }
+
   const handleDelete = async () => {
     if (!confirmDelete) { setConfirmDelete(true); return }
     setErrorMsg('')
@@ -467,6 +479,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
             >
               {segmentCreated ? segmentsText.create.doneHint : segmentsText.create.entryButton}
+            </button>
+            {/* Export GPX (roadmap v4, pilastro 04): il percorso è portabile
+                fuori da PisoZone, non solo esportabile in CSV/JSON. */}
+            <button
+              type="button"
+              onClick={handleExportGpx}
+              className="w-full text-xs text-center py-1.5 rounded-lg"
+              style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+            >
+              {log.gpxExport.button}
             </button>
           </div>
         )}

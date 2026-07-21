@@ -3,7 +3,8 @@ import { supabaseAdmin, sendToSubscriptions, type PushSubscriptionRow } from '..
 import { withSentry } from '../_lib/sentry.js'
 import { getRomeHour, getRomeToday, getRomeTodayRange } from '../_lib/time.js'
 import { allowsNotification, type NotificationPrefs } from '../_lib/notificationPrefs.js'
-import { classifyReminder } from '../_lib/comeback.js'
+import { classifyReminder, reminderTone } from '../_lib/comeback.js'
+import { computeReadiness, type ReadinessActivityRow, type ReadinessRecoveryRow } from '../_lib/readiness.js'
 import {
   seasonalEventsToAnnounce, computeSeasonalPodium, plusDays,
   type PodiumActivityRow,
@@ -124,10 +125,48 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   const standard = allowed.filter((s) => classifyReminder(daysAbsentOf(s.user_id)) === 'standard')
   const comeback = allowed.filter((s) => classifyReminder(daysAbsentOf(s.user_id)) === 'comeback')
 
-  await sendToSubscriptions(standard, {
+  // Notifiche consapevoli della prontezza (roadmap v4, pilastro 04): solo il
+  // promemoria standard si ammorbidisce — quello di rientro è già morbido di
+  // suo. Finestra di 60 giorni: comoda copertura per il carico (2 settimane)
+  // e per trovare almeno 3 sessioni con RPE, senza scaricare tutto lo storico.
+  const standardUserIds = [...new Set(standard.map((s) => s.user_id))]
+  const readinessByUser = new Map<string, ReturnType<typeof computeReadiness>>()
+  if (standardUserIds.length > 0) {
+    const since = new Date(now.getTime() - 60 * 24 * 3600 * 1000).toISOString()
+    const sinceDay = since.slice(0, 10)
+    const [{ data: actRows }, { data: recRows }] = await Promise.all([
+      supabaseAdmin.from('activities').select('user_id, date, duration_min, rpe').in('user_id', standardUserIds).gte('date', since),
+      supabaseAdmin.from('recovery_logs').select('user_id, day, sleep_hours, rest').in('user_id', standardUserIds).gte('day', sinceDay),
+    ])
+    const actsByUser = new Map<string, ReadinessActivityRow[]>()
+    for (const r of actRows ?? []) {
+      const list = actsByUser.get(r.user_id as string) ?? []
+      list.push({ date: r.date as string, duration_min: r.duration_min as number, rpe: r.rpe as number | null })
+      actsByUser.set(r.user_id as string, list)
+    }
+    const recByUser = new Map<string, ReadinessRecoveryRow[]>()
+    for (const r of recRows ?? []) {
+      const list = recByUser.get(r.user_id as string) ?? []
+      list.push({ day: r.day as string, sleep_hours: r.sleep_hours as number | null, rest: r.rest as boolean })
+      recByUser.set(r.user_id as string, list)
+    }
+    for (const userId of standardUserIds) {
+      readinessByUser.set(userId, computeReadiness(actsByUser.get(userId) ?? [], recByUser.get(userId) ?? [], now))
+    }
+  }
+
+  const standardSoft = standard.filter((s) => reminderTone(readinessByUser.get(s.user_id)?.advice ?? null) === 'soft')
+  const standardPush = standard.filter((s) => reminderTone(readinessByUser.get(s.user_id)?.advice ?? null) === 'push')
+
+  await sendToSubscriptions(standardPush, {
     title: 'Non hai ancora registrato nulla oggi 💪',
     body: 'Sono le 22:00: fai ancora in tempo a segnare un allenamento!',
     url: '/log',
+  })
+  await sendToSubscriptions(standardSoft, {
+    title: 'Prontezza bassa oggi 🌙',
+    body: 'Va bene anche saltare: sonno, sforzo e carico dicono che il corpo chiede una pausa.',
+    url: '/',
   })
   await sendToSubscriptions(comeback, {
     title: 'Ci manchi su PisoZone 🌅',
@@ -140,6 +179,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({
     notified: standard.length + comeback.length,
     comeback: comeback.length,
+    standardSoft: standardSoft.length,
     seasonalPodium: podiumNotified,
   })
 }

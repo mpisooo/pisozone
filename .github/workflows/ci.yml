@@ -37,3 +37,11 @@ jobs:
       # il bundle deployabile lo produce Vercel con le env reali.
       - name: Build
         run: npx vite build
+
+      # Test end-to-end (roadmap v4, pilastro 04): solo chromium, solo i
+      # flussi verificabili senza un account Supabase reale (vedi e2e/README.md).
+      - name: Installa Chromium per Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Test end-to-end
+        run: npm run test:e2e

@@ -293,6 +293,34 @@ const it = {
     dismissAria: 'Chiudi il timer di recupero',
   },
 
+  // Export GPX di un percorso (roadmap v4, pilastro 04): bottone in
+  // ActivityEditModal, sotto la mappa/sagoma. lib/gpxExport.ts.
+  gpxExport: {
+    button: 'Esporta GPX',
+  },
+
+  // Import GPX (roadmap v4, pilastro 04): entry point in Log.tsx accanto al
+  // bottone GPS, GpxImportModal.tsx, logica pura in lib/gpxImport.ts.
+  gpxImport: {
+    entryButton: 'Importa un percorso GPX',
+    title: 'IMPORTA DA GPX',
+    close: 'Chiudi',
+    dialogAriaLabel: 'Importa un percorso da un file GPX',
+    hint: 'Scegli un file .gpx esportato da un altro strumento (Strava, Garmin Connect, Komoot...): ricostruiamo l\'attività dal percorso registrato.',
+    pickFile: 'Scegli un file GPX',
+    changeFile: 'Cambia file',
+    parseFailed: 'Il file non è un GPX valido, o non contiene abbastanza punti con un orario registrato.',
+    typeLabel: 'Tipo di attività',
+    previewDate: 'Data',
+    previewDuration: 'Durata',
+    previewDistance: 'Distanza',
+    previewElevation: 'Dislivello',
+    importing: 'Importazione...',
+    submit: 'Importa attività',
+    failed: 'Non sono riuscito a importare l\'attività. Controlla la connessione e riprova.',
+    doneToast: 'Attività importata dal file GPX',
+  },
+
   errors: {
     loadFailed: 'Errore nel caricamento delle attività. Riprova.',
     // Un'attività in coda offline che al momento della sincronizzazione viene
@@ -580,6 +608,30 @@ const en: Widen<typeof it> = {
     adjustLessAria: 'Remove 15 seconds',
     adjustMoreAria: 'Add 15 seconds',
     dismissAria: 'Close the rest timer',
+  },
+
+  gpxExport: {
+    button: 'Export GPX',
+  },
+
+  gpxImport: {
+    entryButton: 'Import a GPX route',
+    title: 'IMPORT FROM GPX',
+    close: 'Close',
+    dialogAriaLabel: 'Import a route from a GPX file',
+    hint: 'Pick a .gpx file exported from another tool (Strava, Garmin Connect, Komoot...): we\'ll rebuild the activity from the recorded route.',
+    pickFile: 'Choose a GPX file',
+    changeFile: 'Change file',
+    parseFailed: 'That\'s not a valid GPX file, or it doesn\'t have enough timestamped points.',
+    typeLabel: 'Activity type',
+    previewDate: 'Date',
+    previewDuration: 'Duration',
+    previewDistance: 'Distance',
+    previewElevation: 'Elevation gain',
+    importing: 'Importing...',
+    submit: 'Import activity',
+    failed: 'Couldn\'t import the activity. Check your connection and try again.',
+    doneToast: 'Activity imported from the GPX file',
   },
 
   errors: {

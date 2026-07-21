@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { classifyReminder } from './comeback'
+import { classifyReminder, reminderTone } from './comeback'
 
 describe('classifyReminder', () => {
   it('assenza breve = promemoria standard', () => {
@@ -12,5 +12,16 @@ describe('classifyReminder', () => {
   it('tutto il resto = silenzio', () => {
     for (const d of [4, 5, 6, 10, 20, 45]) expect(classifyReminder(d)).toBe('skip')
     expect(classifyReminder(null)).toBe('skip')
+  })
+})
+
+describe('reminderTone', () => {
+  it('prontezza "riposa" ammorbidisce il tono', () => {
+    expect(reminderTone('rest')).toBe('soft')
+  })
+  it('ogni altro segnale (o nessuno) mantiene il tono normale', () => {
+    expect(reminderTone('push')).toBe('push')
+    expect(reminderTone('steady')).toBe('push')
+    expect(reminderTone(null)).toBe('push')
   })
 })

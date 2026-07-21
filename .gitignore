@@ -26,5 +26,11 @@ stats.html
 
 .vercel
 
+# Playwright (roadmap v4, pilastro 04)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json

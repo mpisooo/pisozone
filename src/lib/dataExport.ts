@@ -109,3 +109,10 @@ export function downloadAsCsv(csv: string, filename: string) {
   // BOM UTF-8: senza, Excel su Windows legge male le lettere accentate
   downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }), filename)
 }
+
+// Export GPX di un singolo percorso (roadmap v4, pilastro 04): il documento
+// lo costruisce lib/gpxExport.ts, qui solo il download \u2014 stesso pattern di
+// downloadAsCsv/downloadAsJson.
+export function downloadAsGpx(xml: string, filename: string) {
+  downloadBlob(new Blob([xml], { type: 'application/gpx+xml' }), filename)
+}

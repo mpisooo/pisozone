@@ -71,7 +71,9 @@ export function computeRouteStats(points: TrackedPoint[], elapsedMs: number): Ro
 // con timestamp non crescente non è un movimento reale e va ignorato (i punti
 // in activity_routes sono già filtrati alla registrazione, ma le funzioni che
 // li rileggono non devono fidarsi).
-function dropNonIncreasingTimestamps(points: TrackedPoint[]): TrackedPoint[] {
+// Esportata anche per lib/gpxImport.ts: un file GPX importato merita la
+// stessa diffidenza di un percorso riletto dal DB, non solo di uno live.
+export function dropNonIncreasingTimestamps(points: TrackedPoint[]): TrackedPoint[] {
   const clean: TrackedPoint[] = []
   for (const p of points) {
     const prev = clean[clean.length - 1]

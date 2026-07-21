@@ -117,6 +117,11 @@ const it = {
         title: 'Palestra da veterano',
         text: 'Salva le tue schede come routine e precompilale con un tocco, collega blocchi in superset o drop set, carica il bilanciere col calcolatore piastre e usa il nuovo timer di recupero tra le serie.',
       },
+      {
+        icon: '🛰️',
+        title: 'Importa ed esporta i tuoi percorsi',
+        text: 'Arrivi da Strava, Garmin Connect o Komoot? Importa un file GPX dalla scheda Registra. Ogni percorso tracciato si può anche esportare in GPX. E il promemoria serale ora tiene conto della tua prontezza: niente spinte ad allenarti se il corpo chiede riposo.',
+      },
     ],
   },
   photoLightbox: {
@@ -239,6 +244,11 @@ const en: Widen<typeof it> = {
         icon: '🏋️',
         title: 'Gym, veteran mode',
         text: 'Save your workouts as routines and prefill them in one tap, link blocks into supersets or drop sets, load the bar with the new plate calculator, and use the new rest timer between sets.',
+      },
+      {
+        icon: '🛰️',
+        title: 'Import and export your routes',
+        text: 'Coming from Strava, Garmin Connect or Komoot? Import a GPX file from the Log tab. Every tracked route can also be exported as GPX. And the evening reminder now factors in your readiness: no push to train if your body is asking for rest.',
       },
     ],
   },

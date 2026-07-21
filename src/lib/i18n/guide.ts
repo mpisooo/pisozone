@@ -34,6 +34,8 @@ const it = {
         'Il percorso lo ritrovi aprendo l\'attività dal Calendario, disegnato su una vera mappa (senza connessione resta la sagoma stilizzata), insieme al passo per ogni chilometro: una barra per km mostra dove hai spinto di più (l\'ultimo tratto sotto il km è indicato con la sua distanza reale). Mappa e passo valgono anche per i percorsi registrati in passato.',
         'Sotto al passo c\'è anche l\'altimetria: il profilo del percorso con il dislivello in salita (D+) e in discesa (D−). Vale per gli allenamenti tracciati d\'ora in poi, se il dispositivo fornisce la quota: i percorsi registrati in passato non ce l\'hanno salvata.',
         'Il percorso è privato. Se vuoi, puoi mostrarne la sagoma agli amici nel feed: lo decidi allenamento per allenamento, dal recap subito dopo il salvataggio o riaprendo l\'attività dal Calendario. Gli amici vedono solo la forma del giro, mai la mappa.',
+        'Arrivi da un altro strumento (Strava, Garmin Connect, Komoot...)? Nella scheda Registra, sotto il pulsante del GPS, trovi "Importa un percorso GPX": scegli il file esportato dall\'altra app, scegli lo sport e l\'attività si ricostruisce da sola — distanza, durata, dislivello compresi.',
+        'Ogni percorso tracciato si può anche esportare in GPX (il formato che ogni strumento GPS legge): il bottone è nella scheda dell\'attività, sotto la mappa. Utile per portare i tuoi giri fuori da PisoZone, non solo per tenerli qui.',
       ],
     },
     {
@@ -114,6 +116,7 @@ const it = {
         'In Statistiche, se hai corso negli ultimi 90 giorni, trovi anche il "Passo gara previsto": dalla tua corsa più veloce recente stima il tempo su 5K, 10K, mezza maratona e maratona. Si aggiorna da solo a ogni nuovo record.',
         'Nella pagina Programmi, se sei indietro di almeno due sessioni rispetto alla settimana in corso, un avviso te lo segnala — e se in più il carico sta già salendo, il consiglio cambia: prima recuperare piano, poi rimettersi in pari.',
         'Prima di tracciare col GPS (corsa, bici, camminata, trekking), nella scheda Registra puoi attivare "Allenamento a intervalli": scegli quante ripetute, la distanza e la zona target per il lavoro, la durata e la zona per il recupero. Durante il tracciamento un indicatore ti segue passo per passo e ti avvisa se esci dalla zona giusta.',
+        'Il promemoria serale delle 22:00 tiene conto anche della prontezza: se il segnale dice già "riposa", il messaggio cambia tono — niente spinta ad allenarti se il corpo sta chiedendo una pausa.',
       ],
     },
     {
@@ -244,6 +247,8 @@ const en: Widen<typeof it> = {
         'You can find the route again by opening the activity from the Calendar, drawn on a real map (offline it falls back to the stylized shape), together with the pace for every kilometer: a bar per km shows where you pushed hardest (the last stretch under a km is shown with its real distance). The map and pace also apply to routes recorded in the past.',
         'Below the pace there\'s also the elevation profile: the route\'s shape with elevation gain (D+) and elevation loss (D−). It applies to workouts tracked from now on, if your device provides altitude data: routes recorded in the past don\'t have it saved.',
         'The route is private. If you want, you can show its shape to friends in the feed: you decide workout by workout, from the recap right after saving or by reopening the activity from the Calendar. Friends only see the shape of your route, never the map.',
+        'Coming from another tool (Strava, Garmin Connect, Komoot...)? In the Log tab, under the GPS button, you\'ll find "Import a GPX route": pick the file exported from the other app, choose the sport, and the activity rebuilds itself — distance, duration and elevation gain included.',
+        'Every tracked route can also be exported as GPX (the format every GPS tool reads): the button is on the activity screen, under the map. Handy for taking your routes out of PisoZone, not just keeping them here.',
       ],
     },
     {
@@ -324,6 +329,7 @@ const en: Widen<typeof it> = {
         'In Stats, if you\'ve run in the last 90 days, you\'ll also find "Predicted race pace": from your fastest recent run it estimates your time over 5K, 10K, half marathon and marathon. It updates itself with every new record.',
         'On the Plans page, if you\'re at least two sessions behind the current week, a warning lets you know — and if your load is already climbing on top of that, the advice changes: ease back in first, then catch up.',
         'Before tracking with GPS (running, cycling, walking, trekking), the Log tab lets you turn on "Interval workout": choose how many repeats, the distance and target zone for the work, the duration and zone for the recovery. During tracking, an indicator follows you step by step and warns you if you drift out of the right zone.',
+        'The 10 PM evening reminder also takes readiness into account: if the signal already says "rest", the message changes tone — no push to train if your body is asking for a break.',
       ],
     },
     {

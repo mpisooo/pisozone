@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
-import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite, RotateCcw } from 'lucide-react'
+import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite, RotateCcw, Upload } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, ELEVATION_CAPABLE_TYPES, type GpsTrackableType } from '../lib/constants'
@@ -30,6 +30,7 @@ import ActivityIcon from '../components/ActivityIcon'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import ExerciseSetsFields from '../components/ExerciseSetsFields'
 import RoutinePickerModal from '../components/RoutinePickerModal'
+import GpxImportModal from '../components/GpxImportModal'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import WorkoutRecapOverlay from '../components/WorkoutRecapOverlay'
 import log from '../lib/i18n/log'
@@ -54,6 +55,8 @@ export default function LogPage() {
   const [saved, setSaved] = useState(false)
   const [savedOffline, setSavedOffline] = useState(false)
   const [savedOfflineExtras, setSavedOfflineExtras] = useState(false)
+  const [showGpxImport, setShowGpxImport] = useState(false)
+  const [gpxImported, setGpxImported] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [photoWarning, setPhotoWarning] = useState(false)
   const [creditsEarned, setCreditsEarned] = useState(0)
@@ -500,14 +503,24 @@ export default function LogPage() {
         )}
 
         {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
-          <button
-            type="button"
-            onClick={() => setTracking(true)}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            <Satellite size={18} />
-            {log.gpsButton}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setTracking(true)}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <Satellite size={18} />
+              {log.gpsButton}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowGpxImport(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 text-xs text-gray-400 hover:text-white transition-colors"
+            >
+              <Upload size={14} />
+              {log.gpxImport.entryButton}
+            </button>
+          </>
         )}
 
         {/* Date & Time */}
@@ -745,6 +758,24 @@ export default function LogPage() {
           )}
         </button>
       </form>
+
+      {showGpxImport && (
+        <GpxImportModal
+          onClose={() => setShowGpxImport(false)}
+          onImported={() => {
+            setShowGpxImport(false)
+            setGpxImported(true)
+            setTimeout(() => setGpxImported(false), 2500)
+          }}
+        />
+      )}
+
+      {gpxImported && (
+        <div className="toast-enter toast-saved flex items-center gap-3">
+          <CheckCircle2 size={22} className="text-green-400 shrink-0" />
+          <p className="text-white font-semibold text-sm">{log.gpxImport.doneToast}</p>
+        </div>
+      )}
 
       {tracking && (
         <WorkoutTrackingOverlay
