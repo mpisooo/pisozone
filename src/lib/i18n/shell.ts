@@ -102,6 +102,11 @@ const it = {
         title: 'Allenamenti a intervalli',
         text: 'Costruisci una sessione a ripetute prima di tracciare col GPS: l\'app ti segue zona per zona, passo dopo passo. E se un programma attivo va fuori rotta, ora te lo dice.',
       },
+      {
+        icon: '🗺️',
+        title: 'La tua heatmap personale',
+        text: 'In Statistiche, se hai attività tracciate col GPS, trovi una mappa con tutti i tuoi percorsi sovrapposti: dove passi più spesso la linea si accende. Privatissima: mai visibile ad altri.',
+      },
     ],
   },
   photoLightbox: {
@@ -209,6 +214,11 @@ const en: Widen<typeof it> = {
         icon: '⏱️',
         title: 'Interval workouts',
         text: 'Build a repeat session before tracking with GPS: the app follows you zone by zone, step by step. And if an active plan drifts off track, it now tells you.',
+      },
+      {
+        icon: '🗺️',
+        title: 'Your personal heatmap',
+        text: 'In Stats, if you have GPS-tracked activities, you\'ll find a map with all your routes overlaid: the more you pass through a place, the brighter the line glows. Fully private: never visible to anyone else.',
       },
     ],
   },

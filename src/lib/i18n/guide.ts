@@ -37,6 +37,15 @@ const it = {
       ],
     },
     {
+      icon: '🗺️',
+      title: 'La tua heatmap personale',
+      paragraphs: [
+        'In Statistiche, se hai almeno un\'attività tracciata col GPS, trovi "Apri la heatmap": una mappa con TUTTI i tuoi percorsi sovrapposti, dal primo all\'ultimo.',
+        'Dove sei passato più spesso la linea si vede più accesa; le strade percorse una volta sola restano appena visibili. È un modo diverso di rivedere la tua storia di allenamenti, non una statistica in più.',
+        'È sempre e solo tua: a differenza della sagoma di un singolo percorso, questa mappa non si condivide mai, nemmeno con gli amici.',
+      ],
+    },
+    {
       icon: '🏋️',
       title: 'Palestra: esercizi e record',
       paragraphs: [
@@ -220,6 +229,15 @@ const en: Widen<typeof it> = {
         'You can find the route again by opening the activity from the Calendar, drawn on a real map (offline it falls back to the stylized shape), together with the pace for every kilometer: a bar per km shows where you pushed hardest (the last stretch under a km is shown with its real distance). The map and pace also apply to routes recorded in the past.',
         'Below the pace there\'s also the elevation profile: the route\'s shape with elevation gain (D+) and elevation loss (D−). It applies to workouts tracked from now on, if your device provides altitude data: routes recorded in the past don\'t have it saved.',
         'The route is private. If you want, you can show its shape to friends in the feed: you decide workout by workout, from the recap right after saving or by reopening the activity from the Calendar. Friends only see the shape of your route, never the map.',
+      ],
+    },
+    {
+      icon: '🗺️',
+      title: 'Your personal heatmap',
+      paragraphs: [
+        'In Stats, if you have at least one GPS-tracked activity, you\'ll find "Open heatmap": a map with ALL your routes overlaid, from the very first to the latest.',
+        'Where you\'ve passed most often the line glows brighter; streets you\'ve only walked once stay barely visible. It\'s a different way to revisit your training history, not just another statistic.',
+        'It\'s always and only yours: unlike a single route\'s shape, this map is never shared, not even with friends.',
       ],
     },
     {

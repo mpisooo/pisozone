@@ -1,11 +1,13 @@
 import { supabase } from './supabase'
 import type { RoutePoint } from '../types'
 import type { TrackedPoint } from './gps'
+import type { HeatmapRouteRow } from './heatmap'
 
 // Percorso GPS di un'attività tracciata (roadmap punto 12): una riga per
 // campione in activity_routes, non un blob — stesso pattern relazionale delle
 // altre tabelle figlie del progetto (activity_comments, weight_logs).
 const BATCH_SIZE = 500
+const ROUTES_PAGE_SIZE = 1000
 
 // La colonna altitude_m esiste solo dalla v42: PostgREST rifiuta l'INSERT di
 // una colonna sconosciuta (PGRST204) e fallirebbe il SELECT (42703). In
@@ -75,4 +77,27 @@ export async function fetchActivityRoute(
     })),
     error: null,
   }
+}
+
+// Tutti i percorsi dell'utente, di ogni attività (heatmap personale, roadmap
+// v4 pilastro 02): solo lat/lng, la quota e l'accuratezza non servono a una
+// vista d'insieme. Paginata come fetchAllActivityRoutes in dataExport.ts —
+// PostgREST tronca silenziosamente oltre le 1000 righe per richiesta.
+export async function fetchAllUserRoutes(
+  userId: string,
+): Promise<{ rows: HeatmapRouteRow[]; error: Error | null }> {
+  const rows: HeatmapRouteRow[] = []
+  for (let from = 0; ; from += ROUTES_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('activity_routes')
+      .select('activity_id, lat, lng')
+      .eq('user_id', userId)
+      .order('activity_id')
+      .order('seq')
+      .range(from, from + ROUTES_PAGE_SIZE - 1)
+    if (error) return { rows: [], error }
+    rows.push(...(data ?? []).map((r) => ({ activityId: r.activity_id as string, lat: r.lat as number, lng: r.lng as number })))
+    if (!data || data.length < ROUTES_PAGE_SIZE) break
+  }
+  return { rows, error: null }
 }

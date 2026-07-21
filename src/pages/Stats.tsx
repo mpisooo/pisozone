@@ -33,6 +33,7 @@ import EmptyState from '../components/EmptyState'
 import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
 import wrappedText from '../lib/i18n/wrapped'
+import heatmapText from '../lib/i18n/heatmap'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 
@@ -213,6 +214,11 @@ export default function StatsPage() {
   // Passo gara previsto (roadmap v4, pilastro 01): sempre sugli ultimi 90
   // giorni veri, indipendente dal filtro periodo della pagina.
   const racePrediction = useMemo(() => predictRaceTimes(activities), [activities])
+
+  // Heatmap personale (roadmap v4, pilastro 02): la card compare solo se
+  // esiste almeno un'attività tracciata via GPS, la pagina vera fa il fetch
+  // pesante di tutti i percorsi solo quando l'utente la apre davvero.
+  const hasGpsRoutes = useMemo(() => activities.some((a) => a.gps_tracked), [activities])
   const busiestDay = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of filtered) {
@@ -597,6 +603,22 @@ export default function StatsPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Heatmap personale (roadmap v4, pilastro 02): entry point verso /heatmap,
+          il fetch di tutti i percorsi avviene solo lì, non qui. */}
+      {hasGpsRoutes && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{heatmapText.entryCard.heading}</h2>
+          <p className="text-xs text-gray-400 mt-1">{heatmapText.entryCard.subtitle}</p>
+          <button
+            type="button"
+            className="btn-primary w-full py-2 text-sm mt-3"
+            onClick={() => navigate('/heatmap')}
+          >
+            {heatmapText.entryCard.button}
+          </button>
         </div>
       )}
 
