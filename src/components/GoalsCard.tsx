@@ -53,7 +53,7 @@ export default function GoalsCard({ goals, activities, working, onCreate, onDele
   return (
     <>
       {goals.length === 0 ? (
-        <button type="button" className="card w-full text-left" onClick={() => setShowCreate(true)}>
+        <button type="button" className="card tap w-full text-left" onClick={() => setShowCreate(true)}>
           <div className="flex items-center gap-3">
             <Target size={22} className="text-gray-700 flex-shrink-0" />
             <div className="flex-1 min-w-0">

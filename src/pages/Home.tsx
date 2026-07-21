@@ -402,7 +402,7 @@ export default function HomePage() {
         {activeEnrollment && activePlanTemplate && planProgress ? (
           <button
             type="button"
-            className="card w-full text-left"
+            className="card tap w-full text-left"
             onClick={() => navigate('/plans', { viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-2">
@@ -445,7 +445,7 @@ export default function HomePage() {
         ) : (
           <button
             type="button"
-            className="card w-full text-left"
+            className="card tap w-full text-left"
             onClick={() => navigate('/plans', { viewTransition: true })}
           >
             <div className="flex items-center gap-3">
@@ -471,7 +471,7 @@ export default function HomePage() {
         {nearestMedal && (
           <button
             type="button"
-            className="card w-full text-left"
+            className="card tap w-full text-left"
             onClick={() => navigate('/medals', { viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-2">
@@ -516,7 +516,7 @@ export default function HomePage() {
         {hasFriends ? (
           <button
             type="button"
-            className="card w-full text-left"
+            className="card tap w-full text-left"
             onClick={() => navigate('/social', { state: { tab: 'classifica' }, viewTransition: true })}
           >
             <div className="flex items-center justify-between mb-3">
@@ -548,7 +548,7 @@ export default function HomePage() {
         ) : (
           <button
             type="button"
-            className="card w-full text-left"
+            className="card tap w-full text-left"
             onClick={() => navigate('/social', { state: { tab: 'friends' }, viewTransition: true })}
           >
             <div className="flex items-center gap-3">

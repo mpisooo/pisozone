@@ -10,3 +10,10 @@ export function isRateLimitError(error: { message?: string } | null | undefined)
 export function isSegmentHasActiveDuelError(error: { message?: string } | null | undefined): boolean {
   return !!error?.message?.includes('SEGMENT_HAS_ACTIVE_DUEL')
 }
+
+// Sollevato da guard_last_admin_removal (v49) quando si prova a rimuovere
+// (auto-uscita o espulsione) l'unico admin di un gruppo che ha ancora altri
+// membri: il gruppo resterebbe orfano.
+export function isGroupLastAdminError(error: { message?: string } | null | undefined): boolean {
+  return !!error?.message?.includes('GROUP_LAST_ADMIN')
+}

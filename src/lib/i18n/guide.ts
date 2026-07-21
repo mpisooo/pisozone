@@ -189,7 +189,9 @@ const it = {
       title: 'Social: amici, feed e classifica',
       paragraphs: [
         'Cerca i tuoi amici per username e aggiungili: nel feed vedrai le loro attività, con foto, reazioni (❤️ 💪 🔥 👏 🚀) e commenti. Se un amico ha scelto di condividere un giro GPS, nel feed compare anche la sagoma del suo percorso.',
-        'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese.',
+        'Tocca il numero accanto a una reazione per vedere ESATTAMENTE chi ha reagito, non solo quanti: avatar, username ed emoji di ciascuno. Nella ricerca amici, un\'etichetta 🤝 ti dice quanti amici avete già in comune con chi non conosci ancora.',
+        'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese. Ogni messaggio, in chat 1:1 o di gruppo, mostra anche l\'orario.',
+        'I gruppi crescono con te: se sei admin puoi rinominargli il nome, dargli una foto, aggiungere amici in qualsiasi momento ed espellere chi non c\'entra più — toccando la foto del gruppo o un membro dalla scheda "membri".',
         'Sul profilo di un amico c\'è anche "Io vs te": il confronto della settimana in corso — allenamenti, minuti, chilometri e calorie — tu da un lato, l\'amico dall\'altro. La barra di ogni voce dice a colpo d\'occhio chi è avanti: più rosso, più sei tu.',
         'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km e medaglie totali.',
         'Puoi bloccare o segnalare chi si comporta male: chi è bloccato non può scriverti né mandarti richieste.',
@@ -403,7 +405,9 @@ const en: Widen<typeof it> = {
       title: 'Social: friends, feed and leaderboard',
       paragraphs: [
         'Search for your friends by username and add them: in the feed you\'ll see their activities, with photos, reactions (❤️ 💪 🔥 👏 🚀) and comments. If a friend chose to share a GPS route, the feed also shows the shape of their route.',
-        'There\'s 1:1 chat, groups, and the weekly leaderboard — among friends or global. Tap anyone on the leaderboard to open their public profile, with level, numbers and favorite sports; in the Friends tab you\'ll also find "People to discover", the month\'s most active users.',
+        'Tap the number next to a reaction to see EXACTLY who reacted, not just how many: everyone\'s avatar, username and emoji. In friend search, a 🤝 label tells you how many friends you already have in common with someone you don\'t know yet.',
+        'There\'s 1:1 chat, groups, and the weekly leaderboard — among friends or global. Tap anyone on the leaderboard to open their public profile, with level, numbers and favorite sports; in the Friends tab you\'ll also find "People to discover", the month\'s most active users. Every message, in 1:1 or group chat, now shows a timestamp too.',
+        'Groups grow with you: if you\'re an admin you can rename the group, give it a photo, add friends at any time, and remove anyone who no longer belongs — just tap the group photo or a member from the "members" panel.',
         'On a friend\'s profile there\'s also "Me vs you": a comparison for the current week — workouts, minutes, kilometers and calories — you on one side, your friend on the other. Each row\'s bar shows at a glance who\'s ahead: the more red, the more it\'s you.',
         'The "By the numbers" card that others see on your profile is also on YOUR Profile, right below your photo: total activities, hours, km and medals.',
         'You can block or report anyone behaving badly: someone you\'ve blocked can\'t message you or send you requests.',

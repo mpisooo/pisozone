@@ -28,7 +28,7 @@ import GroupsTab from '../components/social/GroupsTab'
 type Tab = 'feed' | 'classifica' | 'friends' | 'chat' | 'groups'
 type ActiveView =
   | { type: 'dm'; userId: string; username: string; photo: string | null }
-  | { type: 'group'; groupId: string; groupName: string }
+  | { type: 'group'; groupId: string; groupName: string; groupPhoto: string | null }
   | { type: 'profile'; userId: string; username: string; photo: string | null; friendshipId?: string; isFriend: boolean; isPendingSent: boolean; isPendingReceived: boolean }
   | { type: 'create-group' }
 
@@ -49,10 +49,10 @@ export default function SocialPage() {
   const [activeView, setActiveView] = useState<ActiveView | null>(null)
   const [friendActionError, setFriendActionError] = useState('')
 
-  const { friends, pendingReceived, pendingSent, loading: friendsLoading, searchUsers, sendRequest, acceptRequest, rejectOrRemove, refetch: refetchFriends } = useFriends()
+  const { friends, pendingReceived, pendingSent, loading: friendsLoading, searchUsers, sendRequest, acceptRequest, rejectOrRemove, fetchMutualFriendsCounts, refetch: refetchFriends } = useFriends()
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
-  const { feed, loading: feedLoading, refetch: refetchFeed, react } = useFeed()
+  const { feed, loading: feedLoading, refetch: refetchFeed, react, fetchReactors } = useFeed()
   const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(refetchFeed)
   const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
   const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
@@ -176,8 +176,11 @@ export default function SocialPage() {
             onBack={() => { setActiveView(null); fetchConversations() }} />
         )}
         {activeView.type === 'group' && (
-          <GroupChatView groupId={activeView.groupId} groupName={activeView.groupName} myId={user!.id} myUsername={myUsername} myPhoto={myPhoto}
-            onBack={() => { setActiveView(null); refetchGroups() }} />
+          <GroupChatView
+            groupId={activeView.groupId} groupName={activeView.groupName} groupPhoto={activeView.groupPhoto}
+            friends={friends} myId={user!.id} myUsername={myUsername} myPhoto={myPhoto}
+            onBack={() => { setActiveView(null); refetchGroups() }}
+          />
         )}
         {activeView.type === 'profile' && (
           <FriendProfileView
@@ -194,7 +197,7 @@ export default function SocialPage() {
         )}
         {activeView.type === 'create-group' && (
           <CreateGroupView friends={friends} onBack={() => setActiveView(null)}
-            onCreate={(gid, gname) => { setActiveView({ type: 'group', groupId: gid, groupName: gname }); refetchGroups() }} />
+            onCreate={(gid, gname) => { setActiveView({ type: 'group', groupId: gid, groupName: gname, groupPhoto: null }); refetchGroups() }} />
         )}
       </div>
     )
@@ -248,6 +251,7 @@ export default function SocialPage() {
               openReactionsId={openReactionsId}
               setOpenReactionsId={setOpenReactionsId}
               react={react}
+              fetchReactors={fetchReactors}
               openCommentsId={openCommentsId}
               setOpenCommentsId={setOpenCommentsId}
               commentCounts={commentCounts}
@@ -280,6 +284,7 @@ export default function SocialPage() {
             pendingReceivedMap={pendingReceivedMap}
             suggestions={suggestions}
             searchUsers={searchUsers}
+            fetchMutualFriendsCounts={fetchMutualFriendsCounts}
             blockedIds={blockedIds}
             sendRequest={sendRequest}
             acceptRequest={acceptRequest}
@@ -308,7 +313,7 @@ export default function SocialPage() {
             groups={groups}
             loading={groupsLoading}
             onCreateGroup={() => setActiveView({ type: 'create-group' })}
-            onOpenGroup={(groupId, groupName) => setActiveView({ type: 'group', groupId, groupName })}
+            onOpenGroup={(groupId, groupName, groupPhoto) => setActiveView({ type: 'group', groupId, groupName, groupPhoto })}
           />
         )}
 

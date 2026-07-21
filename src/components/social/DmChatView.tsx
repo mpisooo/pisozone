@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Send, MessageCircle, Edit2, Trash2, Check, X } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useMessages, type Message } from '../../hooks/useMessages'
 import { haptic } from '../../lib/haptics'
@@ -138,6 +139,11 @@ export default function DmChatView({ userId, username, photo, myId, onBack }: Pr
                   <span className="block text-[9px] opacity-55 mt-0.5">{social.chat.dm.editedLabel}</span>
                 )}
               </div>
+              {/* Orario sotto ogni messaggio (roadmap v6): created_at arriva
+                  già da ogni fetch, semplicemente non era mai renderizzato. */}
+              {!msg.id.startsWith('tmp-') && (
+                <span className="text-[9px] text-gray-600 mt-0.5 px-1">{format(parseISO(msg.created_at), 'HH:mm')}</span>
+              )}
               {msg.failed && (
                 <button
                   type="button"
@@ -223,11 +229,7 @@ export default function DmChatView({ userId, username, photo, myId, onBack }: Pr
             </button>
           </div>
           <div className="px-4 pt-1 pb-2">
-            <button
-              onClick={() => setSelectedMsg(null)}
-              className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
-              style={{ background: 'var(--grey)' }}
-            >
+            <button onClick={() => setSelectedMsg(null)} className="btn-secondary w-full text-sm">
               {common.cancel}
             </button>
           </div>

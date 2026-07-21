@@ -223,6 +223,57 @@ html, body, #root {
 }
 .btn-primary:active { transform: translateY(0); }
 
+/* ── Bottoni secondario/distruttivo (roadmap v6, pilastro 02 punto 1):
+   .btn-primary era l'unica classe bottone formalizzata — ogni azione di
+   secondo piano o irreversibile si scriveva a mano ogni volta (es. il
+   bottone "Annulla" grigio pieno, identico byte-per-byte in ChatTab.tsx e
+   DmChatView.tsx). Standard 2026: primario pieno + secondario outline +
+   distruttivo separato, mai tre stili arbitrari. ── */
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--grey-light);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover { background: var(--grey); }
+.btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
+.btn-destructive {
+  background: transparent;
+  color: #f87171;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.btn-destructive:hover { background: rgba(248, 113, 113, 0.12); }
+.btn-destructive:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Chip (roadmap v6, pilastro 02 punto 2): forma unica per le etichette a
+   pillola sparse per l'app (badge amico, richiesta pendente, livello, PR,
+   "in attesa di rete") — oggi ognuna una combinazione Tailwind indipendente.
+   Il colore resta contestuale/semantico (via style inline o classi di
+   accento): qui si fissa solo la forma, non si forza una palette. ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 /* ── Form inputs ── */
 .input-dark {
   background: var(--grey);

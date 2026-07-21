@@ -101,6 +101,17 @@ export function useFriends() {
     return { error }
   }
 
+  // Amici in comune (roadmap v6): RPC security definer (v49), batch su più
+  // utenti in una sola chiamata (ricerca/scoperta mostrano fino a 10-15
+  // risultati insieme). Tollerante pre-migrazione: RPC assente → mappa vuota,
+  // i badge restano semplicemente nascosti.
+  const fetchMutualFriendsCounts = async (userIds: string[]): Promise<Map<string, number>> => {
+    if (userIds.length === 0) return new Map()
+    const { data, error } = await supabase.rpc('get_mutual_friends_counts', { p_user_ids: userIds })
+    if (error || !data) return new Map()
+    return new Map(data.map((r: { user_id: string; mutual_count: number | string }) => [r.user_id, Number(r.mutual_count)]))
+  }
+
   return {
     friends,
     pendingReceived,
@@ -110,6 +121,7 @@ export function useFriends() {
     sendRequest,
     acceptRequest,
     rejectOrRemove,
+    fetchMutualFriendsCounts,
     refetch: fetchFriends,
   }
 }

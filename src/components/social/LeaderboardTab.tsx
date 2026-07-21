@@ -26,7 +26,7 @@ export default function LeaderboardTab({ lbScope, setLbScope, loading, entries, 
             key={scope}
             type="button"
             onClick={() => setLbScope(scope)}
-            className={`flex-1 py-2 text-xs font-semibold transition-all ${lbScope === scope ? 'text-[white]' : 'text-gray-500'}`}
+            className={`tap flex-1 py-2 text-xs font-semibold transition-all ${lbScope === scope ? 'text-[white]' : 'text-gray-500'}`}
             style={{ background: lbScope === scope ? 'var(--red)' : 'var(--grey-dark)' }}
           >
             {label}
@@ -54,7 +54,7 @@ export default function LeaderboardTab({ lbScope, setLbScope, loading, entries, 
                 type="button"
                 disabled={entry.isMe}
                 onClick={() => openProfile(entry.user_id, entry.username, entry.photo_url)}
-                className="w-full flex items-center gap-3 py-2.5 text-left"
+                className="tap w-full flex items-center gap-3 py-2.5 text-left"
               >
                 <span className={`font-bebas text-lg w-6 text-center flex-shrink-0 ${
                   i === 0 ? 'text-[var(--red)]' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-gray-500'

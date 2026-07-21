@@ -48,7 +48,7 @@ export default function ChatTab({ friends, conversations, loadingConvs, deleteCo
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{social.chat.writeToFriendHeading}</p>
           <div className="flex gap-4 overflow-x-auto pb-1">
             {friends.map(f => (
-              <button key={f.user_id} onClick={() => onOpenDm(f.user_id, f.username, f.photo_url)} className="flex flex-col items-center gap-1 min-w-[52px]">
+              <button key={f.user_id} onClick={() => onOpenDm(f.user_id, f.username, f.photo_url)} className="tap flex flex-col items-center gap-1 min-w-[52px]">
                 <Av photo={f.photo_url} name={f.username} />
                 <span className="text-[10px] text-gray-400 w-12 truncate text-center">{f.username}</span>
               </button>
@@ -76,7 +76,7 @@ export default function ChatTab({ friends, conversations, loadingConvs, deleteCo
               onTouchEnd={cancelConvPress}
               onTouchMove={cancelConvPress}
               onContextMenu={e => { e.preventDefault(); setSelectedConv({ userId: c.userId, username: c.username }) }}
-              className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors select-none"
+              className="tap w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors select-none"
             >
               <div className="relative">
                 <Av photo={c.photo} name={c.username} />
@@ -119,11 +119,7 @@ export default function ChatTab({ friends, conversations, loadingConvs, deleteCo
             </button>
           </div>
           <div className="px-4 pt-1 pb-2">
-            <button
-              onClick={() => setSelectedConv(null)}
-              className="w-full py-3 rounded-xl text-center text-gray-400 font-medium text-sm"
-              style={{ background: 'var(--grey)' }}
-            >
+            <button onClick={() => setSelectedConv(null)} className="btn-secondary w-full text-sm">
               {common.cancel}
             </button>
           </div>

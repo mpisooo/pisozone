@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, X, Check, Clock, UserPlus, MessageCircle } from 'lucide-react'
 import { SkeletonRow } from '../SkeletonCard'
 import EmptyState from '../EmptyState'
@@ -21,6 +21,7 @@ interface Props {
   pendingReceivedMap: Map<string, string>
   suggestions: Suggestion[]
   searchUsers: (query: string) => Promise<UserSearchResult[]>
+  fetchMutualFriendsCounts: (userIds: string[]) => Promise<Map<string, number>>
   blockedIds: string[]
   sendRequest: (addresseeId: string) => Promise<{ error: Error | null }>
   acceptRequest: (friendshipId: string) => Promise<{ error: Error | null }>
@@ -33,7 +34,7 @@ interface Props {
 export default function FriendsTab({
   friends, friendsLoading, pendingReceived, pendingSent,
   friendsMap, pendingSentMap, pendingReceivedMap,
-  suggestions, searchUsers, blockedIds,
+  suggestions, searchUsers, fetchMutualFriendsCounts, blockedIds,
   sendRequest, acceptRequest, rejectOrRemove, refetchFriends, runFriendAction,
   openProfile,
 }: Props) {
@@ -56,6 +57,17 @@ export default function FriendsTab({
     }, 350)
   }, [searchUsers, blockedIds])
 
+  // Amici in comune (roadmap v6): badge su ricerca e scoperta, una sola
+  // chiamata batch per entrambe le liste visibili in un dato momento.
+  const [mutualCounts, setMutualCounts] = useState<Map<string, number>>(new Map())
+  useEffect(() => {
+    const ids = [...new Set([...searchResults.map(r => r.id), ...suggestions.map(s => s.user_id)])]
+    if (ids.length === 0) { setMutualCounts(new Map()); return }
+    let cancelled = false
+    fetchMutualFriendsCounts(ids).then(m => { if (!cancelled) setMutualCounts(m) })
+    return () => { cancelled = true }
+  }, [searchResults, suggestions, fetchMutualFriendsCounts])
+
   return (
     <>
       {/* Search */}
@@ -69,7 +81,7 @@ export default function FriendsTab({
             onChange={e => handleSearch(e.target.value)}
           />
           {searchQuery && (
-            <button type="button" onClick={() => { setSearchQuery(''); setSearchResults([]) }} aria-label={social.friends.clearSearchAria} className="text-gray-500">
+            <button type="button" onClick={() => { setSearchQuery(''); setSearchResults([]) }} aria-label={social.friends.clearSearchAria} className="tap text-gray-500">
               <X size={14} />
             </button>
           )}
@@ -89,24 +101,29 @@ export default function FriendsTab({
                     <div className="text-left min-w-0">
                       <p className="font-medium text-white truncate">{r.username}</p>
                       {r.name && <p className="text-xs text-gray-500 truncate">{r.name}</p>}
+                      {(mutualCounts.get(r.id) ?? 0) > 0 && (
+                        <p className="chip mt-0.5" style={{ background: 'var(--grey)', color: '#9ca3af' }}>
+                          🤝 {social.friends.mutualFriendsLabel(mutualCounts.get(r.id)!)}
+                        </p>
+                      )}
                     </div>
                   </button>
                   {isFr ? (
-                    <span className="text-xs bg-green-400/10 text-green-400 border border-green-400/25 rounded-full px-2.5 py-0.5 flex items-center gap-1 flex-shrink-0">
+                    <span className="chip bg-green-400/10 text-green-400 border border-green-400/25 flex-shrink-0">
                       <Check size={11} /> {social.friends.friendBadge}
                     </span>
                   ) : isRecv ? (
-                    <button disabled={busy} className="text-xs bg-[var(--red)] text-[white] rounded-full px-2.5 py-0.5 flex-shrink-0 disabled:opacity-50"
+                    <button disabled={busy} className="tap chip bg-[var(--red)] text-[white] flex-shrink-0 disabled:opacity-50"
                       onClick={async () => { const fid = pendingReceivedMap.get(r.id); if (fid) { setActionLoading(r.id); await runFriendAction(() => acceptRequest(fid)); await refetchFriends(); setActionLoading(null) } }}>
                       {social.friends.acceptLabel}
                     </button>
                   ) : sentId ? (
-                    <button disabled={busy} className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0"
+                    <button disabled={busy} className="tap text-xs text-gray-500 flex items-center gap-1 flex-shrink-0"
                       onClick={async () => { setActionLoading(r.id); await runFriendAction(() => rejectOrRemove(sentId)); await refetchFriends(); setActionLoading(null) }}>
                       <Clock size={12} /> {common.cancel}
                     </button>
                   ) : (
-                    <button disabled={busy} aria-label={social.friends.addFriendAria} className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
+                    <button disabled={busy} aria-label={social.friends.addFriendAria} className="tap p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80 disabled:opacity-40 flex-shrink-0"
                       onClick={async () => { setActionLoading(r.id); await runFriendAction(() => sendRequest(r.id)); await refetchFriends(); setActionLoading(null) }}>
                       <UserPlus size={16} />
                     </button>
@@ -136,6 +153,11 @@ export default function FriendsTab({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{s.username}</p>
                   <p className="text-xs text-gray-500">{social.friends.suggestionSessions(s.count)}</p>
+                  {(mutualCounts.get(s.user_id) ?? 0) > 0 && (
+                    <p className="chip mt-0.5" style={{ background: 'var(--grey)', color: '#9ca3af' }}>
+                      🤝 {social.friends.mutualFriendsLabel(mutualCounts.get(s.user_id)!)}
+                    </p>
+                  )}
                 </div>
                 <UserPlus size={16} className="text-[var(--red)] flex-shrink-0" />
               </button>
@@ -159,8 +181,8 @@ export default function FriendsTab({
                   </div>
                 </button>
                 <div className="flex gap-2 flex-shrink-0">
-                  <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label={social.friends.acceptLabel} className="p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80"><Check size={16} /></button>
-                  <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.rejectAria} className="p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
+                  <button type="button" onClick={() => runFriendAction(() => acceptRequest(f.friendship_id))} aria-label={social.friends.acceptLabel} className="tap p-1.5 rounded-full bg-[var(--red)] text-[white] hover:opacity-80"><Check size={16} /></button>
+                  <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.rejectAria} className="tap p-1.5 rounded-full border border-gray-600 text-gray-400 hover:text-white"><X size={16} /></button>
                 </div>
               </div>
             ))}
@@ -180,7 +202,7 @@ export default function FriendsTab({
         ) : (
           <div className="divide-y divide-[var(--grey)]">
             {friends.map(f => (
-              <button key={f.friendship_id} onClick={() => openProfile(f.user_id, f.username, f.photo_url)} className="w-full flex items-center gap-3 py-2.5 text-left">
+              <button key={f.friendship_id} onClick={() => openProfile(f.user_id, f.username, f.photo_url)} className="tap w-full flex items-center gap-3 py-2.5 text-left">
                 <Av photo={f.photo_url} name={f.username} />
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-medium truncate">{f.username}</p>
@@ -203,8 +225,8 @@ export default function FriendsTab({
                 <Av photo={f.photo_url} name={f.username} />
                 <p className="flex-1 text-white font-medium truncate">{f.username}</p>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="flex items-center gap-1 text-xs text-gray-500"><Clock size={12} /> {social.friends.pendingLabel}</span>
-                  <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.cancelRequestAria} className="text-gray-600 hover:text-gray-400"><X size={18} /></button>
+                  <span className="chip text-gray-400" style={{ background: 'var(--grey)' }}><Clock size={11} /> {social.friends.pendingLabel}</span>
+                  <button type="button" onClick={() => runFriendAction(() => rejectOrRemove(f.friendship_id))} aria-label={social.friends.cancelRequestAria} className="tap text-gray-600 hover:text-gray-400"><X size={18} /></button>
                 </div>
               </div>
             ))}

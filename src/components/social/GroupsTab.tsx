@@ -3,13 +3,14 @@ import social from '../../lib/i18n/social'
 import SkeletonCard from '../SkeletonCard'
 import EmptyState from '../EmptyState'
 import type { Group } from '../../hooks/useGroups'
+import Av from './Av'
 
 // ── Tab GRUPPI ────────────────────────────────────────────────────────────────
 interface Props {
   groups: Group[]
   loading: boolean
   onCreateGroup: () => void
-  onOpenGroup: (groupId: string, groupName: string) => void
+  onOpenGroup: (groupId: string, groupName: string, groupPhoto: string | null) => void
 }
 
 export default function GroupsTab({ groups, loading, onCreateGroup, onOpenGroup }: Props) {
@@ -29,11 +30,9 @@ export default function GroupsTab({ groups, loading, onCreateGroup, onOpenGroup 
       ) : (
         <div className="card divide-y divide-[var(--grey)] p-0 overflow-hidden">
           {groups.map(g => (
-            <button key={g.id} onClick={() => onOpenGroup(g.id, g.name)}
-              className="w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors">
-              <div className="w-10 h-10 rounded-full bg-[var(--red)] flex items-center justify-center flex-shrink-0">
-                <span className="font-bebas text-lg text-[white]">{g.name[0]?.toUpperCase()}</span>
-              </div>
+            <button key={g.id} onClick={() => onOpenGroup(g.id, g.name, g.photo_url)}
+              className="tap w-full flex items-center gap-3 p-4 text-left hover:bg-[var(--grey)] transition-colors">
+              <Av photo={g.photo_url} name={g.name} size={40} />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-white truncate">{g.name}</p>
                 <p className="text-xs text-gray-500">{g.memberCount} {g.memberCount === 1 ? social.groups.memberSingular : social.groups.memberPlural} · {g.role === 'admin' ? social.groups.adminRole : social.groups.memberRole}</p>

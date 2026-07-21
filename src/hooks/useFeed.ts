@@ -3,9 +3,16 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import social from '../lib/i18n/social'
-import { buildReactionSummaries, emptyReactionSummary, withMyReaction } from '../lib/reactions'
+import { buildReactionSummaries, emptyReactionSummary, withMyReaction, normalizeKind } from '../lib/reactions'
 import type { ReactionKind, ReactionSummary } from '../lib/reactions'
 import type { ActivityType, RoutePoint } from '../types'
+
+export interface Reactor {
+  userId: string
+  username: string
+  photo: string | null
+  kind: ReactionKind
+}
 
 export interface FeedActivity {
   id: string
@@ -158,5 +165,26 @@ export function useFeed() {
     }
   }, [user, feed])
 
-  return { feed, loading, refetch: fetchFeed, react }
+  // Chi ha reagito (roadmap v6): la riga grezza di activity_likes viene
+  // scaricata e AGGREGATA per il conteggio del feed, poi scartata — per la
+  // lista nominale si interroga di nuovo, su richiesta (quando si apre lo
+  // sheet), invece di tenere in memoria ogni reattore di ogni attività per
+  // tutto il tempo. `likes_select` è `USING (true)`: un reattore che non è un
+  // mio amico diretto (amico di un amico) è comunque leggibile qui, a
+  // differenza del profileMap del feed che copre solo `allIds`.
+  const fetchReactors = useCallback(async (activityId: string): Promise<Reactor[]> => {
+    const { data, error } = await supabase
+      .from('activity_likes')
+      .select('user_id, kind, profile:profiles!user_id(username, photo_url)')
+      .eq('activity_id', activityId)
+    if (error || !data) return []
+    return (data as any[]).map(row => ({
+      userId: row.user_id,
+      username: row.profile?.username ?? social.shared.unknownUser,
+      photo: row.profile?.photo_url ?? null,
+      kind: normalizeKind(row.kind),
+    }))
+  }, [])
+
+  return { feed, loading, refetch: fetchFeed, react, fetchReactors }
 }

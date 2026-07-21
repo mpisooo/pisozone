@@ -79,6 +79,11 @@ const it = {
         clap: 'Applausi',
         rocket: 'Razzo',
       },
+      // Chi ha reagito (roadmap v6): sheet con avatar+username+emoji di ogni
+      // reattore, non solo il conteggio.
+      viewReactorsAria: (n: number) => `Vedi chi ha reagito (${n})`,
+      reactorsSheetLabel: 'Chi ha reagito',
+      reactorsLoading: 'Carico…',
     },
 
     comments: {
@@ -138,6 +143,9 @@ const it = {
     suggestionsHeading: 'Persone da scoprire',
     suggestionsSubtitle: 'I più attivi degli ultimi 30 giorni',
     suggestionSessions: (n: number) => (n === 1 ? '1 attività nel mese' : `${n} attività nel mese`),
+
+    // Amici in comune (roadmap v6): badge nella ricerca e nei suggerimenti.
+    mutualFriendsLabel: (n: number) => (n === 1 ? '1 amico in comune' : `${n} amici in comune`),
 
     profile: {
       title: 'PROFILO',
@@ -203,9 +211,36 @@ const it = {
       },
     },
 
+    // Gruppi vivi ed espulsione (roadmap v6): rinomina, foto, aggiungi/rimuovi
+    // membri — la RLS lo ammetteva già (v8) tranne l'espulsione (nuova
+    // policy v49).
+    manage: {
+      renameAria: 'Rinomina gruppo',
+      namePlaceholder: 'Nome del gruppo',
+      saveNameAria: 'Salva nome',
+      cancelRenameAria: 'Annulla modifica',
+      changePhotoAria: 'Cambia foto del gruppo',
+      addMembersTileAria: 'Aggiungi membri',
+      addMembersSheetLabel: 'Aggiungi membri',
+      addMembersEmptyHint: 'Tutti i tuoi amici sono già nel gruppo',
+      addMembersSubmitLabel: (n: number) => (n > 0 ? `Aggiungi (${n})` : 'Aggiungi'),
+      addingLabel: 'Aggiunta...',
+      removeMemberAria: (username: string) => `Espelli ${username}`,
+      removeConfirmSheetLabel: 'Espelli dal gruppo',
+      removeConfirmQuestion: (username: string) => `Espellere @${username} dal gruppo?`,
+      removeConfirmHint: 'Non potrà più vedere i messaggi del gruppo, ma potrà essere aggiunto di nuovo in futuro.',
+      removeConfirmButton: 'Espelli',
+    },
+
     errors: {
       loadFailed: 'Errore nel caricamento dei gruppi. Riprova.',
       membersLoadFailed: 'Errore nel caricamento dei membri del gruppo. Riprova.',
+      actionFailed: 'Operazione non riuscita. Riprova.',
+      renameFailed: 'Rinomina non riuscita. Riprova.',
+      photoUpdateFailed: 'Aggiornamento della foto non riuscito. Riprova.',
+      addMembersFailed: 'Aggiunta dei membri non riuscita. Riprova.',
+      removeMemberFailed: 'Espulsione non riuscita. Riprova.',
+      lastAdminCannotLeave: 'Sei l’unico admin del gruppo: non puoi uscire finché ci sono altri membri.',
     },
   },
 } as const
@@ -282,6 +317,9 @@ const en: Widen<typeof it> = {
         clap: 'Clap',
         rocket: 'Rocket',
       },
+      viewReactorsAria: (n: number) => `See who reacted (${n})`,
+      reactorsSheetLabel: 'Who reacted',
+      reactorsLoading: 'Loading…',
     },
 
     comments: {
@@ -341,6 +379,9 @@ const en: Widen<typeof it> = {
     suggestionsHeading: 'People to discover',
     suggestionsSubtitle: 'The most active over the last 30 days',
     suggestionSessions: (n: number) => (n === 1 ? '1 activity this month' : `${n} activities this month`),
+
+    // Amici in comune (roadmap v6): badge nella ricerca e nei suggerimenti.
+    mutualFriendsLabel: (n: number) => (n === 1 ? '1 mutual friend' : `${n} mutual friends`),
 
     profile: {
       title: 'PROFILE',
@@ -406,9 +447,33 @@ const en: Widen<typeof it> = {
       },
     },
 
+    manage: {
+      renameAria: 'Rename group',
+      namePlaceholder: 'Group name',
+      saveNameAria: 'Save name',
+      cancelRenameAria: 'Cancel edit',
+      changePhotoAria: 'Change group photo',
+      addMembersTileAria: 'Add members',
+      addMembersSheetLabel: 'Add members',
+      addMembersEmptyHint: 'All your friends are already in the group',
+      addMembersSubmitLabel: (n: number) => (n > 0 ? `Add (${n})` : 'Add'),
+      addingLabel: 'Adding...',
+      removeMemberAria: (username: string) => `Remove ${username}`,
+      removeConfirmSheetLabel: 'Remove from group',
+      removeConfirmQuestion: (username: string) => `Remove @${username} from the group?`,
+      removeConfirmHint: 'They will no longer see the group messages, but can be added again later.',
+      removeConfirmButton: 'Remove',
+    },
+
     errors: {
       loadFailed: 'Error loading groups. Try again.',
       membersLoadFailed: 'Error loading group members. Try again.',
+      actionFailed: 'Action failed. Try again.',
+      renameFailed: 'Rename failed. Try again.',
+      photoUpdateFailed: 'Photo update failed. Try again.',
+      addMembersFailed: 'Adding members failed. Try again.',
+      removeMemberFailed: 'Removal failed. Try again.',
+      lastAdminCannotLeave: 'You are the only admin: you can’t leave while other members are still in the group.',
     },
   },
 }

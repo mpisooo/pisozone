@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Heart, MessageCircle } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
@@ -11,8 +12,9 @@ import SkeletonCard from '../SkeletonCard'
 import ActivityIcon from '../ActivityIcon'
 import EmptyState from '../EmptyState'
 import RouteShape from '../RouteShape'
-import type { FeedActivity } from '../../hooks/useFeed'
+import type { FeedActivity, Reactor } from '../../hooks/useFeed'
 import Av from './Av'
+import ActionSheet from './ActionSheet'
 import FeedComments from './FeedComments'
 
 // ── Tab FEED ──────────────────────────────────────────────────────────────────
@@ -25,6 +27,7 @@ interface Props {
   openReactionsId: string | null
   setOpenReactionsId: Dispatch<SetStateAction<string | null>>
   react: (activityId: string, kind: ReactionKind) => void
+  fetchReactors: (activityId: string) => Promise<Reactor[]>
   openCommentsId: string | null
   setOpenCommentsId: Dispatch<SetStateAction<string | null>>
   commentCounts: Map<string, number>
@@ -34,9 +37,21 @@ interface Props {
 
 export default function FeedTab({
   loading, feed, highlightedActivityId, myId, openProfile,
-  openReactionsId, setOpenReactionsId, react,
+  openReactionsId, setOpenReactionsId, react, fetchReactors,
   openCommentsId, setOpenCommentsId, commentCounts, onCommentCountChange, onOpenLightbox,
 }: Props) {
+  // Chi ha reagito (roadmap v6): la lista nominale si scarica su richiesta,
+  // non tenuta in memoria per tutte le attività del feed.
+  const [reactorsSheetId, setReactorsSheetId] = useState<string | null>(null)
+  const [reactors, setReactors] = useState<Reactor[]>([])
+  const [reactorsLoading, setReactorsLoading] = useState(false)
+
+  const openReactorsSheet = async (activityId: string) => {
+    setReactorsSheetId(activityId)
+    setReactorsLoading(true)
+    setReactors(await fetchReactors(activityId))
+    setReactorsLoading(false)
+  }
   return (
     <>
       {loading ? (
@@ -159,16 +174,23 @@ export default function FeedTab({
                     {a.reactions.mine
                       ? <span className="text-lg leading-none">{REACTION_EMOJI[a.reactions.mine]}</span>
                       : <Heart size={18} stroke="#6b7280" />}
-                    {a.reactions.total > 0 && (
-                      <span className="flex items-center gap-0.5">
-                        {topKinds(a.reactions).filter(k => k !== a.reactions.mine).map(k => (
-                          <span key={k} className="text-sm leading-none">{REACTION_EMOJI[k]}</span>
-                        ))}
-                        <span className="font-medium ml-0.5">{a.reactions.total}</span>
-                      </span>
-                    )}
                   </button>
                 </div>
+                {/* Chi ha reagito (roadmap v6): tocco separato dal toggle del
+                    picker sopra — qui si vede CHI, non solo quanti. */}
+                {a.reactions.total > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => openReactorsSheet(a.id)}
+                    aria-label={social.feed.reactions.viewReactorsAria(a.reactions.total)}
+                    className="flex items-center gap-0.5 text-sm text-gray-400 transition-all active:scale-110"
+                  >
+                    {topKinds(a.reactions).filter(k => k !== a.reactions.mine).map(k => (
+                      <span key={k} className="text-sm leading-none">{REACTION_EMOJI[k]}</span>
+                    ))}
+                    <span className="font-medium ml-0.5">{a.reactions.total}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setOpenCommentsId(prev => prev === a.id ? null : a.id)}
@@ -191,6 +213,27 @@ export default function FeedTab({
             </div>
           )
         })
+      )}
+
+      {reactorsSheetId && (
+        <ActionSheet onClose={() => setReactorsSheetId(null)} label={social.feed.reactions.reactorsSheetLabel}>
+          <div className="px-4 pt-4 pb-3 border-b border-[var(--grey)]">
+            <p className="text-sm font-semibold text-white">{social.feed.reactions.reactorsSheetLabel}</p>
+          </div>
+          <div className="max-h-[50vh] overflow-y-auto py-1">
+            {reactorsLoading ? (
+              <p className="px-5 py-4 text-sm text-gray-500">{social.feed.reactions.reactorsLoading}</p>
+            ) : (
+              reactors.map(r => (
+                <div key={r.userId} className="w-full flex items-center gap-3 px-5 py-2.5">
+                  <Av photo={r.photo} name={r.username} size={32} />
+                  <span className="flex-1 text-white font-medium truncate">{r.username}</span>
+                  <span className="text-lg leading-none flex-shrink-0">{REACTION_EMOJI[r.kind]}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </ActionSheet>
       )}
     </>
   )

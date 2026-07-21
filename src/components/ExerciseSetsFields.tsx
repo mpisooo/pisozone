@@ -111,7 +111,7 @@ export default function ExerciseSetsFields({ drafts, onChange, suggestions, idPr
               draft.groupId ? (
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                    className="chip"
                     style={draft.setType === 'dropset'
                       ? { background: 'rgba(251,191,36,0.15)', color: '#fbbf24' }
                       : { background: 'rgba(var(--accent-rgb),0.15)', color: 'var(--red)' }}

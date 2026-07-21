@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { isRateLimitError } from '../lib/errors'
+import { isRateLimitError, isGroupLastAdminError } from '../lib/errors'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import social from '../lib/i18n/social'
@@ -110,10 +110,53 @@ export function useGroups() {
     return groupId
   }
 
-  const leaveGroup = async (groupId: string) => {
-    if (!user) return
-    await supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', user.id)
+  const leaveGroup = async (groupId: string): Promise<{ error: Error | null }> => {
+    if (!user) return { error: null }
+    const { error } = await supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', user.id)
     await fetchGroups()
+    if (error) {
+      showError(isGroupLastAdminError(error) ? social.groups.errors.lastAdminCannotLeave : social.groups.errors.actionFailed)
+    }
+    return { error }
+  }
+
+  // Rinomina/foto di gruppo (roadmap v6): la policy "admin update group" (v8)
+  // già ammette l'UPDATE, mancava solo la funzione client.
+  const renameGroup = async (groupId: string, name: string): Promise<boolean> => {
+    if (!name.trim()) return false
+    const { error } = await supabase.from('groups').update({ name: name.trim() }).eq('id', groupId)
+    if (error) showError(social.groups.errors.renameFailed)
+    else await fetchGroups()
+    return !error
+  }
+
+  const updateGroupPhoto = async (groupId: string, photoUrl: string): Promise<boolean> => {
+    const { error } = await supabase.from('groups').update({ photo_url: photoUrl }).eq('id', groupId)
+    if (error) showError(social.groups.errors.photoUpdateFailed)
+    else await fetchGroups()
+    return !error
+  }
+
+  // Aggiungere membri dopo la creazione (roadmap v6): la policy "join or add
+  // member" (v8) già ammette un admin che aggiunge in qualunque momento.
+  const addMembers = async (groupId: string, userIds: string[]): Promise<boolean> => {
+    if (userIds.length === 0) return true
+    const { error } = await supabase.from('group_members').insert(
+      userIds.map(uid => ({ group_id: groupId, user_id: uid, role: 'member' as const }))
+    )
+    if (error) showError(social.groups.errors.addMembersFailed)
+    return !error
+  }
+
+  // Espellere un membro (roadmap v6): richiede la nuova policy "admin remove
+  // member" (v49) — pre-migrazione questa chiamata fallisce silenziosamente
+  // come ogni azione bloccata da RLS (nessuna riga cancellata).
+  const removeMember = async (groupId: string, userId: string): Promise<{ error: Error | null }> => {
+    const { error } = await supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', userId)
+    if (error) {
+      showError(isGroupLastAdminError(error) ? social.groups.errors.lastAdminCannotLeave : social.groups.errors.removeMemberFailed)
+    }
+    return { error }
   }
 
   const fetchGroupMessages = async (groupId: string): Promise<GroupMessage[]> => {
@@ -164,5 +207,9 @@ export function useGroups() {
     }))
   }
 
-  return { groups, loading, createGroup, leaveGroup, fetchGroupMessages, sendGroupMessage, fetchGroupMembers, refetch: fetchGroups }
+  return {
+    groups, loading, createGroup, leaveGroup, fetchGroupMessages, sendGroupMessage, fetchGroupMembers,
+    renameGroup, updateGroupPhoto, addMembers, removeMember,
+    refetch: fetchGroups,
+  }
 }

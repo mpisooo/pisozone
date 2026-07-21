@@ -437,7 +437,7 @@ export default function CalendarPage() {
                       <p className="font-semibold text-white">{activityLabel(a.type, a.indoor)}</p>
                       {pending && (
                         <span
-                          className="text-[10px] px-1.5 py-0.5 rounded-full text-gray-400 flex items-center gap-1 flex-shrink-0"
+                          className="chip text-gray-400 flex-shrink-0"
                           style={{ background: 'rgba(148,163,184,0.15)' }}
                         >
                           <CloudOff size={9} /> {common.pendingSyncBadge}
