@@ -11,29 +11,86 @@ export const SETS_MAX = 99
 export const REPS_MAX = 999
 export const WEIGHT_KG_MAX = 1000
 
+// Superset (esercizi diversi in successione) o drop set (stesso esercizio,
+// carico che scende): due o più blocchi consecutivi condividono un groupId.
+// Il tipo si INFERISCE dal nome al momento del collegamento (lib/exerciseSets
+// linkToPrevious), non è una scelta esplicita dell'utente — dimezza la UI.
+export type SetType = 'superset' | 'dropset'
+
 // Un "blocco" di lavoro valido: esercizio + serie × ripetizioni allo stesso
-// carico. weightKg null = corpo libero, non un peso ignoto.
+// carico. weightKg null = corpo libero, non un peso ignoto. groupId/setType
+// null = blocco normale, non parte di un superset/drop set.
 export interface ExerciseEntry {
   exercise: string
   sets: number
   reps: number
   weightKg: number | null
+  groupId: string | null
+  setType: SetType | null
 }
 
 // Bozza di riga nell'editor: tutti i campi sono stringhe grezze perché ogni
 // input deve poter restare vuoto senza fingere un valore (stesso principio
-// delle metriche percepite).
+// delle metriche percepite). groupId/setType restano undefined finché non
+// collegati a un blocco precedente.
 export interface ExerciseDraft {
   key: string
   exercise: string
   sets: string
   reps: string
   weight: string
+  groupId?: string
+  setType?: SetType
 }
 
 let draftCounter = 0
 export function emptyDraft(): ExerciseDraft {
   return { key: `draft-${draftCounter++}`, exercise: '', sets: '', reps: '', weight: '' }
+}
+
+function newGroupId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `grp-${Math.random().toString(36).slice(2)}`
+}
+
+// Collega la bozza al blocco immediatamente precedente: se questo non ha
+// ancora un gruppo ne crea uno nuovo condiviso, altrimenti il blocco corrente
+// lo eredita. Il tipo si inferisce dal nome normalizzato: stesso esercizio
+// del precedente = drop set (stesso movimento, carico che scende), nome
+// diverso = superset. Nessun effetto se la bozza è già la prima della lista.
+export function linkToPrevious(drafts: ExerciseDraft[], key: string): ExerciseDraft[] {
+  const i = drafts.findIndex((d) => d.key === key)
+  if (i <= 0) return drafts
+  const prev = drafts[i - 1]
+  const groupId = prev.groupId ?? newGroupId()
+  const setType: SetType = normalizeExerciseName(prev.exercise) === normalizeExerciseName(drafts[i].exercise)
+    ? 'dropset'
+    : 'superset'
+  return drafts.map((d, idx) => (idx === i - 1 || idx === i ? { ...d, groupId, setType } : d))
+}
+
+// Scollega la bozza dal suo gruppo. Un gruppo rimasto con un solo membro non
+// significa più nulla: torna anche lui un blocco normale.
+export function unlinkFromGroup(drafts: ExerciseDraft[], key: string): ExerciseDraft[] {
+  const target = drafts.find((d) => d.key === key)
+  if (!target?.groupId) return drafts
+  const groupId = target.groupId
+  const cleared = drafts.map((d) => (d.key === key ? { ...d, groupId: undefined, setType: undefined } : d))
+  return pruneOrphanGroups(cleared, groupId)
+}
+
+// Da chiamare dopo aver rimosso un blocco dalla lista: se un gruppo resta con
+// un solo membro, quel membro torna un blocco normale. Se onlyGroupId è
+// passato si limita il lavoro a quel gruppo (chiamata da unlinkFromGroup).
+export function pruneOrphanGroups(drafts: ExerciseDraft[], onlyGroupId?: string): ExerciseDraft[] {
+  const counts = new Map<string, number>()
+  for (const d of drafts) {
+    if (!d.groupId || (onlyGroupId && d.groupId !== onlyGroupId)) continue
+    counts.set(d.groupId, (counts.get(d.groupId) ?? 0) + 1)
+  }
+  if (counts.size === 0) return drafts
+  return drafts.map((d) => (d.groupId && counts.get(d.groupId) === 1 ? { ...d, groupId: undefined, setType: undefined } : d))
 }
 
 // Nome ripulito per il salvataggio: spazi collassati, lunghezza entro il
@@ -86,19 +143,23 @@ export function draftsToEntries(drafts: ExerciseDraft[]): ExerciseEntry[] {
       sets: parseCount(draft.sets, SETS_MAX)!,
       reps: parseCount(draft.reps, REPS_MAX)!,
       weightKg: parseWeight(draft.weight),
+      groupId: draft.groupId ?? null,
+      setType: draft.setType ?? null,
     })
   }
   return entries
 }
 
 // Righe già salvate → bozze modificabili (ActivityEditModal).
-export function rowsToDrafts(rows: { exercise: string; sets: number; reps: number; weight_kg: number | null }[]): ExerciseDraft[] {
+export function rowsToDrafts(rows: { exercise: string; sets: number; reps: number; weight_kg: number | null; group_id?: string | null; set_type?: SetType | null }[]): ExerciseDraft[] {
   return rows.map((r) => ({
     key: `draft-${draftCounter++}`,
     exercise: r.exercise,
     sets: String(r.sets),
     reps: String(r.reps),
     weight: r.weight_kg == null ? '' : String(Number(r.weight_kg)),
+    groupId: r.group_id ?? undefined,
+    setType: r.set_type ?? undefined,
   }))
 }
 

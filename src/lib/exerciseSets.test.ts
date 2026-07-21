@@ -13,6 +13,9 @@ import {
   buildExerciseProgression,
   progressionExercises,
   exerciseSuggestions,
+  linkToPrevious,
+  unlinkFromGroup,
+  pruneOrphanGroups,
   SETS_MAX,
   REPS_MAX,
   WEIGHT_KG_MAX,
@@ -61,8 +64,8 @@ describe('draftsToEntries', () => {
       draft({ exercise: 'Trazioni', sets: '4', reps: '8', weight: '' }),
     ])
     expect(entries).toEqual([
-      { exercise: 'Panca piana', sets: 3, reps: 10, weightKg: 60 },
-      { exercise: 'Trazioni', sets: 4, reps: 8, weightKg: null },
+      { exercise: 'Panca piana', sets: 3, reps: 10, weightKg: 60, groupId: null, setType: null },
+      { exercise: 'Trazioni', sets: 4, reps: 8, weightKg: null, groupId: null, setType: null },
     ])
   })
 
@@ -83,7 +86,7 @@ describe('draftsToEntries', () => {
     const [e] = draftsToEntries([
       draft({ exercise: 'Mostro', sets: '500', reps: '5000', weight: '99999' }),
     ])
-    expect(e).toEqual({ exercise: 'Mostro', sets: SETS_MAX, reps: REPS_MAX, weightKg: WEIGHT_KG_MAX })
+    expect(e).toEqual({ exercise: 'Mostro', sets: SETS_MAX, reps: REPS_MAX, weightKg: WEIGHT_KG_MAX, groupId: null, setType: null })
   })
 
   it('arrotonda il peso ai 2 decimali della colonna', () => {
@@ -106,7 +109,7 @@ describe('rowsToDrafts', () => {
   it('round-trip: le bozze generate tornano alle stesse voci', () => {
     const rows = [{ exercise: 'Squat', sets: 5, reps: 5, weight_kg: 82.5 }]
     expect(draftsToEntries(rowsToDrafts(rows))).toEqual([
-      { exercise: 'Squat', sets: 5, reps: 5, weightKg: 82.5 },
+      { exercise: 'Squat', sets: 5, reps: 5, weightKg: 82.5, groupId: null, setType: null },
     ])
   })
 })
@@ -114,9 +117,9 @@ describe('rowsToDrafts', () => {
 describe('totalVolumeKg', () => {
   it('somma serie × rip × kg ignorando il corpo libero', () => {
     expect(totalVolumeKg([
-      { exercise: 'Panca', sets: 3, reps: 10, weightKg: 60 },
-      { exercise: 'Trazioni', sets: 4, reps: 8, weightKg: null },
-      { exercise: 'Curl', sets: 2, reps: 12, weightKg: 7.5 },
+      { exercise: 'Panca', sets: 3, reps: 10, weightKg: 60, groupId: null, setType: null },
+      { exercise: 'Trazioni', sets: 4, reps: 8, weightKg: null, groupId: null, setType: null },
+      { exercise: 'Curl', sets: 2, reps: 12, weightKg: 7.5, groupId: null, setType: null },
     ])).toBe(1980)
   })
 })
@@ -138,7 +141,7 @@ describe('buildPrMap / detectNewPrs', () => {
 
   it('segnala il PR quando il carico supera il massimo storico', () => {
     const prs = detectNewPrs(
-      [{ exercise: 'Panca Piana', sets: 1, reps: 3, weightKg: 80 }],
+      [{ exercise: 'Panca Piana', sets: 1, reps: 3, weightKg: 80, groupId: null, setType: null }],
       buildPrMap(history),
     )
     expect(prs).toEqual([{ exercise: 'Panca Piana', weightKg: 80, previousKg: 75 }])
@@ -146,14 +149,14 @@ describe('buildPrMap / detectNewPrs', () => {
 
   it('eguagliare il massimo non è un PR', () => {
     expect(detectNewPrs(
-      [{ exercise: 'Squat', sets: 1, reps: 1, weightKg: 100 }],
+      [{ exercise: 'Squat', sets: 1, reps: 1, weightKg: 100, groupId: null, setType: null }],
       buildPrMap(history),
     )).toEqual([])
   })
 
   it('il primo carico in assoluto per un esercizio è un PR con previous null', () => {
     const prs = detectNewPrs(
-      [{ exercise: 'Stacco', sets: 1, reps: 5, weightKg: 90 }],
+      [{ exercise: 'Stacco', sets: 1, reps: 5, weightKg: 90, groupId: null, setType: null }],
       buildPrMap(history),
     )
     expect(prs).toEqual([{ exercise: 'Stacco', weightKg: 90, previousKg: null }])
@@ -162,8 +165,8 @@ describe('buildPrMap / detectNewPrs', () => {
   it('più voci dello stesso esercizio contano una volta sola, col massimo', () => {
     const prs = detectNewPrs(
       [
-        { exercise: 'Panca piana', sets: 3, reps: 8, weightKg: 77.5 },
-        { exercise: 'Panca piana', sets: 1, reps: 1, weightKg: 82.5 },
+        { exercise: 'Panca piana', sets: 3, reps: 8, weightKg: 77.5, groupId: null, setType: null },
+        { exercise: 'Panca piana', sets: 1, reps: 1, weightKg: 82.5, groupId: null, setType: null },
       ],
       buildPrMap(history),
     )
@@ -172,7 +175,7 @@ describe('buildPrMap / detectNewPrs', () => {
 
   it('gli esercizi a corpo libero non generano PR', () => {
     expect(detectNewPrs(
-      [{ exercise: 'Trazioni', sets: 5, reps: 10, weightKg: null }],
+      [{ exercise: 'Trazioni', sets: 5, reps: 10, weightKg: null, groupId: null, setType: null }],
       buildPrMap(history),
     )).toEqual([])
   })
@@ -212,6 +215,83 @@ describe('buildExerciseProgression', () => {
   it('esercizio sconosciuto o vuoto = serie vuota', () => {
     expect(buildExerciseProgression(rows, 'Stacco')).toEqual([])
     expect(buildExerciseProgression(rows, '  ')).toEqual([])
+  })
+})
+
+describe('linkToPrevious / unlinkFromGroup / pruneOrphanGroups', () => {
+  it('collega due blocchi con lo stesso nome come drop set', () => {
+    const drafts = [
+      draft({ exercise: 'Panca piana', sets: '1', reps: '8', weight: '60' }),
+      draft({ exercise: 'Panca piana', sets: '1', reps: '6', weight: '50' }),
+    ]
+    const linked = linkToPrevious(drafts, drafts[1].key)
+    expect(linked[0].groupId).toBe(linked[1].groupId)
+    expect(linked[0].groupId).toBeTruthy()
+    expect(linked[0].setType).toBe('dropset')
+    expect(linked[1].setType).toBe('dropset')
+  })
+
+  it('collega due blocchi con nomi diversi come superset', () => {
+    const drafts = [
+      draft({ exercise: 'Squat', sets: '3', reps: '8' }),
+      draft({ exercise: 'Leg curl', sets: '3', reps: '12' }),
+    ]
+    const linked = linkToPrevious(drafts, drafts[1].key)
+    expect(linked[0].setType).toBe('superset')
+    expect(linked[1].setType).toBe('superset')
+  })
+
+  it('un terzo blocco collegato al secondo eredita lo stesso gruppo', () => {
+    let drafts = [
+      draft({ exercise: 'Panca piana', sets: '1', reps: '8', weight: '60' }),
+      draft({ exercise: 'Panca piana', sets: '1', reps: '6', weight: '50' }),
+      draft({ exercise: 'Panca piana', sets: '1', reps: '4', weight: '40' }),
+    ]
+    drafts = linkToPrevious(drafts, drafts[1].key)
+    drafts = linkToPrevious(drafts, drafts[2].key)
+    expect(drafts[0].groupId).toBe(drafts[1].groupId)
+    expect(drafts[1].groupId).toBe(drafts[2].groupId)
+  })
+
+  it('non fa nulla sul primo blocco della lista', () => {
+    const drafts = [draft({ exercise: 'Squat' })]
+    expect(linkToPrevious(drafts, drafts[0].key)).toBe(drafts)
+  })
+
+  it('scollegare un membro di un gruppo da 2 riporta entrambi normali', () => {
+    let drafts = [
+      draft({ exercise: 'Squat', sets: '3', reps: '8' }),
+      draft({ exercise: 'Leg curl', sets: '3', reps: '12' }),
+    ]
+    drafts = linkToPrevious(drafts, drafts[1].key)
+    drafts = unlinkFromGroup(drafts, drafts[1].key)
+    expect(drafts[0].groupId).toBeUndefined()
+    expect(drafts[1].groupId).toBeUndefined()
+  })
+
+  it('scollegare un membro di un gruppo da 3 lascia collegati gli altri due', () => {
+    let drafts = [
+      draft({ exercise: 'A', sets: '1', reps: '1' }),
+      draft({ exercise: 'B', sets: '1', reps: '1' }),
+      draft({ exercise: 'C', sets: '1', reps: '1' }),
+    ]
+    drafts = linkToPrevious(drafts, drafts[1].key)
+    drafts = linkToPrevious(drafts, drafts[2].key)
+    drafts = unlinkFromGroup(drafts, drafts[2].key)
+    expect(drafts[0].groupId).toBe(drafts[1].groupId)
+    expect(drafts[2].groupId).toBeUndefined()
+  })
+
+  it('pruneOrphanGroups normalizza i gruppi rimasti con un solo membro (es. dopo la rimozione di un blocco)', () => {
+    let drafts = [
+      draft({ exercise: 'Squat', sets: '3', reps: '8' }),
+      draft({ exercise: 'Leg curl', sets: '3', reps: '12' }),
+    ]
+    drafts = linkToPrevious(drafts, drafts[1].key)
+    const afterRemoval = drafts.filter((d) => d.exercise !== 'Leg curl')
+    const pruned = pruneOrphanGroups(afterRemoval)
+    expect(pruned[0].groupId).toBeUndefined()
+    expect(pruned[0].setType).toBeUndefined()
   })
 })
 

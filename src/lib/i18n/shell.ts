@@ -112,6 +112,11 @@ const it = {
         title: 'Segmenti personali e sfide di percorso',
         text: 'Crea un tratto preferito da un percorso GPS e tieni il tuo record ogni volta che ci ripassi — o sfida un amico a batterti sullo stesso tratto. In più, ora puoi segnare le attività come preferite e ritrovarle dal Calendario.',
       },
+      {
+        icon: '🏋️',
+        title: 'Palestra da veterano',
+        text: 'Salva le tue schede come routine e precompilale con un tocco, collega blocchi in superset o drop set, carica il bilanciere col calcolatore piastre e usa il nuovo timer di recupero tra le serie.',
+      },
     ],
   },
   photoLightbox: {
@@ -229,6 +234,11 @@ const en: Widen<typeof it> = {
         icon: '🚩',
         title: 'Personal segments and route challenges',
         text: 'Create a favorite stretch from a GPS route and keep your best time every time you pass through — or challenge a friend to beat you on the same stretch. Plus, you can now mark activities as favorites and find them again from the Calendar.',
+      },
+      {
+        icon: '🏋️',
+        title: 'Gym, veteran mode',
+        text: 'Save your workouts as routines and prefill them in one tap, link blocks into supersets or drop sets, load the bar with the new plate calculator, and use the new rest timer between sets.',
       },
     ],
   },

@@ -63,6 +63,10 @@ const it = {
         'I nomi degli esercizi ti vengono suggeriti da quelli già usati: scrivere sempre lo stesso nome rende affidabili i record.',
         'Se superi il tuo carico massimo su un esercizio, l\'app te lo annuncia al salvataggio. Tutti i massimali sono nella card "Record palestra" in Statistiche.',
         'Dalla seconda giornata su uno stesso esercizio, in Statistiche compare anche "Progressione carichi": il grafico del tuo massimo giornata per giornata, esercizio per esercizio.',
+        'Fai sempre la stessa scheda? Salvala come routine ("Le tue routine", link sopra gli esercizi): la prossima volta il pulsante "Usa una routine salvata" precompila tutti i blocchi, pronti da confermare o correggere.',
+        'Due blocchi di seguito senza pausa? Tocca "Collega al blocco sopra": se è lo stesso esercizio diventa un drop set, se è un altro esercizio un superset — la scheda lo capisce da sola dal nome.',
+        'Accanto al peso trovi l\'icona del calcolatore piastre: indica il peso totale (e il bilanciere, se diverso da 20 kg) e ti dice quali piastre caricare per lato.',
+        'L\'icona del cronometro accanto a ogni esercizio avvia un timer di recupero (90 secondi di default, regolabile a passi di 15): una vibrazione ti avvisa quando è finito.',
       ],
     },
     {
@@ -269,6 +273,10 @@ const en: Widen<typeof it> = {
         'Exercise names are suggested from the ones you\'ve already used: typing the same name consistently keeps your records reliable.',
         'If you beat your max load on an exercise, the app announces it when you save. All your maxes live in the "Gym records" card in Stats.',
         'From your second day on the same exercise, Stats also shows "Load progression": a chart of your max, day by day, exercise by exercise.',
+        'Do the same routine every time? Save it ("Your routines", the link above the exercises): next time the "Use a saved routine" button prefills every block, ready to confirm or tweak.',
+        'Two blocks back to back with no rest? Tap "Link to block above": same exercise turns it into a drop set, a different one into a superset — the app figures it out from the name.',
+        'Next to the weight field you\'ll find the plate calculator icon: enter the total weight (and the barbell weight, if not 20 kg) and it tells you which plates to load per side.',
+        'The stopwatch icon next to each exercise starts a rest timer (90 seconds by default, adjustable in 15-second steps): a vibration lets you know when it\'s done.',
       ],
     },
     {

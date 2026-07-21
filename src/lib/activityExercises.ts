@@ -7,7 +7,7 @@ import type { ExerciseSet } from '../types'
 // DOPO l'insert dell'attività (serve l'id). Se fallisce (rete, migrazione non
 // ancora eseguita) l'attività resta salvata e si avvisa con un toast dedicato.
 
-function entriesToRows(userId: string, activityId: string, entries: ExerciseEntry[]) {
+function entriesToRows(userId: string, activityId: string, entries: ExerciseEntry[], includeGrouping: boolean) {
   return entries.map((e, seq) => ({
     activity_id: activityId,
     user_id: userId,
@@ -16,7 +16,15 @@ function entriesToRows(userId: string, activityId: string, entries: ExerciseEntr
     sets: e.sets,
     reps: e.reps,
     weight_kg: e.weightKg,
+    ...(includeGrouping ? { group_id: e.groupId, set_type: e.setType } : {}),
   }))
+}
+
+// group_id/set_type esistono solo dalla v48 (superset/drop set): stesso
+// pattern di isMissingAltitudeColumn in activityRoutes.ts, si riprova senza
+// pur di non perdere il log palestra.
+function isMissingGroupingColumn(error: { message?: string } | null): boolean {
+  return !!error?.message?.includes('group_id') || !!error?.message?.includes('set_type')
 }
 
 export async function saveActivityExercises(
@@ -25,7 +33,10 @@ export async function saveActivityExercises(
   entries: ExerciseEntry[],
 ): Promise<{ error: Error | null }> {
   if (entries.length === 0) return { error: null }
-  const { error } = await supabase.from('exercise_sets').insert(entriesToRows(userId, activityId, entries))
+  let { error } = await supabase.from('exercise_sets').insert(entriesToRows(userId, activityId, entries, true))
+  if (error && isMissingGroupingColumn(error)) {
+    ;({ error } = await supabase.from('exercise_sets').insert(entriesToRows(userId, activityId, entries, false)))
+  }
   return { error }
 }
 

@@ -58,6 +58,14 @@ const it = {
           ? `${base} · volume totale ${volumeKg.toLocaleString('it-IT')} kg`
           : base
       },
+      // Superset e drop set (roadmap v4, pilastro 03): il tipo si INFERISCE dal
+      // nome al collegamento, l'utente sceglie solo SE collegare due blocchi.
+      linkToPrevious: 'Collega al blocco sopra',
+      unlinkAria: 'Scollega dal gruppo',
+      supersetBadge: 'Superset',
+      dropsetBadge: 'Drop set',
+      plateCalcAria: 'Calcolatore piastre per questo peso',
+      restTimerAria: 'Avvia il timer di recupero',
     },
     validation: {
       hoursNotNegative: 'Non può essere negativa',
@@ -262,6 +270,29 @@ const it = {
     range: (min: number, max: number) => `${min}–${max} m`,
   },
 
+  // Calcolatore piastre (roadmap v4, pilastro 03): modale aperta dal bottone
+  // accanto al peso in ExerciseSetsFields, funzione pura in lib/plateCalculator.ts.
+  plateCalculator: {
+    title: 'CALCOLATORE PIASTRE',
+    close: 'Chiudi',
+    dialogAriaLabel: 'Calcolatore piastre',
+    targetLabel: 'Peso totale (kg)',
+    barLabel: 'Bilanciere (kg)',
+    perSideLabel: 'Per lato',
+    noPlates: 'Solo il bilanciere, nessuna piastra',
+    achievedLabel: 'Carico ottenuto',
+    remainderHint: (kg: number) => `Non raggiungibile esattamente con queste piastre: mancano ${kg} kg`,
+  },
+
+  // Timer di recupero tra le serie (roadmap v4, pilastro 03): solo client,
+  // nessuna persistenza (lib/restTimer.ts + hooks/useRestTimer.ts).
+  restTimer: {
+    label: 'Recupero',
+    adjustLessAria: 'Togli 15 secondi',
+    adjustMoreAria: 'Aggiungi 15 secondi',
+    dismissAria: 'Chiudi il timer di recupero',
+  },
+
   errors: {
     loadFailed: 'Errore nel caricamento delle attività. Riprova.',
     // Un'attività in coda offline che al momento della sincronizzazione viene
@@ -326,6 +357,12 @@ const en: Widen<typeof it> = {
           ? `${base} · total volume ${volumeKg.toLocaleString('en-US')} kg`
           : base
       },
+      linkToPrevious: 'Link to block above',
+      unlinkAria: 'Unlink from group',
+      supersetBadge: 'Superset',
+      dropsetBadge: 'Drop set',
+      plateCalcAria: 'Plate calculator for this weight',
+      restTimerAria: 'Start rest timer',
     },
     validation: {
       hoursNotNegative: 'Cannot be negative',
@@ -524,6 +561,25 @@ const en: Widen<typeof it> = {
     gain: (m: number) => `D+ ${m} m`,
     loss: (m: number) => `D− ${m} m`,
     range: (min: number, max: number) => `${min}–${max} m`,
+  },
+
+  plateCalculator: {
+    title: 'PLATE CALCULATOR',
+    close: 'Close',
+    dialogAriaLabel: 'Plate calculator',
+    targetLabel: 'Total weight (kg)',
+    barLabel: 'Barbell (kg)',
+    perSideLabel: 'Per side',
+    noPlates: 'Bar only, no plates',
+    achievedLabel: 'Load achieved',
+    remainderHint: (kg: number) => `Not exactly reachable with these plates: ${kg} kg short`,
+  },
+
+  restTimer: {
+    label: 'Rest',
+    adjustLessAria: 'Remove 15 seconds',
+    adjustMoreAria: 'Add 15 seconds',
+    dismissAria: 'Close the rest timer',
   },
 
   errors: {

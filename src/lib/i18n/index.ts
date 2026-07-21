@@ -23,13 +23,14 @@ import notifications from './notifications'
 import recap from './recap'
 import heatmap from './heatmap'
 import segments from './segments'
+import routines from './routines'
 
 // Punto unico di aggregazione dei namespace: oggi esiste solo l'italiano, ma è
 // qui che in futuro si sceglierebbe il dizionario giusto in base a una
 // preferenza utente/browser, senza dover ritoccare le pagine (che importano
 // ogni namespace direttamente dal proprio file, non da qui).
 const it = {
-  common, shell, auth, home, log, calendar, stats, challenges, medals, profile, social, legal, recovery, plans, guide, goals, insights, wrapped, share, duels, seasonalEvents, notifications, recap, heatmap, segments,
+  common, shell, auth, home, log, calendar, stats, challenges, medals, profile, social, legal, recovery, plans, guide, goals, insights, wrapped, share, duels, seasonalEvents, notifications, recap, heatmap, segments, routines,
 } as const
 
 export type Strings = typeof it

@@ -81,6 +81,36 @@ export interface ExerciseSet {
   sets: number
   reps: number
   weight_kg: number | null
+  // Opzionali: esistono solo dopo la migrazione v48 (superset/drop set,
+  // roadmap v4 pilastro 03). group_id condiviso da 2+ blocchi consecutivi,
+  // set_type il tipo inferito dal nome (vedi lib/exerciseSets linkToPrevious).
+  group_id?: string | null
+  set_type?: 'superset' | 'dropset' | null
+}
+
+// Riga di workout_routines (v48, roadmap v4 pilastro 03): un template con
+// nome, MAI collegato a un'attività — si "parte" da una routine per
+// precompilare il log palestra in Log.tsx.
+export interface WorkoutRoutine {
+  id: string
+  user_id: string
+  name: string
+  created_at: string
+}
+
+// Riga di workout_routine_exercises (v48): stessa forma di un blocco di
+// exercise_sets, ma appartiene a una routine invece che a un'attività —
+// niente group_id/set_type, i template restano volutamente semplici (una
+// lista piatta di blocchi, senza superset/drop set).
+export interface RoutineExercise {
+  id: string
+  routine_id: string
+  user_id: string
+  seq: number
+  exercise: string
+  sets: number
+  reps: number
+  weight_kg: number | null
 }
 
 export interface Profile {

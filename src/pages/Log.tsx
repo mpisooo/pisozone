@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
+import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { format, formatISO } from 'date-fns'
 import { Info, ChevronDown, ChevronUp, Zap, CheckCircle2, CloudOff, AlertTriangle, Satellite, RotateCcw } from 'lucide-react'
@@ -9,10 +9,11 @@ import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, GPS_TRACKABLE_TYPES, E
 import { uploadActivityPhoto } from '../lib/activityPhotos'
 import { saveActivityExercises } from '../lib/activityExercises'
 import {
-  draftsToEntries, buildPrMap, detectNewPrs, exerciseSuggestions,
+  draftsToEntries, rowsToDrafts, buildPrMap, detectNewPrs, exerciseSuggestions,
   type ExerciseDraft, type PrRecord,
 } from '../lib/exerciseSets'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import { useRoutines } from '../hooks/useRoutines'
 import { isPendingActivityId, pendingLocalId } from '../lib/offlineQueue'
 import { savePendingAttachments } from '../lib/offlineAttachments'
 import { lastActivityOfType, prefillFromActivity, type QuickLogPrefill } from '../lib/quickLog'
@@ -28,9 +29,11 @@ import PhotoPickerField from '../components/PhotoPickerField'
 import ActivityIcon from '../components/ActivityIcon'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import ExerciseSetsFields from '../components/ExerciseSetsFields'
+import RoutinePickerModal from '../components/RoutinePickerModal'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import WorkoutRecapOverlay from '../components/WorkoutRecapOverlay'
 import log from '../lib/i18n/log'
+import routinesText from '../lib/i18n/routines'
 import type { ActivityType } from '../types'
 
 type FormValues = {
@@ -189,6 +192,11 @@ export default function LogPage() {
   const isGym = selectedType === 'palestra'
   const { rows: exerciseHistory, loaded: historyLoaded, appendLocal } = useExerciseHistory(isGym)
   const nameSuggestions = useMemo(() => exerciseSuggestions(exerciseHistory), [exerciseHistory])
+
+  // Routine salvate (roadmap v4, pilastro 03): il picker precompila i blocchi
+  // della sessione, si modificano come un log normale prima di salvare.
+  const { routines } = useRoutines(isGym)
+  const [showRoutinePicker, setShowRoutinePicker] = useState(false)
 
   const autoCalories =
     caloriesInput === '' && durationMin > 0 && profile?.weight_kg
@@ -563,12 +571,38 @@ export default function LogPage() {
 
         {/* Log palestra strutturato: esercizi serie×rip×peso */}
         {isGym && (
-          <ExerciseSetsFields
-            drafts={exerciseDrafts}
-            onChange={setExerciseDrafts}
-            suggestions={nameSuggestions}
-            idPrefix="log"
-          />
+          <>
+            <div className="flex items-center justify-between gap-2 -mb-1">
+              {routines.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowRoutinePicker(true)}
+                  className="text-xs text-[var(--red)] font-medium"
+                >
+                  {routinesText.entryButton}
+                </button>
+              ) : <span />}
+              <Link to="/routines" className="text-xs text-gray-500 hover:text-white transition-colors">
+                {routinesText.manageLink}
+              </Link>
+            </div>
+            <ExerciseSetsFields
+              drafts={exerciseDrafts}
+              onChange={setExerciseDrafts}
+              suggestions={nameSuggestions}
+              idPrefix="log"
+            />
+            {showRoutinePicker && (
+              <RoutinePickerModal
+                routines={routines}
+                onClose={() => setShowRoutinePicker(false)}
+                onSelect={(routine) => {
+                  setExerciseDrafts(rowsToDrafts(routine.exercises))
+                  setShowRoutinePicker(false)
+                }}
+              />
+            )}
+          </>
         )}
 
         {/* Calories & Distance */}
