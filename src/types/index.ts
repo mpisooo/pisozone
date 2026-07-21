@@ -58,6 +58,10 @@ export interface Activity {
   // visibile agli amici nel feed (consenso esplicito per attività, default
   // false: i propri giri sono un dato sensibile). undefined = colonna assente.
   route_visible?: boolean
+  // Opzionale: esiste solo dopo la migrazione v47. Percorso preferito,
+  // marcato a mano dall'utente (mai in fase di creazione, solo modificando
+  // l'attività). undefined = colonna assente.
+  is_favorite?: boolean
 }
 
 export interface RoutePoint {
@@ -188,6 +192,50 @@ export interface Duel {
   status: 'pending' | 'active' | 'declined' | 'finished'
   winner_id: string | null
   credits_earned: number
+  created_at: string
+  // Opzionali: esistono solo dopo la migrazione v47, valorizzati SOLO quando
+  // metric === 'segment_time'. Copia del segmento al momento della sfida, non
+  // un riferimento vivo: l'avversario non ha accesso a route_segments del
+  // creatore (RLS owner-only), quindi le coordinate viaggiano qui.
+  // undefined = colonna assente pre-migrazione.
+  segment_id?: string | null
+  segment_name?: string | null
+  segment_activity_type?: ActivityType | null
+  segment_start_lat?: number | null
+  segment_start_lng?: number | null
+  segment_end_lat?: number | null
+  segment_end_lng?: number | null
+  segment_distance_m?: number | null
+}
+
+// Riga di route_segments (v47, roadmap v4 pilastro 02): tratto definito a
+// mano su un percorso già registrato (due punti scelti dall'utente), per
+// tenere un personal best su un tratto che si ripete. Mai una classifica
+// pubblica: proprietario-solo, come personal_goals — si modifica cancellando
+// e ricreando.
+export interface RouteSegment {
+  id: string
+  user_id: string
+  name: string
+  activity_type: ActivityType
+  start_lat: number
+  start_lng: number
+  end_lat: number
+  end_lng: number
+  distance_m: number
+  created_at: string
+}
+
+// Riga di segment_attempts (v47): un tempo rilevato su un segmento dal GPS di
+// un'attività — propria, o per l'avversario di una sfida di percorso, su un
+// segmento posseduto dal creatore ma referenziato dal duello (RLS lo ammette
+// per i partecipanti a un duello attivo/pending su quel segmento).
+export interface SegmentAttempt {
+  id: string
+  segment_id: string
+  user_id: string
+  activity_id: string
+  time_seconds: number
   created_at: string
 }
 

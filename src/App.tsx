@@ -32,6 +32,7 @@ const ChallengesPage = lazy(() => import('./pages/Challenges'))
 const PlansPage      = lazy(() => import('./pages/Plans'))
 const GuidePage      = lazy(() => import('./pages/Guide'))
 const HeatmapPage    = lazy(() => import('./pages/Heatmap'))
+const SegmentsPage   = lazy(() => import('./pages/Segments'))
 
 function AppLayout() {
   const location = useLocation()
@@ -65,6 +66,7 @@ function AppLayout() {
                 <Route path="/plans"       element={<PlansPage />} />
                 <Route path="/guide"       element={<GuidePage />} />
                 <Route path="/heatmap"     element={<HeatmapPage />} />
+                <Route path="/segments"    element={<SegmentsPage />} />
                 <Route path="*"            element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>

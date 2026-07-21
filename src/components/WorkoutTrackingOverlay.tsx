@@ -8,6 +8,7 @@ import { computeElevationProfile, computeRecentSpeedKmh, computeSplits, formatPa
 import { zoneForSpeed, getZoneById } from '../lib/zones'
 import { buildIntervalSteps, nextStepIndex, type IntervalPlan } from '../lib/intervalWorkout'
 import { saveActivityRoute } from '../lib/activityRoutes'
+import { matchAndRecordSegments } from '../lib/routeSegments'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
 import RouteShape from './RouteShape'
@@ -218,6 +219,11 @@ export default function WorkoutTrackingOverlay({ activityType, intervalPlan, add
     // salvataggio del percorso fallirebbe comunque — non ha senso tentarlo.
     const pending = isPendingActivityId(data.id)
     const routeError = pending ? true : (await saveActivityRoute(data.user_id, data.id, s.points)).error
+    // Segmenti personali (v47, roadmap v4 pilastro 02): best effort come il
+    // percorso stesso, e nello stesso limite — nessun id reale finché
+    // l'attività è in coda offline, quindi si salta del tutto (il recupero
+    // alla sincronizzazione non è coperto, stessa scelta di altre v1).
+    if (!pending) matchAndRecordSegments(data.user_id, data.id, activityType, s.points).catch(() => {})
     setSaving(false)
     haptic('success')
     onSaved({ activity: data, points: s.points, pending, routeSaved: !routeError })

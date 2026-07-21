@@ -13,6 +13,7 @@ const it = {
     minutes: 'Minuti',
     km: 'Chilometri',
     kcal: 'Calorie',
+    segment_time: 'Tempo sul segmento',
   } as Record<string, string>,
 
   card: {
@@ -71,6 +72,7 @@ const en: Widen<typeof it> = {
     minutes: 'Minutes',
     km: 'Kilometers',
     kcal: 'Calories',
+    segment_time: 'Segment time',
   } as Record<string, string>,
 
   card: {

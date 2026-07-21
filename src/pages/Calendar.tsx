@@ -5,7 +5,7 @@ import {
   addMonths, subMonths,
 } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Flame, X, Pencil, CloudOff, Filter, Satellite, Camera } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flame, X, Pencil, CloudOff, Filter, Satellite, Camera, Star } from 'lucide-react'
 import { useActivities } from '../hooks/useActivities'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
@@ -186,7 +186,7 @@ export default function CalendarPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               aria-pressed={filters.gpsOnly}
@@ -210,6 +210,18 @@ export default function CalendarPage() {
             >
               <Camera size={13} />
               {calendar.filters.photoChip}
+            </button>
+            <button
+              type="button"
+              aria-pressed={filters.favoritesOnly}
+              onClick={() => setFilters((f) => ({ ...f, favoritesOnly: !f.favoritesOnly }))}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                filters.favoritesOnly ? 'border-[var(--red)] text-white' : 'border-transparent text-gray-400'
+              }`}
+              style={{ background: filters.favoritesOnly ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
+            >
+              <Star size={13} />
+              {calendar.filters.favoritesChip}
             </button>
           </div>
 

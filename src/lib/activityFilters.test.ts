@@ -62,6 +62,11 @@ describe('filterActivities', () => {
     expect(filterActivities(activities, filters({ photoOnly: true })).map((a) => a.id)).toEqual(['gym-photo'])
   })
 
+  it('il toggle preferiti tiene solo le attività marcate is_favorite', () => {
+    const withFavorite = [...activities, act({ id: 'run-favorite', type: 'nuoto', is_favorite: true })]
+    expect(filterActivities(withFavorite, filters({ favoritesOnly: true })).map((a) => a.id)).toEqual(['run-favorite'])
+  })
+
   it('la ricerca nelle note è case-insensitive e ignora chi non ha note', () => {
     expect(filterActivities(activities, filters({ query: 'parco' })).map((a) => a.id)).toEqual(['run-gps'])
     expect(filterActivities(activities, filters({ query: '  PIOGGIA ' })).map((a) => a.id)).toEqual(['run-plain'])

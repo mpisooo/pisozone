@@ -56,7 +56,7 @@ const NAMESPACES = [
   'common', 'shell', 'auth', 'home', 'log', 'calendar', 'stats',
   'challenges', 'medals', 'profile', 'social', 'legal',
   'recovery', 'plans', 'guide', 'goals', 'insights', 'wrapped', 'share', 'duels',
-  'seasonalEvents', 'notifications', 'recap', 'heatmap',
+  'seasonalEvents', 'notifications', 'recap', 'heatmap', 'segments',
 ]
 
 describe('dizionario i18n', () => {

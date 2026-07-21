@@ -107,6 +107,11 @@ const it = {
         title: 'La tua heatmap personale',
         text: 'In Statistiche, se hai attività tracciate col GPS, trovi una mappa con tutti i tuoi percorsi sovrapposti: dove passi più spesso la linea si accende. Privatissima: mai visibile ad altri.',
       },
+      {
+        icon: '🚩',
+        title: 'Segmenti personali e sfide di percorso',
+        text: 'Crea un tratto preferito da un percorso GPS e tieni il tuo record ogni volta che ci ripassi — o sfida un amico a batterti sullo stesso tratto. In più, ora puoi segnare le attività come preferite e ritrovarle dal Calendario.',
+      },
     ],
   },
   photoLightbox: {
@@ -219,6 +224,11 @@ const en: Widen<typeof it> = {
         icon: '🗺️',
         title: 'Your personal heatmap',
         text: 'In Stats, if you have GPS-tracked activities, you\'ll find a map with all your routes overlaid: the more you pass through a place, the brighter the line glows. Fully private: never visible to anyone else.',
+      },
+      {
+        icon: '🚩',
+        title: 'Personal segments and route challenges',
+        text: 'Create a favorite stretch from a GPS route and keep your best time every time you pass through — or challenge a friend to beat you on the same stretch. Plus, you can now mark activities as favorites and find them again from the Calendar.',
       },
     ],
   },

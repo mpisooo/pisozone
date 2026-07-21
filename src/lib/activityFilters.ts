@@ -8,18 +8,19 @@ export interface ActivityFilters {
   types: ActivityType[] // vuoto = tutti gli sport
   gpsOnly: boolean
   photoOnly: boolean
+  favoritesOnly: boolean // v47, percorsi preferiti
   query: string // cercato nelle note, case-insensitive
 }
 
-export const EMPTY_FILTERS: ActivityFilters = { types: [], gpsOnly: false, photoOnly: false, query: '' }
+export const EMPTY_FILTERS: ActivityFilters = { types: [], gpsOnly: false, photoOnly: false, favoritesOnly: false, query: '' }
 
 export function hasActiveFilters(f: ActivityFilters): boolean {
-  return f.types.length > 0 || f.gpsOnly || f.photoOnly || f.query.trim().length > 0
+  return f.types.length > 0 || f.gpsOnly || f.photoOnly || f.favoritesOnly || f.query.trim().length > 0
 }
 
 // Quanti filtri sono accesi (per il numerino sul bottone "Filtri").
 export function activeFilterCount(f: ActivityFilters): number {
-  return f.types.length + (f.gpsOnly ? 1 : 0) + (f.photoOnly ? 1 : 0) + (f.query.trim() ? 1 : 0)
+  return f.types.length + (f.gpsOnly ? 1 : 0) + (f.photoOnly ? 1 : 0) + (f.favoritesOnly ? 1 : 0) + (f.query.trim() ? 1 : 0)
 }
 
 export function filterActivities(activities: Activity[], f: ActivityFilters): Activity[] {
@@ -29,6 +30,7 @@ export function filterActivities(activities: Activity[], f: ActivityFilters): Ac
     if (f.types.length > 0 && !f.types.includes(a.type)) return false
     if (f.gpsOnly && !a.gps_tracked) return false
     if (f.photoOnly && !a.photo_url) return false
+    if (f.favoritesOnly && !a.is_favorite) return false
     if (q && !(a.notes ?? '').toLowerCase().includes(q)) return false
     return true
   })

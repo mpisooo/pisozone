@@ -6,7 +6,7 @@ import { useDuels } from '../hooks/useDuels'
 import { useFriends } from '../hooks/useFriends'
 import { useGroups } from '../hooks/useGroups'
 import { useProfile } from '../hooks/useProfile'
-import { duelState, duelDaysLeft, duelWinnerId, canClaimDuel, formatDuelValue, DUEL_WIN_CREDITS, type DuelProgressRow } from '../lib/duels'
+import { duelState, duelDaysLeft, duelWinnerId, canClaimDuel, formatDuelValue, duelBarPct, DUEL_WIN_CREDITS, type DuelProgressRow } from '../lib/duels'
 import { haptic } from '../lib/haptics'
 import DuelCreateModal from './DuelCreateModal'
 import duelsText from '../lib/i18n/duels'
@@ -55,7 +55,7 @@ export default function DuelsSection() {
 
   async function handleClaim(d: Duel, rows: DuelProgressRow[]) {
     setClaimingId(d.id)
-    const winner = duelWinnerId(rows)
+    const winner = duelWinnerId(rows, d.metric)
     const { error } = await finishDuel(d.id, winner)
     setClaimingId(null)
     if (!error && winner === user!.id) {
@@ -88,17 +88,22 @@ export default function DuelsSection() {
       {visible.map((d) => {
         const state = duelState(d, todayIso)
         const rows = progress.get(d.id) ?? []
-        const maxValue = Math.max(1, ...rows.map((r) => r.value))
+        const allValues = rows.map((r) => r.value)
         const incoming = d.status === 'pending' && d.opponent_id === user.id
         const canClaim = canClaimDuel(d, rows, user.id, todayIso)
-        const isDraw = state === 'ended' && duelWinnerId(rows) === null
+        const isDraw = state === 'ended' && duelWinnerId(rows, d.metric) === null
+        // Sfida di percorso (v47): il nome del segmento è più parlante di
+        // un'etichetta generica "Tempo sul segmento".
+        const metricLabel = d.metric === 'segment_time' && d.segment_name
+          ? d.segment_name
+          : (duelsText.metricLabels[d.metric] ?? d.metric)
 
         return (
           <div key={d.id} className={`card space-y-3 ${state === 'running' ? 'border border-[var(--red)]/30' : ''}`}>
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-semibold text-white text-sm truncate">
-                  {duelsText.metricLabels[d.metric] ?? d.metric} · {titleOf(d)}
+                  {metricLabel} · {titleOf(d)}
                 </p>
                 <p className="text-xs text-gray-500">
                   {state === 'running' && duelsText.card.daysLeft(duelDaysLeft(d, todayIso))}
@@ -124,7 +129,7 @@ export default function DuelsSection() {
                     <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
                       <div
                         className="h-full rounded-full"
-                        style={{ width: `${(r.value / maxValue) * 100}%`, background: r.user_id === user.id ? 'var(--red)' : 'var(--grey-light)', transition: 'width 0.7s' }}
+                        style={{ width: `${duelBarPct(r.value, allValues, d.metric)}%`, background: r.user_id === user.id ? 'var(--red)' : 'var(--grey-light)', transition: 'width 0.7s' }}
                       />
                     </div>
                     <span className="text-xs font-semibold text-white w-16 text-right flex-shrink-0">{formatDuelValue(d.metric, r.value)}</span>

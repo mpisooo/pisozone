@@ -2,8 +2,8 @@ import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { useForm } from 'react-hook-form'
 import { format, parseISO, formatISO } from 'date-fns'
-import { X, Trash2, Save, Share2, AlertTriangle } from 'lucide-react'
-import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, ELEVATION_CAPABLE_TYPES } from '../lib/constants'
+import { X, Trash2, Save, Share2, AlertTriangle, Star } from 'lucide-react'
+import { ACTIVITY_OPTIONS, INDOOR_VARIANTS, calcCalories, ELEVATION_CAPABLE_TYPES, type GpsTrackableType } from '../lib/constants'
 import { buildActivityShareData, shareCardImage } from '../lib/shareCard'
 import { haptic } from '../lib/haptics'
 import { uploadActivityPhoto, removeActivityPhoto } from '../lib/activityPhotos'
@@ -20,9 +20,11 @@ import PerceivedMetricsFields from './PerceivedMetricsFields'
 import ExerciseSetsFields from './ExerciseSetsFields'
 import RouteShape from './RouteShape'
 import RouteInsights from './RouteInsights'
+import SegmentCreateModal from './SegmentCreateModal'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
 import shareText from '../lib/i18n/share'
+import segmentsText from '../lib/i18n/segments'
 import { computeSplits, type TrackedPoint } from '../lib/gps'
 
 // Mappa reale caricata pigra: Leaflet pesa ~150 kB e serve solo quando si
@@ -74,6 +76,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [indoor, setIndoor] = useState<boolean | null>(activity.indoor ?? null)
   // Percorso nel feed (v45): consenso esplicito per attività, default spento.
   const [routeVisible, setRouteVisible] = useState(activity.route_visible ?? false)
+  // Percorsi preferiti (v47): marcato a mano, mai in fase di creazione.
+  const [isFavorite, setIsFavorite] = useState(activity.is_favorite ?? false)
+  // Segmenti personali (v47): modale di creazione dal percorso di questa attività.
+  const [showSegmentCreate, setShowSegmentCreate] = useState(false)
+  const [segmentCreated, setSegmentCreated] = useState(false)
   // Esercizi (v32): setsLoaded resta false se il fetch iniziale fallisce, e in
   // quel caso il salvataggio NON tocca exercise_sets — un delete+reinsert a
   // partire da bozze vuote cancellerebbe set che l'utente non ha mai visto.
@@ -202,6 +209,8 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       // Solo a colonna presente (v45): se l'attività l'ha riportata dal
       // select *, esiste; pre-migrazione la chiave non viaggia.
       ...(activity.route_visible !== undefined ? { route_visible: routeVisible } : {}),
+      // Stesso pattern per i preferiti (v47).
+      ...(activity.is_favorite !== undefined ? { is_favorite: isFavorite } : {}),
       ...photoUpdates,
     })
     if (error) {
@@ -272,6 +281,17 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       >
         <span className="font-bebas text-2xl text-white tracking-wider">{log.editActivityTitle}</span>
         <div className="flex items-center gap-1">
+          {activity.is_favorite !== undefined && (
+            <button
+              type="button"
+              onClick={() => setIsFavorite((v) => !v)}
+              aria-pressed={isFavorite}
+              aria-label={segmentsText.favorite.toggleAria}
+              className={`p-2 transition-colors ${isFavorite ? 'text-yellow-400' : 'text-gray-400 hover:text-white'}`}
+            >
+              <Star size={20} fill={isFavorite ? 'currentColor' : 'none'} />
+            </button>
+          )}
           <button
             type="button"
             onClick={handleShareCard}
@@ -437,7 +457,29 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                 </button>
               </div>
             )}
+            {/* Segmenti personali (v47): un tratto di questo percorso, da confrontare
+                con te stesso (e, volendo, con un amico) ogni volta che ci ripassi. */}
+            <button
+              type="button"
+              onClick={() => setShowSegmentCreate(true)}
+              disabled={segmentCreated}
+              className="w-full text-xs text-center py-1.5 rounded-lg disabled:opacity-50"
+              style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+            >
+              {segmentCreated ? segmentsText.create.doneHint : segmentsText.create.entryButton}
+            </button>
           </div>
+        )}
+
+        {showSegmentCreate && (
+          <SegmentCreateModal
+            points={routePoints}
+            activityType={activity.type as GpsTrackableType}
+            activityId={activity.id}
+            userId={activity.user_id}
+            onClose={() => setShowSegmentCreate(false)}
+            onCreated={() => { setShowSegmentCreate(false); setSegmentCreated(true); haptic('success') }}
+          />
         )}
 
         <div className="card space-y-3">

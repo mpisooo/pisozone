@@ -34,6 +34,7 @@ import WrappedOverlay from '../components/WrappedOverlay'
 import stats from '../lib/i18n/stats'
 import wrappedText from '../lib/i18n/wrapped'
 import heatmapText from '../lib/i18n/heatmap'
+import segmentsText from '../lib/i18n/segments'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 
@@ -618,6 +619,22 @@ export default function StatsPage() {
             onClick={() => navigate('/heatmap')}
           >
             {heatmapText.entryCard.button}
+          </button>
+        </div>
+      )}
+
+      {/* Segmenti personali (roadmap v4, pilastro 02): stesso entry point
+          condizionale della heatmap, la creazione vera avviene da ActivityEditModal. */}
+      {hasGpsRoutes && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{segmentsText.page.entryCard.heading}</h2>
+          <p className="text-xs text-gray-400 mt-1">{segmentsText.page.entryCard.subtitle}</p>
+          <button
+            type="button"
+            className="btn-primary w-full py-2 text-sm mt-3"
+            onClick={() => navigate('/segments')}
+          >
+            {segmentsText.page.entryCard.button}
           </button>
         </div>
       )}

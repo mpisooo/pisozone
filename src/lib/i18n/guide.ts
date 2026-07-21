@@ -46,6 +46,16 @@ const it = {
       ],
     },
     {
+      icon: '🚩',
+      title: 'Segmenti personali e sfide di percorso',
+      paragraphs: [
+        'Apri un\'attività tracciata col GPS dal Calendario: sotto la mappa trovi "Crea un segmento da questo percorso". Scegli un tratto con due cursori (es. una salita, o il vialetto sotto casa) e dagli un nome: è un segmento personale.',
+        'Ogni volta che una tua futura attività ripassa da quello stesso tratto, il tempo si registra da solo — lo trovi nella pagina Segmenti (raggiungibile da Statistiche), con il tuo record e lo storico dei tentativi.',
+        'Da lì puoi anche sfidare un amico sullo stesso tratto di strada: lui dovrà davvero percorrerlo, e vince chi lo fa nel tempo più basso — stessa cornice delle Sfide, ma sul luogo invece che sui chilometri totali.',
+        'Nessuna classifica pubblica: i segmenti sono sempre tuoi, li vede solo l\'amico che inviti a una sfida specifica.',
+      ],
+    },
+    {
       icon: '🏋️',
       title: 'Palestra: esercizi e record',
       paragraphs: [
@@ -143,7 +153,8 @@ const it = {
       paragraphs: [
         'Nella sezione Analisi trovi il calendario con la heatmap dei giorni attivi e le statistiche: andamento nel tempo, spettro di intensità per zone, obiettivo vs reale, carico settimanale, correlazione peso-allenamento e record personali.',
         'La card "Il tuo anno in pixel" è l\'anno intero in un colpo d\'occhio: un quadratino per giorno, colorato con la zona di intensità dominante di quel giorno (blu → rosso). Più l\'anno si riempie, più racconta.',
-        'Nel Calendario il bottone "Filtri" ti fa cercare tra le attività: per sport, solo quelle con GPS o con foto, o per testo nelle note ("pioggia", "gara"...). La heatmap si adatta e le attività trovate sono elencate lì sotto, pronte da aprire.',
+        'Nel Calendario il bottone "Filtri" ti fa cercare tra le attività: per sport, solo quelle con GPS, con foto o preferite, o per testo nelle note ("pioggia", "gara"...). La heatmap si adatta e le attività trovate sono elencate lì sotto, pronte da aprire.',
+        'Un\'attività diventa preferita aprendola dal Calendario e toccando la stella in alto: utile per ritrovare al volo un giro o un allenamento che vuoi ricordare.',
         'Da lì puoi anche esportare le attività in CSV, pronto per Excel o Google Sheets.',
       ],
     },
@@ -238,6 +249,16 @@ const en: Widen<typeof it> = {
         'In Stats, if you have at least one GPS-tracked activity, you\'ll find "Open heatmap": a map with ALL your routes overlaid, from the very first to the latest.',
         'Where you\'ve passed most often the line glows brighter; streets you\'ve only walked once stay barely visible. It\'s a different way to revisit your training history, not just another statistic.',
         'It\'s always and only yours: unlike a single route\'s shape, this map is never shared, not even with friends.',
+      ],
+    },
+    {
+      icon: '🚩',
+      title: 'Personal segments and route challenges',
+      paragraphs: [
+        'Open a GPS-tracked activity from the Calendar: below the map you\'ll find "Create a segment from this route". Pick a stretch with two sliders (a hill, the street below your house...) and name it: that\'s a personal segment.',
+        'Every time a future activity of yours passes through that same stretch, the time logs itself — you\'ll find it on the Segments page (reachable from Stats), with your best time and the full attempt history.',
+        'From there you can also challenge a friend on the same stretch of road: they\'ll actually need to run it, and whoever posts the lowest time wins — same frame as Duels, but tied to a place instead of total distance.',
+        'No public leaderboard: segments are always yours, seen only by a friend you invite to a specific challenge.',
       ],
     },
     {
@@ -338,7 +359,8 @@ const en: Widen<typeof it> = {
       paragraphs: [
         'In the Stats section you\'ll find the calendar with a heatmap of your active days, plus stats: trends over time, intensity spectrum by zone, goal vs actual, weekly load, weight-training correlation and personal records.',
         'The "Your year in pixels" card is your whole year at a glance: one little square per day, colored with that day\'s dominant intensity zone (blue → red). The fuller the year, the more it tells you.',
-        'In the Calendar, the "Filters" button lets you search your activities: by sport, GPS-only or photo-only, or by text in the notes ("rain", "race"...). The heatmap adapts and the matching activities are listed right below, ready to open.',
+        'In the Calendar, the "Filters" button lets you search your activities: by sport, GPS-only, photo-only or favorites-only, or by text in the notes ("rain", "race"...). The heatmap adapts and the matching activities are listed right below, ready to open.',
+        'An activity becomes a favorite by opening it from the Calendar and tapping the star at the top — handy for finding a run or workout you want to remember.',
         'From there you can also export your activities to CSV, ready for Excel or Google Sheets.',
       ],
     },
