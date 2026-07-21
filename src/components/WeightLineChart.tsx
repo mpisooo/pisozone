@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface WeightChartPoint {
   label: string
@@ -23,15 +23,19 @@ interface Props {
 export default function WeightLineChart({
   points, ariaLabel, width = 300, height = 130, referenceValue, referenceLabel, formatValue,
 }: Props) {
-  const clipId = useId()
   const known = points.filter((p) => p.value != null)
   const hasData = known.length >= 2
 
-  // Disegno da sinistra a destra (roadmap v5, pilastro 01 punto 1), stesso
-  // meccanismo di AreaTrendChart: la linea di riferimento (peso obiettivo) e
-  // le etichette d'asse restano FUORI dal clip, sono un traguardo statico non
-  // un dato che si "disegna". `known.length` nella dipendenza fa ripartire il
-  // disegno quando la serie cambia (nuova pesata, filtro periodo).
+  // Ingresso in dissolvenza (roadmap v5, pilastro 01 punto 1; corretto il
+  // 21/07/2026 — la prima versione usava un clip-path animato via url(),
+  // rivelatosi inaffidabile su Safari/iOS: il clip poteva restare bloccato
+  // e non rivelare mai il grafico, facendo sparire il punto di partenza del
+  // peso e lasciando visibile solo l'ultimo valore annotato — esattamente il
+  // bug segnalato). Un semplice fade in opacity su un <g> non ha questo
+  // rischio. La linea di riferimento (peso obiettivo) e le etichette d'asse
+  // restano fuori dal gruppo, sono un traguardo statico sempre visibile.
+  // `known.length` nella dipendenza fa ripartire la dissolvenza quando la
+  // serie cambia (nuova pesata, filtro periodo).
   const [revealed, setRevealed] = useState(false)
   useEffect(() => {
     setRevealed(false)
@@ -78,12 +82,6 @@ export default function WeightLineChart({
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
-      <clipPath id={clipId}>
-        <rect
-          x={0} y={0} width={revealed ? width : 0} height={height}
-          style={{ transition: 'width 1s var(--ease-out)' }}
-        />
-      </clipPath>
       {referenceY != null && (
         <>
           <line
@@ -97,7 +95,7 @@ export default function WeightLineChart({
           )}
         </>
       )}
-      <g clipPath={`url(#${clipId})`}>
+      <g style={{ opacity: revealed ? 1 : 0, transition: 'opacity .8s var(--ease-out)' }}>
         {segments.map((seg, i) => (
           <polyline
             key={i}
@@ -112,6 +110,23 @@ export default function WeightLineChart({
         {points.map((p, i) => p.value != null && (
           <circle key={i} cx={xFor(i)} cy={yFor(p.value)} r={3} fill="var(--red)" />
         ))}
+        {/* Peso di partenza: prima solo un puntino senza numero, a differenza
+            dell'ultimo valore — asimmetria che leggeva come "il grafico non
+            mostra il peso iniziale". Etichettato allo stesso modo, ancorato
+            a sinistra invece che a destra per non sovrapporsi al tracciato. */}
+        {firstKnownIdx !== lastKnownIdx && (
+          <text
+            x={xFor(firstKnownIdx)}
+            y={Math.max(10, yFor(points[firstKnownIdx].value as number) - 8)}
+            textAnchor="start"
+            fontSize={11}
+            fontWeight={600}
+            fill="var(--color-text)"
+            opacity={0.75}
+          >
+            {formatValue ? formatValue(points[firstKnownIdx].value as number) : points[firstKnownIdx].value}
+          </text>
+        )}
         <text
           x={xFor(lastKnownIdx)}
           y={Math.max(10, yFor(points[lastKnownIdx].value as number) - 8)}

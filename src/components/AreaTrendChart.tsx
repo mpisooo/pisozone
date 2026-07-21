@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Props {
   points: { label: string; value: number }[]
@@ -13,7 +13,6 @@ interface Props {
 // (inutile su mobile senza hover), il valore dell'ultimo punto resta sempre
 // leggibile come annotazione, poche etichette sull'asse per non affollarlo.
 export default function AreaTrendChart({ points, ariaLabel, width = 300, height = 140, formatValue }: Props) {
-  const clipId = useId()
   const hasData = points.length >= 2
 
   const padX = 4
@@ -40,12 +39,15 @@ export default function AreaTrendChart({ points, ariaLabel, width = 300, height 
     Array.from({ length: tickCount }, (_, i) => Math.round((i * (points.length - 1)) / (tickCount - 1 || 1)))
   )]
 
-  // Disegno da sinistra a destra (roadmap v5, pilastro 01 punto 1): un
-  // rettangolo di clip animato scopre linea/area/etichetta finale, invece di
-  // farle comparire già complete. Le etichette d'asse restano FUORI dal clip
-  // (sono un riferimento, non un dato che si "disegna"). La dipendenza sulla
-  // stringa `line` fa ripartire il disegno anche quando i punti cambiano
-  // (es. filtro periodo in Statistiche), non solo al primo mount.
+  // Ingresso in dissolvenza (roadmap v5, pilastro 01 punto 1): un semplice
+  // fade in opacity, non un clip-path animato — un clip dinamico riferito via
+  // url() si è rivelato inaffidabile su Safari/iOS (il dispositivo
+  // dell'utente): il clip poteva restare bloccato senza mai rivelare il
+  // grafico, lasciando invisibili linea/area/punti. L'opacità su un <g> non
+  // ha questo rischio, è il meccanismo di fade più basilare che esista. Le
+  // etichette d'asse restano fuori dal gruppo (sono un riferimento, sempre
+  // visibili). La dipendenza sulla stringa `line` fa ripartire la dissolvenza
+  // anche quando i punti cambiano (es. filtro periodo in Statistiche).
   const [revealed, setRevealed] = useState(false)
   useEffect(() => {
     setRevealed(false)
@@ -60,13 +62,7 @@ export default function AreaTrendChart({ points, ariaLabel, width = 300, height 
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
-      <clipPath id={clipId}>
-        <rect
-          x={0} y={0} width={revealed ? width : 0} height={height}
-          style={{ transition: 'width 1s var(--ease-out)' }}
-        />
-      </clipPath>
-      <g clipPath={`url(#${clipId})`}>
+      <g style={{ opacity: revealed ? 1 : 0, transition: 'opacity .8s var(--ease-out)' }}>
         <polygon points={area} fill="rgba(var(--accent-rgb),0.15)" />
         <polyline
           points={line}

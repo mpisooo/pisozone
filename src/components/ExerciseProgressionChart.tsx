@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 import type { ProgressionPoint } from '../lib/exerciseSets'
@@ -20,15 +20,12 @@ const MIN_RANGE_KG = 10
 // spaziate uniformemente (conta la sequenza delle sessioni, non i giorni di
 // pausa tra l'una e l'altra). Niente recharts: per una linea sola non serve.
 export default function ExerciseProgressionChart({ points, width = 280, height = 110 }: Props) {
-  const clipId = useId()
   const hasData = points.length >= 2
 
-  // Disegno da sinistra a destra (roadmap v5, pilastro 01 punto 1), stesso
-  // meccanismo di AreaTrendChart/WeightLineChart — qui estesa per coerenza
-  // anche se il testo originale del pilastro citava solo i 4 grafici di
-  // Statistiche: stessa identica lacuna (SVG puro, zero transizioni), stesso
-  // fix a costo marginale, lasciarla fuori sarebbe stata un'incoerenza
-  // visibile nella stessa pagina.
+  // Ingresso in dissolvenza (roadmap v5, pilastro 01 punto 1; corretto il
+  // 21/07/2026 — vedi WeightLineChart.tsx: un clip-path animato via url() si
+  // è rivelato inaffidabile su Safari/iOS, sostituito con un fade in opacity
+  // su un <g>, senza rischio di restare bloccato a metà rivelazione).
   const [revealed, setRevealed] = useState(false)
   useEffect(() => {
     setRevealed(false)
@@ -71,13 +68,7 @@ export default function ExerciseProgressionChart({ points, width = 280, height =
       role="img"
       aria-label={stats.progression.chartAriaLabel}
     >
-      <clipPath id={clipId}>
-        <rect
-          x={0} y={0} width={revealed ? width : 0} height={height}
-          style={{ transition: 'width 1s var(--ease-out)' }}
-        />
-      </clipPath>
-      <g clipPath={`url(#${clipId})`}>
+      <g style={{ opacity: revealed ? 1 : 0, transition: 'opacity .8s var(--ease-out)' }}>
         <polygon points={area} fill="rgba(var(--accent-rgb),0.12)" />
         <polyline
           points={line}
