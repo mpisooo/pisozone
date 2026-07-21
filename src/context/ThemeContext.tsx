@@ -1,5 +1,9 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { THEME_CSS_VARS, VALID_THEME_IDS, type ThemeId } from '../lib/levels'
+
+// Durata della dissolvenza al cambio tema (roadmap v5, pilastro 02 punto 4),
+// coerente con .theme-transition in index.css.
+const THEME_TRANSITION_MS = 450
 
 interface ThemeContextValue {
   theme: ThemeId
@@ -28,14 +32,30 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   })
 
+  // Cambio tema in dissolvenza, non a scatto (roadmap v5, pilastro 02 punto
+  // 4) — SOLO sui cambi successivi al primo: al caricamento iniziale
+  // dell'app il tema deve applicarsi subito, un fade lì mostrerebbe un lampo
+  // del tema sbagliato prima di sfumare in quello giusto.
+  const mountedRef = useRef(false)
   useEffect(() => {
+    const root = document.documentElement
+    if (mountedRef.current) {
+      root.classList.add('theme-transition')
+    }
+    mountedRef.current = true
+
     const vars = THEME_CSS_VARS[theme]
     Object.entries(vars).forEach(([key, val]) => {
-      document.documentElement.style.setProperty(key, val)
+      root.style.setProperty(key, val)
     })
     const isLight = theme === 'light' || theme === 'white'
-    document.documentElement.classList.toggle('light', isLight)
+    root.classList.toggle('light', isLight)
     localStorage.setItem('pz-theme', theme)
+
+    if (root.classList.contains('theme-transition')) {
+      const timer = window.setTimeout(() => root.classList.remove('theme-transition'), THEME_TRANSITION_MS)
+      return () => window.clearTimeout(timer)
+    }
   }, [theme])
 
   // Finché l'utente non ha mai scelto esplicitamente un tema, segue live il

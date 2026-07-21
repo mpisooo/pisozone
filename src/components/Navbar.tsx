@@ -24,9 +24,27 @@ export default function Navbar() {
   const { totalUnread } = useUnread()
   const { claimable } = useChallengesBadge()
 
+  const activeIndex = NAV_ITEMS.findIndex(({ to, matchPaths }) =>
+    matchPaths ? matchPaths.some((p) => pathname.startsWith(p)) : to === '/' ? pathname === '/' : pathname.startsWith(to)
+  )
+
   return (
     <nav className="navbar fixed bottom-0 left-0 right-0 z-50 safe-bottom">
-      <ul className="flex items-stretch justify-around h-16">
+      {/* Indicatore che scorre (roadmap v5, pilastro 02 punto 1): un solo
+          elemento persistente, mai smontato tra una navigazione e l'altra —
+          una semplice transition su `left` basta, la Navbar non si rimonta
+          mai al cambio pagina. Deliberatamente NON la View Transitions API
+          (già usata per il cambio pagina su questi stessi Link): qui
+          servirebbe solo a complicare un caso che una transition CSS
+          risolve da sola, stessa lezione imparata dal clip-path dei grafici. */}
+      {activeIndex >= 0 && (
+        <span
+          aria-hidden="true"
+          className="nav-indicator"
+          style={{ left: `calc(${activeIndex} * (100% / ${NAV_ITEMS.length}))`, width: `calc(100% / ${NAV_ITEMS.length})` }}
+        />
+      )}
+      <ul className="relative flex items-stretch justify-around h-16">
         {NAV_ITEMS.map(({ to, icon: Icon, label, matchPaths }) => {
           const isActive = matchPaths
             ? matchPaths.some((p) => pathname.startsWith(p))

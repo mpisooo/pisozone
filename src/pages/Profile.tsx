@@ -775,7 +775,7 @@ export default function ProfilePage() {
               type="button"
               onClick={handleLogWeight}
               disabled={loggingWeight}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] transition-all active:scale-95 disabled:opacity-50 bg-[var(--red)]"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] tap disabled:opacity-50 bg-[var(--red)]"
             >
               <TrendingUp size={13} />
               {loggingWeight ? profileText.weight.saveButtonSaving : profileText.weight.saveButton(weight)}
@@ -880,7 +880,7 @@ export default function ProfilePage() {
         <p className="text-xs text-gray-500 leading-relaxed">{profileText.guide.body}</p>
         <Link
           to="/guide"
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95"
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
           style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
         >
           <BookOpen size={15} />
@@ -910,7 +910,7 @@ export default function ProfilePage() {
           type="button"
           onClick={handleExportData}
           disabled={exporting}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap disabled:opacity-50"
           style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
         >
           <Download size={15} />
@@ -919,7 +919,7 @@ export default function ProfilePage() {
         <button
           type="button"
           onClick={() => setShowDeleteModal(true)}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium transition-all active:scale-95"
+          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
           style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
         >
           <Trash2 size={15} />

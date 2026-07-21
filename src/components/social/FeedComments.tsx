@@ -94,7 +94,7 @@ export default function FeedComments({ activityId, ownerId, myId, onCountChange 
           onClick={handleSend}
           disabled={!text.trim() || sending}
           aria-label={social.feed.comments.sendAria}
-          className="p-2.5 rounded-lg bg-[var(--red)] text-[white] disabled:opacity-40 active:scale-95 transition-all flex-shrink-0"
+          className="p-2.5 rounded-lg bg-[var(--red)] text-[white] disabled:opacity-40 tap flex-shrink-0"
         >
           <Send size={15} />
         </button>

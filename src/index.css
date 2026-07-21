@@ -45,6 +45,18 @@ html.light {
   --color-text: #111111;
 }
 
+/* ── Cambio tema in dissolvenza (roadmap v5, pilastro 02 punto 4): applicata
+   da ThemeContext.tsx SOLO sui cambi successivi al primo montaggio, rimossa
+   da sola dopo THEME_TRANSITION_MS. Deliberatamente SENZA !important: la
+   guardia globale prefers-reduced-motion in coda a questo file usa
+   `transition-duration: 0.01ms !important` su `*` — un !important qui
+   vincerebbe comunque sulla specificità, rompendo quella garanzia. Senza
+   !important, chi ha "riduci movimento" attivo continua a non vedere alcuna
+   transizione, senza bisogno di una guardia propria. ── */
+.theme-transition, .theme-transition * {
+  transition: background-color .45s ease, border-color .45s ease, color .45s ease, fill .45s ease;
+}
+
 /* ── 2. Zone di intensità: scala semantica fissa (blu→verde→ambra→rosso), NON
    segue l'accento dei 6 temi — stessa eccezione della scala BMI, perché qui
    il colore comunica un significato (l'intensità dello sforzo), non lo
@@ -99,6 +111,19 @@ html.light {
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ── Token di tocco (roadmap v5, pilastro 02 punto 3): prima ogni bottone
+   sceglieva a mano un valore di active:scale (90/95/98, incoerenti senza un
+   vero motivo), e alcuni punti interattivi (es. il picker sport in Log.tsx)
+   non avevano nessun feedback al tocco. Una classe sola, un solo valore. Il
+   pattern disabled:active:scale-100 di alcuni bottoni (es. RecoveryCard) è
+   incluso di default, non va più ricordato caso per caso. NON sostituisce
+   animazioni già più elaborate (es. .btn-save, che cresce anche su hover) né
+   i bottoni che crescono invece di restringersi (reazioni sul feed, un
+   linguaggio deliberatamente diverso). ── */
+.tap { transition: transform .15s var(--ease-out); }
+.tap:active { transform: scale(0.95); }
+.tap:disabled:active { transform: none; }
 
 /* ── Base ── */
 * { box-sizing: border-box; }
@@ -251,6 +276,20 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   to   { opacity: 1; transform: translateY(0); }
 }
 .count-up { animation: count-up-fade 0.5s ease-out forwards; }
+
+/* ── Ingresso a cascata (roadmap v5, pilastro 02 punto 2): stesso fade di
+   .count-up, con un ritardo crescente per indice (--stagger-i, impostato
+   inline da chi la applica, es. style={{ '--stagger-i': i }}). SOLO su
+   griglie/elenchi piccoli e a lunghezza nota in anticipo (medaglie, sfide del
+   giorno, blocchi esercizio, le prime card del feed) — mai su liste lunghe
+   (attività, messaggi): un'attesa cumulativa su decine di elementi
+   sembrerebbe lentezza, non cura. `backwards` mantiene lo stato iniziale
+   (invisibile) durante il ritardo, o ogni elemento lampeggerebbe pieno prima
+   del suo turno. ── */
+.stagger-in {
+  animation: count-up-fade .45s ease-out backwards;
+  animation-delay: calc(var(--stagger-i, 0) * 45ms);
+}
 
 /* ── Page transition ── */
 @keyframes page-in {
@@ -522,6 +561,28 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
   box-shadow: var(--shadow-chrome-up);
   view-transition-name: navbar;
 }
+/* ── Indicatore di tab attiva nella Navbar (roadmap v5, pilastro 02 punto 1):
+   un'unica pillola che scorre da un'icona all'altra invece di ricomparire
+   punto per punto. Posizionata rispetto a .navbar (già position:fixed, già
+   containing block), non rispetto al <ul> — evita di dover rendere
+   position:relative un elemento che non lo era. ── */
+.nav-indicator {
+  position: absolute;
+  top: 8px;
+  height: 48px;
+  transition: left var(--dur-base) var(--ease-spring);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-indicator::before {
+  content: '';
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.14);
+}
 .topbar-logo {
   line-height: 1;
   text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
@@ -712,10 +773,15 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
    chi ha "riduci movimento" attivo vede gli stati finali all'istante — vale
    per ogni animazione e transizione dell'app, incluse quelle inline (il
    !important vince sugli style={{}}), e per le View Transitions. I count-up
-   JS (AnimatedNumber) fanno lo stesso controllo via matchMedia. ── */
+   JS (AnimatedNumber) fanno lo stesso controllo via matchMedia.
+   animation-delay azzerato qui (roadmap v5, pilastro 02 punto 2): serve
+   all'ingresso a cascata di .stagger-in, altrimenti anche a durata collassata
+   resterebbe visibile un'attesa scaglionata prima di ogni elemento — la
+   garanzia resta "gli stati finali all'istante", nessun'attesa residua. ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }

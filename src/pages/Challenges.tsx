@@ -136,15 +136,16 @@ export default function ChallengesPage() {
 
       {/* Challenge cards */}
       <div className="space-y-3">
-        {dailyChallenges.map(({ template, eligible, claimed }) => {
+        {dailyChallenges.map(({ template, eligible, claimed }, i) => {
           const isClaiming = claimingKey === template.key
 
           return (
             <div
               key={template.key}
-              className={`card transition-all duration-200 ${
+              className={`card stagger-in transition-all duration-200 ${
                 claimed ? 'border border-green-500/30' : eligible ? 'border border-[var(--red)]/30' : ''
               }`}
+              style={{ '--stagger-i': i } as React.CSSProperties}
             >
               <div className="flex items-start gap-3">
                 {/* Icon */}

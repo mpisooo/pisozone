@@ -79,7 +79,7 @@ export default function MedalsPage() {
               <span className="text-xs text-gray-500">{medals.unlockCreditsLabel(TIER_CREDITS[tier])}</span>
             </div>
             <div className="space-y-2">
-              {tierMedals.map((medal) => {
+              {tierMedals.map((medal, i) => {
                 const { current, target } = medal.checkProgress(stats)
                 const claimed = claimedKeys.has(medal.key)
                 const eligible = eligibleKeys.has(medal.key)
@@ -90,10 +90,10 @@ export default function MedalsPage() {
                 return (
                   <div
                     key={medal.key}
-                    className={`card relative overflow-hidden transition-all duration-300 ${
+                    className={`card stagger-in relative overflow-hidden transition-all duration-300 ${
                       claimed ? 'border-green-500/30' : eligible ? 'border-[var(--red)]/50' : 'opacity-75'
                     }`}
-                    style={{ borderColor: locked ? '#2a2a2a' : undefined }}
+                    style={{ borderColor: locked ? '#2a2a2a' : undefined, '--stagger-i': i } as React.CSSProperties}
                   >
                     {/* shine on claimed */}
                     {claimed && <div className="absolute inset-0 badge-shine pointer-events-none" />}

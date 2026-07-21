@@ -46,7 +46,7 @@ export default function FeedTab({
           <EmptyState icon="bolt" title={social.feed.emptyTitle} hint={social.feed.emptyHint} />
         </div>
       ) : (
-        feed.map(a => {
+        feed.map((a, i) => {
           const opt = ACTIVITY_OPTIONS.find(o => o.value === a.type)
           const ld = getLevelDef(a.user_level)
           const ago = formatDistanceToNow(parseISO(a.date), { addSuffix: true, locale: it })
@@ -54,13 +54,17 @@ export default function FeedTab({
             <div
               key={a.id}
               id={`feed-act-${a.id}`}
-              className="card space-y-3"
+              className="card space-y-3 stagger-in"
               style={{
                 // Evidenziazione deep-link: outline, non box-shadow — la
                 // .card ha già la sua elevazione e non va soppressa.
                 outline: highlightedActivityId === a.id ? '2px solid var(--red)' : '2px solid transparent',
                 outlineOffset: 2,
                 transition: 'outline-color 0.4s ease',
+                // Cascata solo sulle prime card (roadmap v5, pilastro 02 punto
+                // 2): il feed può avere fino a 50 attività, un ritardo
+                // cumulativo su tutte sembrerebbe lentezza, non cura.
+                ...({ '--stagger-i': Math.min(i, 8) } as React.CSSProperties),
               }}
             >
               <div className="flex items-center gap-2.5">

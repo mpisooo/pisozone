@@ -288,7 +288,7 @@ export default function HomePage() {
                 type="button"
                 onClick={handleFreeze}
                 disabled={!canAffordFreeze || freezing}
-                className={`mt-2.5 text-xs px-3 py-1.5 rounded-lg font-medium border transition-all active:scale-95 disabled:active:scale-100 ${
+                className={`mt-2.5 text-xs px-3 py-1.5 rounded-lg font-medium border tap ${
                   canAffordFreeze
                     ? 'text-blue-300 border-blue-500/50 hover:bg-blue-500/10'
                     : 'text-gray-500 border-gray-700 cursor-not-allowed'
@@ -363,7 +363,7 @@ export default function HomePage() {
                 attività — data/ora di adesso, calorie di nuovo automatiche. */}
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg font-medium transition-all active:scale-95"
+              className="w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg font-medium tap"
               style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}
               onClick={() => navigate('/log', { state: { quickLog: prefillFromActivity(lastActivity) }, viewTransition: true })}
             >

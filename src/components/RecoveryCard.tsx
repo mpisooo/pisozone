@@ -31,7 +31,7 @@ function StepButton({ onClick, disabled, ariaLabel, children }: {
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className="w-8 h-8 rounded-full flex items-center justify-center border text-gray-300 transition-all active:scale-90 disabled:opacity-30 disabled:active:scale-100 flex-shrink-0"
+      className="w-8 h-8 rounded-full flex items-center justify-center border text-gray-300 tap disabled:opacity-30 flex-shrink-0"
       style={{ borderColor: 'var(--grey-light)', background: 'var(--grey)' }}
     >
       {children}

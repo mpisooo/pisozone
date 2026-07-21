@@ -353,7 +353,7 @@ export default function LogPage() {
               return (
                 <label
                   key={opt.value}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-200 tap ${
                     isSelected
                       ? 'border-[var(--red)] bg-[var(--red)]/10'
                       : 'border-transparent hover:border-gray-600'
@@ -406,7 +406,7 @@ export default function LogPage() {
               type="button"
               onClick={applyQuickChip}
               aria-label={log.quick.chipAria}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-medium text-gray-400 transition-all active:scale-95 hover:text-white"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-medium text-gray-400 tap hover:text-white"
               style={{ background: 'var(--grey)' }}
             >
               <RotateCcw size={13} />

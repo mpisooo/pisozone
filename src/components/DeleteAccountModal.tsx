@@ -119,7 +119,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all active:scale-95"
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium tap"
             style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
           >
             {common.cancel}
@@ -128,7 +128,7 @@ export default function DeleteAccountModal({ onClose }: Props) {
             type="button"
             onClick={handleDelete}
             disabled={!confirmed || deleting}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-[white] transition-all active:scale-95 disabled:opacity-40 bg-[var(--red)]"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-[white] tap disabled:opacity-40 bg-[var(--red)]"
           >
             <Trash2 size={15} />
             {deleting ? profileText.deleteAccount.deleting : profileText.deleteAccount.confirmButton}

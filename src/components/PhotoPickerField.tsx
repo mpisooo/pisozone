@@ -31,7 +31,7 @@ export default function PhotoPickerField({
             type="button"
             onClick={onClear}
             aria-label={log.photoPicker.removeAria}
-            className="absolute top-2 right-2 p-1.5 rounded-full text-white transition-all active:scale-90"
+            className="absolute top-2 right-2 p-1.5 rounded-full text-white tap"
             style={{ background: 'rgba(0,0,0,0.65)' }}
           >
             <X size={16} />

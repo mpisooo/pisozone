@@ -235,7 +235,7 @@ export default function FriendProfileView({
               type="button"
               onClick={() => setShowReportSheet(true)}
               disabled={acting}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium tap disabled:opacity-50"
               style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
             >
               <Flag size={13} /> {social.friends.profile.reportButton}
@@ -244,7 +244,7 @@ export default function FriendProfileView({
               type="button"
               onClick={handleBlock}
               disabled={acting}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium tap disabled:opacity-50"
               style={{
                 border: '1px solid rgba(var(--accent-rgb),0.5)',
                 color: 'var(--red)',

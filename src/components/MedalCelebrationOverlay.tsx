@@ -119,7 +119,7 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
           <button
             type="button"
             onClick={onDone}
-            className="px-8 py-2.5 rounded-full font-bold text-sm transition-all active:scale-95"
+            className="px-8 py-2.5 rounded-full font-bold text-sm tap"
             style={{
               background: `linear-gradient(90deg, ${glow.c1}, ${glow.c2})`,
               color: glow.darkText ? '#0D0D0D' : '#fff',

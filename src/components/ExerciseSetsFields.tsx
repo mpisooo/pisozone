@@ -74,8 +74,8 @@ export default function ExerciseSetsFields({ drafts, onChange, suggestions, idPr
         return (
           <div
             key={draft.key}
-            className="rounded-xl border p-2.5 space-y-2"
-            style={{ borderColor: draft.groupId ? 'var(--red)' : 'var(--grey)' }}
+            className="rounded-xl border p-2.5 space-y-2 stagger-in"
+            style={{ borderColor: draft.groupId ? 'var(--red)' : 'var(--grey)', '--stagger-i': i } as React.CSSProperties}
           >
             <div className="flex items-center gap-2">
               <input

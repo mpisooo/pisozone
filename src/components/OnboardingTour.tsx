@@ -90,7 +90,7 @@ export default function OnboardingTour() {
               type="button"
               onClick={() => setStep((s) => s - 1)}
               aria-label={shell.onboarding.back}
-              className="p-2.5 rounded-lg transition-all active:scale-95"
+              className="p-2.5 rounded-lg tap"
               style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
             >
               <ChevronLeft size={18} />
