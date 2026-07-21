@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useActivities } from '../hooks/useActivities'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useStreakFreeze } from '../hooks/useStreakFreeze'
 import { useRecovery } from '../hooks/useRecovery'
@@ -51,7 +52,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default function HomePage() {
   const { user } = useAuth()
   const { profile, loading: profileLoading, refetch: refetchProfile, updateProfile } = useProfile()
-  const { activities, loading: actsLoading } = useActivities()
+  const { activities, loading: actsLoading, refetch: refetchActivities } = useActivities()
   const { entries: lbEntries, hasFriends } = useLeaderboard()
   const { frozenDates, freeze, freezing } = useStreakFreeze()
   const { logs: recoveryLogs, restDates, patchDay } = useRecovery()
@@ -59,6 +60,9 @@ export default function HomePage() {
   const { goals, working: goalsWorking, addGoal, deleteGoal } = usePersonalGoals()
   const navigate = useNavigate()
   const [showPushPrompt, setShowPushPrompt] = useState(false)
+  const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(
+    () => Promise.all([refetchActivities(), refetchProfile()]),
+  )
 
   // Utenti con un account creato prima dell'introduzione delle push non sanno
   // che esistono: mostra la scelta esplicita una sola volta (push_prompt_seen
@@ -192,7 +196,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="page-enter relative p-4 pb-24 space-y-4 max-w-lg mx-auto">
+    <div className="page-enter relative p-4 pb-24 space-y-4 max-w-lg mx-auto" {...pullHandlers}>
+      {pullIndicator}
       {/* Bagliore ambientale: la Home come vetrina dell'identità */}
       <div className="hero-glow" aria-hidden="true" />
 

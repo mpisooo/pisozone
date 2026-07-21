@@ -136,6 +136,23 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
   /* pan-x pan-y: consente lo scroll ma blocca pinch-zoom e double-tap zoom */
   touch-action: pan-x pan-y;
+  /* Niente rimbalzo elastico nativo in cima alla pagina (roadmap v5,
+     pilastro 03): senza, il pull-to-refresh a mano di usePullToRefresh
+     avrebbe un doppio effetto visivo su iOS insieme all'overscroll di
+     sistema. Non tocca lo scroll interno dei modali (già isolato dalla loro
+     stessa classe overscroll-contain per-elemento). */
+  overscroll-behavior-y: contain;
+}
+
+/* ── Focus visibile da tastiera (roadmap v5, pilastro 03 punto 2): stesso
+   linguaggio visivo del resto dell'app (var(--red)), non un blu di sistema
+   fuori tema. :focus-visible (a differenza di :focus) il browser lo attiva
+   da solo solo su input da tastiera/switch, mai su tocco o click col mouse —
+   niente JS per distinguere le due modalità. ── */
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 /* ── Custom scrollbar ── */

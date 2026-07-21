@@ -5,6 +5,9 @@ import { createNamespaceProxy, type Widen } from './proxy'
 // vengono formattati in lib/shareCard.ts; qui vivono etichette e messaggi.
 const it = {
   activityButton: "Condividi l'attività come immagine",
+  readinessButton: 'Condividi la prontezza come immagine',
+  segmentPrButton: 'Condividi il record come immagine',
+  racePredictorButton: 'Condividi la stima gara come immagine',
   error: 'Condivisione non riuscita. Riprova.',
 
   card: {
@@ -25,11 +28,22 @@ const it = {
     // maiuscolo dal canvas, qui resta leggibile).
     splitsKicker: (pace: string) => `Passo per km — il più veloce ${pace}`,
     footer: 'pisozone-app.vercel.app',
+    // Card condivisibili per le flagship della v4 (roadmap v5, pilastro 03):
+    // Prontezza e PR di segmento, sullo stesso modello di attività/Wrapped.
+    readinessKicker: 'PUNTEGGIO DI PRONTEZZA',
+    segmentPrKicker: 'NUOVO RECORD DI PERCORSO',
+    segmentTime: 'Tempo',
+    segmentDistance: 'Distanza',
+    racePredictorKicker: 'PASSO GARA PREVISTO',
+    racePredictorTitle: 'STIMA GARA',
   },
 } as const
 
 const en: Widen<typeof it> = {
   activityButton: 'Share activity as image',
+  readinessButton: 'Share readiness as image',
+  segmentPrButton: 'Share record as image',
+  racePredictorButton: 'Share race estimate as image',
   error: 'Sharing failed. Please try again.',
 
   card: {
@@ -48,6 +62,12 @@ const en: Widen<typeof it> = {
     activeDays: 'Active days',
     splitsKicker: (pace: string) => `Pace per km — fastest ${pace}`,
     footer: 'pisozone-app.vercel.app',
+    readinessKicker: 'READINESS SCORE',
+    segmentPrKicker: 'NEW SEGMENT RECORD',
+    segmentTime: 'Time',
+    segmentDistance: 'Distance',
+    racePredictorKicker: 'PREDICTED RACE PACE',
+    racePredictorTitle: 'RACE ESTIMATE',
   },
 }
 

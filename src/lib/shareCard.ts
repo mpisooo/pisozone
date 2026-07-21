@@ -1,10 +1,14 @@
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
-import type { Activity, RoutePoint } from '../types'
+import type { Activity, RoutePoint, RouteSegment } from '../types'
 import type { WrappedData } from './wrapped'
 import { activityLabel } from './constants'
 import { formatMinutesCompact } from './stats'
 import { projectToViewBox, formatPaceClock, type KmSplit } from './gps'
+import type { ReadinessResult, ReadinessFactors } from './readiness'
+import type { RacePredictorResult } from './racePredictor'
+import { formatRaceTime } from './racePredictor'
+import { formatSegmentTime } from './segments'
 import shareText from './i18n/share'
 
 // Card condivisibili come immagine (roadmap v2, pilastro 04): il layout è
@@ -94,6 +98,62 @@ export function buildWrappedShareData(w: WrappedData): ShareCardData {
     title: w.title.toUpperCase(),
     subtitle: shareText.card.wrappedSubtitle[w.period.kind],
     stats: stats.slice(0, 4),
+    footer: shareText.card.footer,
+  }
+}
+
+// Punteggio di Prontezza (roadmap v5, pilastro 03): l'advice e le etichette
+// dei fattori arrivano già tradotti dal chiamante (ReadinessCard, che importa
+// il namespace i18n home) invece di duplicarli qui — shareCard.ts resta un
+// modulo condiviso, non legato a un namespace di una singola pagina. Solo i
+// fattori davvero disponibili (mai un "0%" inventato per uno mancante, stessa
+// regola di computeReadiness) diventano statistiche della card.
+export function buildReadinessShareData(
+  readiness: ReadinessResult,
+  adviceText: string,
+  factorLabels: Record<keyof ReadinessFactors, string>,
+): ShareCardData {
+  const stats: ShareStat[] = (Object.keys(readiness.factors) as (keyof ReadinessFactors)[])
+    .filter((key) => readiness.factors[key] != null)
+    .map((key) => ({ value: `${readiness.factors[key]}`, label: factorLabels[key] }))
+  return {
+    kicker: shareText.card.readinessKicker,
+    title: `${readiness.score}/100`,
+    subtitle: adviceText,
+    stats,
+    footer: shareText.card.footer,
+  }
+}
+
+// PR su un segmento personale (roadmap v5, pilastro 03): stesso trattamento
+// delle altre due flagship v4, un traguardo che oggi resta chiuso dentro
+// l'app. Il tempo arriva già come il migliore rilevato (buildSegmentPrMap),
+// mai ricalcolato qui.
+export function buildSegmentPrShareData(segment: RouteSegment, timeSeconds: number): ShareCardData {
+  return {
+    kicker: shareText.card.segmentPrKicker,
+    title: segment.name.toUpperCase(),
+    subtitle: activityLabel(segment.activity_type),
+    stats: [
+      { value: formatSegmentTime(timeSeconds), label: shareText.card.segmentTime },
+      { value: `${(segment.distance_m / 1000).toLocaleString('it-IT', { maximumFractionDigits: 2 })} km`, label: shareText.card.segmentDistance },
+    ],
+    footer: shareText.card.footer,
+  }
+}
+
+// Passo gara previsto (roadmap v5, pilastro 03): le 4 stime (5K/10K/mezza/
+// maratona) riempiono la stessa griglia 2x2 delle statistiche di un'attività
+// senza percorso — non c'è un singolo "numero eroe" da mettere in titolo
+// (sono 4 stime alla pari), quindi il titolo resta una dicitura fissa e la
+// riga di riferimento (già composta dal chiamante, stats.racePredictor.
+// subheading) fa da sottotitolo.
+export function buildRacePredictorShareData(result: RacePredictorResult, subtitle: string): ShareCardData {
+  return {
+    kicker: shareText.card.racePredictorKicker,
+    title: shareText.card.racePredictorTitle,
+    subtitle,
+    stats: result.predictions.map((p) => ({ value: formatRaceTime(p.minutes), label: p.label })),
     footer: shareText.card.footer,
   }
 }

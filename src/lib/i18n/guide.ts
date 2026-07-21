@@ -5,7 +5,7 @@ import { createNamespaceProxy, type Widen } from './proxy'
 // un accordion; i paragrafi sono frasi brevi, dalla parte dell'utente.
 const it = {
   pageTitle: 'GUIDA',
-  intro: 'Tutto quello che PisoZone sa fare, in un posto solo. Tocca una sezione per aprirla.',
+  intro: 'Tutto quello che PisoZone sa fare, in un posto solo. Tocca una sezione per aprirla. In Home, Statistiche e Feed puoi anche trascinare verso il basso in cima alla pagina per aggiornare i dati.',
 
   sections: [
     {
@@ -55,6 +55,7 @@ const it = {
         'Ogni volta che una tua futura attività ripassa da quello stesso tratto, il tempo si registra da solo — lo trovi nella pagina Segmenti (raggiungibile da Statistiche), con il tuo record e lo storico dei tentativi.',
         'Da lì puoi anche sfidare un amico sullo stesso tratto di strada: lui dovrà davvero percorrerlo, e vince chi lo fa nel tempo più basso — stessa cornice delle Sfide, ma sul luogo invece che sui chilometri totali.',
         'Nessuna classifica pubblica: i segmenti sono sempre tuoi, li vede solo l\'amico che inviti a una sfida specifica.',
+        'Il tuo record su un segmento si condivide come immagine con l\'icona accanto al pulsante "Sfida" nella pagina Segmenti.',
       ],
     },
     {
@@ -112,8 +113,8 @@ const it = {
       title: 'Il coach: prontezza, gara e intervalli',
       paragraphs: [
         'In Home, la card "Prontezza" riassume in un numero da 0 a 100 come stai messo oggi: incrocia sforzo percepito, carico settimanale, sonno e riposo — tutti dati che inserisci già altrove, nessun sensore richiesto. Sotto il numero trovi il consiglio: spingi, mantieni il ritmo o riposa.',
-        'Serve almeno un po\' di storico (uno sforzo percepito compilato o qualche giorno di Recupero) prima che compaia: senza dati a sufficienza, niente numero inventato.',
-        'In Statistiche, se hai corso negli ultimi 90 giorni, trovi anche il "Passo gara previsto": dalla tua corsa più veloce recente stima il tempo su 5K, 10K, mezza maratona e maratona. Si aggiorna da solo a ogni nuovo record.',
+        'Serve almeno un po\' di storico (uno sforzo percepito compilato o qualche giorno di Recupero) prima che compaia: senza dati a sufficienza, niente numero inventato. Anche il punteggio di Prontezza si condivide come immagine, con l\'icona accanto al titolo della card.',
+        'In Statistiche, se hai corso negli ultimi 90 giorni, trovi anche il "Passo gara previsto": dalla tua corsa più veloce recente stima il tempo su 5K, 10K, mezza maratona e maratona. Si aggiorna da solo a ogni nuovo record, e si condivide come immagine con l\'icona accanto al titolo della card.',
         'Nella pagina Programmi, se sei indietro di almeno due sessioni rispetto alla settimana in corso, un avviso te lo segnala — e se in più il carico sta già salendo, il consiglio cambia: prima recuperare piano, poi rimettersi in pari.',
         'Prima di tracciare col GPS (corsa, bici, camminata, trekking), nella scheda Registra puoi attivare "Allenamento a intervalli": scegli quante ripetute, la distanza e la zona target per il lavoro, la durata e la zona per il recupero. Durante il tracciamento un indicatore ti segue passo per passo e ti avvisa se esci dalla zona giusta.',
         'Il promemoria serale delle 22:00 tiene conto anche della prontezza: se il segnale dice già "riposa", il messaggio cambia tono — niente spinta ad allenarti se il corpo sta chiedendo una pausa.',
@@ -218,7 +219,7 @@ const it = {
 
 const en: Widen<typeof it> = {
   pageTitle: 'GUIDE',
-  intro: 'Everything PisoZone can do, all in one place. Tap a section to open it.',
+  intro: 'Everything PisoZone can do, all in one place. Tap a section to open it. On Home, Stats and Feed you can also pull down at the top of the page to refresh the data.',
 
   sections: [
     {
@@ -268,6 +269,7 @@ const en: Widen<typeof it> = {
         'Every time a future activity of yours passes through that same stretch, the time logs itself — you\'ll find it on the Segments page (reachable from Stats), with your best time and the full attempt history.',
         'From there you can also challenge a friend on the same stretch of road: they\'ll actually need to run it, and whoever posts the lowest time wins — same frame as Duels, but tied to a place instead of total distance.',
         'No public leaderboard: segments are always yours, seen only by a friend you invite to a specific challenge.',
+        'Your best time on a segment shares as an image, with the icon next to the "Challenge" button on the Segments page.',
       ],
     },
     {
@@ -325,8 +327,8 @@ const en: Widen<typeof it> = {
       title: 'The coach: readiness, race pace and intervals',
       paragraphs: [
         'In Home, the "Readiness" card sums up how you\'re doing today in one number from 0 to 100: it combines perceived effort, weekly load, sleep and rest — all data you already log elsewhere, no sensor required. Below the number you get the advice: push, keep steady, or rest.',
-        'It needs a bit of history first (a logged perceived effort or a few days of Recovery) before it shows up: without enough data, no invented number.',
-        'In Stats, if you\'ve run in the last 90 days, you\'ll also find "Predicted race pace": from your fastest recent run it estimates your time over 5K, 10K, half marathon and marathon. It updates itself with every new record.',
+        'It needs a bit of history first (a logged perceived effort or a few days of Recovery) before it shows up: without enough data, no invented number. The Readiness score also shares as an image, with the icon next to the card\'s title.',
+        'In Stats, if you\'ve run in the last 90 days, you\'ll also find "Predicted race pace": from your fastest recent run it estimates your time over 5K, 10K, half marathon and marathon. It updates itself with every new record, and shares as an image with the icon next to the card\'s title.',
         'On the Plans page, if you\'re at least two sessions behind the current week, a warning lets you know — and if your load is already climbing on top of that, the advice changes: ease back in first, then catch up.',
         'Before tracking with GPS (running, cycling, walking, trekking), the Log tab lets you turn on "Interval workout": choose how many repeats, the distance and target zone for the work, the duration and zone for the recovery. During tracking, an indicator follows you step by step and warns you if you drift out of the right zone.',
         'The 10 PM evening reminder also takes readiness into account: if the signal already says "rest", the message changes tone — no push to train if your body is asking for a break.',

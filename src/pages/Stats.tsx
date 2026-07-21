@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
 import { startOfDay, startOfWeek, startOfMonth, startOfYear, parseISO, format, isAfter, isEqual } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Share2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useWeightLogs } from '../hooks/useWeightLogs'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { buildGymRecords, buildExerciseProgression, progressionExercises } from '../lib/exerciseSets'
@@ -18,6 +19,8 @@ import { buildTrainingLoadSeries, loadJumpPct } from '../lib/trainingLoad'
 import { predictRaceTimes, formatRaceTime } from '../lib/racePredictor'
 import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wrapped'
 import { downloadAsCsv } from '../lib/dataExport'
+import { buildRacePredictorShareData, shareCardImage } from '../lib/shareCard'
+import { haptic } from '../lib/haptics'
 import type { Activity } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
@@ -35,6 +38,7 @@ import stats from '../lib/i18n/stats'
 import wrappedText from '../lib/i18n/wrapped'
 import heatmapText from '../lib/i18n/heatmap'
 import segmentsText from '../lib/i18n/segments'
+import shareText from '../lib/i18n/share'
 
 type Period = 'today' | 'week' | 'month' | 'year' | 'all'
 
@@ -98,13 +102,15 @@ function StatCard({ label, value, sub }: { label: string; value: React.ReactNode
 }
 
 export default function StatsPage() {
-  const { activities, loading } = useActivities()
+  const { activities, loading, refetch: refetchActivities } = useActivities()
   const { logs: weightLogs } = useWeightLogs()
   const { profile } = useProfile()
   const navigate = useNavigate()
   const [period, setPeriod] = useState<Period>('week')
   const [metric, setMetric] = useState<Metric>('minutes')
   const [openWrapped, setOpenWrapped] = useState<WrappedData | null>(null)
+  const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(refetchActivities)
+  const [sharingRace, setSharingRace] = useState(false)
 
   const filtered = useMemo(() => filterByPeriod(activities, period), [activities, period])
 
@@ -215,6 +221,20 @@ export default function StatsPage() {
   // Passo gara previsto (roadmap v4, pilastro 01): sempre sugli ultimi 90
   // giorni veri, indipendente dal filtro periodo della pagina.
   const racePrediction = useMemo(() => predictRaceTimes(activities), [activities])
+  const [raceShareError, setRaceShareError] = useState(false)
+
+  // Card condivisibile (roadmap v5, pilastro 03): era l'unica flagship v4
+  // rimasta senza un'immagine da mostrare, come attività/Wrapped/Prontezza.
+  const handleShareRacePrediction = async () => {
+    if (!racePrediction) return
+    setSharingRace(true)
+    setRaceShareError(false)
+    const subtitle = stats.racePredictor.subheading(racePrediction.referenceKm, formatRaceTime(racePrediction.referenceMinutes))
+    const outcome = await shareCardImage(buildRacePredictorShareData(racePrediction, subtitle), 'pisozone-stima-gara.png')
+    setSharingRace(false)
+    if (outcome === 'failed') setRaceShareError(true)
+    else if (outcome !== 'cancelled') haptic('success')
+  }
 
   // Heatmap personale (roadmap v4, pilastro 02): la card compare solo se
   // esiste almeno un'attività tracciata via GPS, la pagina vera fa il fetch
@@ -251,7 +271,8 @@ export default function StatsPage() {
   )
 
   return (
-    <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto">
+    <div className="page-enter p-4 pb-24 space-y-4 max-w-lg mx-auto" {...pullHandlers}>
+      {pullIndicator}
       <div className="pt-3">
         <AnalisiTabs />
       </div>
@@ -592,7 +613,18 @@ export default function StatsPage() {
           filtro periodo. Nessuna card se non ci sono corse comparabili. */}
       {racePrediction && (
         <div className="card space-y-3">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.racePredictor.heading}</h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.racePredictor.heading}</h2>
+            <button
+              type="button"
+              onClick={handleShareRacePrediction}
+              disabled={sharingRace}
+              aria-label={shareText.racePredictorButton}
+              className="p-1.5 -mr-1.5 text-gray-500 hover:text-white disabled:opacity-40 tap flex-shrink-0"
+            >
+              <Share2 size={16} />
+            </button>
+          </div>
           <p className="text-xs text-gray-500">
             {stats.racePredictor.subheading(racePrediction.referenceKm, formatRaceTime(racePrediction.referenceMinutes))}
           </p>
@@ -604,6 +636,7 @@ export default function StatsPage() {
               </div>
             ))}
           </div>
+          {raceShareError && <p className="text-[11px]" style={{ color: 'var(--zone-4)' }}>{shareText.error}</p>}
         </div>
       )}
 

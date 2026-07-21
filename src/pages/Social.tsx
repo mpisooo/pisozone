@@ -8,6 +8,7 @@ import { useFriends } from '../hooks/useFriends'
 import { useMessages } from '../hooks/useMessages'
 import { useGroups } from '../hooks/useGroups'
 import { useFeed } from '../hooks/useFeed'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useLeaderboard } from '../hooks/useLeaderboard'
 import { useComments } from '../hooks/useComments'
 import { useBlocks } from '../hooks/useBlocks'
@@ -51,7 +52,8 @@ export default function SocialPage() {
   const { friends, pendingReceived, pendingSent, loading: friendsLoading, searchUsers, sendRequest, acceptRequest, rejectOrRemove, refetch: refetchFriends } = useFriends()
   const { conversations, loadingConvs, fetchConversations, deleteConversation } = useMessages()
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
-  const { feed, loading: feedLoading, react } = useFeed()
+  const { feed, loading: feedLoading, refetch: refetchFeed, react } = useFeed()
+  const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(refetchFeed)
   const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
   const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
 
@@ -235,21 +237,24 @@ export default function SocialPage() {
 
         {/* ── FEED ── */}
         {tab === 'feed' && (
-          <FeedTab
-            loading={feedLoading}
-            feed={feed}
-            highlightedActivityId={highlightedActivityId}
-            myId={user?.id}
-            openProfile={openProfile}
-            openReactionsId={openReactionsId}
-            setOpenReactionsId={setOpenReactionsId}
-            react={react}
-            openCommentsId={openCommentsId}
-            setOpenCommentsId={setOpenCommentsId}
-            commentCounts={commentCounts}
-            onCommentCountChange={updateCommentCount}
-            onOpenLightbox={setLightboxPhoto}
-          />
+          <div {...pullHandlers}>
+            {pullIndicator}
+            <FeedTab
+              loading={feedLoading}
+              feed={feed}
+              highlightedActivityId={highlightedActivityId}
+              myId={user?.id}
+              openProfile={openProfile}
+              openReactionsId={openReactionsId}
+              setOpenReactionsId={setOpenReactionsId}
+              react={react}
+              openCommentsId={openCommentsId}
+              setOpenCommentsId={setOpenCommentsId}
+              commentCounts={commentCounts}
+              onCommentCountChange={updateCommentCount}
+              onOpenLightbox={setLightboxPhoto}
+            />
+          </div>
         )}
 
         {/* ── CLASSIFICA ── */}
