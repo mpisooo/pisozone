@@ -1,3 +1,5 @@
+import { useEffect, useId, useState } from 'react'
+
 export interface WeightChartPoint {
   label: string
   value: number | null
@@ -21,8 +23,26 @@ interface Props {
 export default function WeightLineChart({
   points, ariaLabel, width = 300, height = 130, referenceValue, referenceLabel, formatValue,
 }: Props) {
+  const clipId = useId()
   const known = points.filter((p) => p.value != null)
-  if (known.length < 2) return null
+  const hasData = known.length >= 2
+
+  // Disegno da sinistra a destra (roadmap v5, pilastro 01 punto 1), stesso
+  // meccanismo di AreaTrendChart: la linea di riferimento (peso obiettivo) e
+  // le etichette d'asse restano FUORI dal clip, sono un traguardo statico non
+  // un dato che si "disegna". `known.length` nella dipendenza fa ripartire il
+  // disegno quando la serie cambia (nuova pesata, filtro periodo).
+  const [revealed, setRevealed] = useState(false)
+  useEffect(() => {
+    setRevealed(false)
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setRevealed(true))
+    })
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2) }
+  }, [known.length, points.map((p) => p.value).join(',')])
+
+  if (!hasData) return null
 
   const padX = 8
   const padTop = 16
@@ -58,6 +78,12 @@ export default function WeightLineChart({
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
+      <clipPath id={clipId}>
+        <rect
+          x={0} y={0} width={revealed ? width : 0} height={height}
+          style={{ transition: 'width 1s var(--ease-out)' }}
+        />
+      </clipPath>
       {referenceY != null && (
         <>
           <line
@@ -71,30 +97,32 @@ export default function WeightLineChart({
           )}
         </>
       )}
-      {segments.map((seg, i) => (
-        <polyline
-          key={i}
-          points={seg.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}
-          fill="none"
-          stroke="var(--red)"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      ))}
-      {points.map((p, i) => p.value != null && (
-        <circle key={i} cx={xFor(i)} cy={yFor(p.value)} r={3} fill="var(--red)" />
-      ))}
-      <text
-        x={xFor(lastKnownIdx)}
-        y={Math.max(10, yFor(points[lastKnownIdx].value as number) - 8)}
-        textAnchor="end"
-        fontSize={11}
-        fontWeight={600}
-        fill="var(--color-text)"
-      >
-        {formatValue ? formatValue(points[lastKnownIdx].value as number) : points[lastKnownIdx].value}
-      </text>
+      <g clipPath={`url(#${clipId})`}>
+        {segments.map((seg, i) => (
+          <polyline
+            key={i}
+            points={seg.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}
+            fill="none"
+            stroke="var(--red)"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ))}
+        {points.map((p, i) => p.value != null && (
+          <circle key={i} cx={xFor(i)} cy={yFor(p.value)} r={3} fill="var(--red)" />
+        ))}
+        <text
+          x={xFor(lastKnownIdx)}
+          y={Math.max(10, yFor(points[lastKnownIdx].value as number) - 8)}
+          textAnchor="end"
+          fontSize={11}
+          fontWeight={600}
+          fill="var(--color-text)"
+        >
+          {formatValue ? formatValue(points[lastKnownIdx].value as number) : points[lastKnownIdx].value}
+        </text>
+      </g>
       <text x={xFor(firstKnownIdx)} y={height - 6} fontSize={9} fill="var(--color-text)" opacity={0.55}>
         {points[firstKnownIdx].label}
       </text>

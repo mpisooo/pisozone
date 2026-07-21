@@ -1,3 +1,4 @@
+import { useEffect, useId, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 import type { ProgressionPoint } from '../lib/exerciseSets'
@@ -19,7 +20,26 @@ const MIN_RANGE_KG = 10
 // spaziate uniformemente (conta la sequenza delle sessioni, non i giorni di
 // pausa tra l'una e l'altra). Niente recharts: per una linea sola non serve.
 export default function ExerciseProgressionChart({ points, width = 280, height = 110 }: Props) {
-  if (points.length < 2) return null
+  const clipId = useId()
+  const hasData = points.length >= 2
+
+  // Disegno da sinistra a destra (roadmap v5, pilastro 01 punto 1), stesso
+  // meccanismo di AreaTrendChart/WeightLineChart — qui estesa per coerenza
+  // anche se il testo originale del pilastro citava solo i 4 grafici di
+  // Statistiche: stessa identica lacuna (SVG puro, zero transizioni), stesso
+  // fix a costo marginale, lasciarla fuori sarebbe stata un'incoerenza
+  // visibile nella stessa pagina.
+  const [revealed, setRevealed] = useState(false)
+  useEffect(() => {
+    setRevealed(false)
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setRevealed(true))
+    })
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2) }
+  }, [points.map((p) => `${p.date}:${p.weightKg}`).join('|')])
+
+  if (!hasData) return null
 
   const padX = 8
   const padTop = 14
@@ -51,30 +71,38 @@ export default function ExerciseProgressionChart({ points, width = 280, height =
       role="img"
       aria-label={stats.progression.chartAriaLabel}
     >
-      <polygon points={area} fill="rgba(var(--accent-rgb),0.12)" />
-      <polyline
-        points={line}
-        fill="none"
-        stroke="var(--red)"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {projected.map((p, i) => (
-        <circle key={points[i].date} cx={p.x} cy={p.y} r={3} fill="var(--red)" />
-      ))}
-      {/* Carico dell'ultima giornata, ancorato all'ultimo punto */}
-      <text
-        x={projected[projected.length - 1].x}
-        y={Math.max(10, projected[projected.length - 1].y - 8)}
-        textAnchor="end"
-        fontSize={11}
-        fontWeight={600}
-        fill="var(--color-text)"
-      >
-        {stats.progression.pointValue(last.weightKg)}
-      </text>
-      {/* Estremi temporali della serie */}
+      <clipPath id={clipId}>
+        <rect
+          x={0} y={0} width={revealed ? width : 0} height={height}
+          style={{ transition: 'width 1s var(--ease-out)' }}
+        />
+      </clipPath>
+      <g clipPath={`url(#${clipId})`}>
+        <polygon points={area} fill="rgba(var(--accent-rgb),0.12)" />
+        <polyline
+          points={line}
+          fill="none"
+          stroke="var(--red)"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {projected.map((p, i) => (
+          <circle key={points[i].date} cx={p.x} cy={p.y} r={3} fill="var(--red)" />
+        ))}
+        {/* Carico dell'ultima giornata, ancorato all'ultimo punto */}
+        <text
+          x={projected[projected.length - 1].x}
+          y={Math.max(10, projected[projected.length - 1].y - 8)}
+          textAnchor="end"
+          fontSize={11}
+          fontWeight={600}
+          fill="var(--color-text)"
+        >
+          {stats.progression.pointValue(last.weightKg)}
+        </text>
+      </g>
+      {/* Estremi temporali della serie: fuori dal clip, sono un riferimento */}
       <text x={padX} y={height - 6} fontSize={9} fill="var(--color-text)" opacity={0.55}>
         {fmtDate(first.date)}
       </text>

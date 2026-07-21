@@ -13,6 +13,16 @@ import type { RoutePoint } from '../types'
 // heatmap "a densità". Zero dipendenze nuove.
 const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY
 
+// Opacità finale di ogni tratto e durata/sfalsamento della dissolvenza
+// (roadmap v5, pilastro 01 punto 4): valori bassi apposta, l'effetto "heat"
+// nasce dall'accumulo di più tratti, non dalla vivacità del singolo.
+const ROUTE_OPACITY = 0.22
+const FADE_MS = 500
+const MAX_STAGGER_MS = 600
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 interface Props {
   routes: RoutePoint[][]
   heightPx?: number
@@ -46,23 +56,44 @@ export default function HeatmapMap({ routes, heightPx = 420 }: Props) {
       },
     ).addTo(map)
 
+    // Renderer canvas (impostato sopra): niente DOM per percorso, quindi
+    // niente transition CSS possibile — l'opacità va animata a mano con rAF
+    // e riapplicata via setStyle (Leaflet ridipinge da solo il canvas). Ogni
+    // percorso parte invisibile e sfuma verso ROUTE_OPACITY con un ritardo
+    // crescente (tetto a MAX_STAGGER_MS, o centinaia di percorsi
+    // impiegherebbero minuti a comparire tutti). prefers-reduced-motion va
+    // controllato a mano qui per lo stesso motivo (non è CSS, la regola
+    // globale in index.css non lo tocca).
+    const reduce = prefersReducedMotion()
+    const rafIds: number[] = []
     const allLatLngs: [number, number][] = []
-    for (const route of routes) {
+    routes.forEach((route, i) => {
       const latlngs = route.map((p) => [p.lat, p.lng] as [number, number])
       allLatLngs.push(...latlngs)
-      L.polyline(latlngs, {
+      const layer = L.polyline(latlngs, {
         color: accent,
         weight: 2.5,
         // Bassa opacità voluta: è l'accumulo di più tratti sovrapposti a
         // creare l'effetto "heat", non il singolo percorso.
-        opacity: 0.22,
+        opacity: reduce ? ROUTE_OPACITY : 0,
         lineJoin: 'round',
         lineCap: 'round',
       }).addTo(map)
-    }
+
+      if (!reduce) {
+        const start = performance.now() + Math.min(i * 12, MAX_STAGGER_MS)
+        const tick = (now: number) => {
+          const p = Math.min(Math.max((now - start) / FADE_MS, 0), 1)
+          layer.setStyle({ opacity: ROUTE_OPACITY * p })
+          if (p < 1) rafIds.push(requestAnimationFrame(tick))
+        }
+        rafIds.push(requestAnimationFrame(tick))
+      }
+    })
     map.fitBounds(L.latLngBounds(allLatLngs), { padding: [24, 24] })
 
     return () => {
+      rafIds.forEach((id) => cancelAnimationFrame(id))
       map.remove()
     }
   }, [routes])

@@ -58,6 +58,15 @@ export default function PisoRing({
           const circumference = 2 * Math.PI * r
           const clamped = Math.min(Math.max(ring.pct, 0), 100)
           const offset = circumference * (1 - (filled ? clamped : 0) / 100)
+          // L'anello che si chiude (roadmap v5, pilastro 01 punto 3): al
+          // 100% un impulso di luce breve segna il traguardo — non i confetti
+          // riservati a livelli/medaglie, un bagliore che si accende e si
+          // spegne una sola volta (mai in loop: un anello già pieno non deve
+          // pulsare per sempre a ogni apertura di Home). Il ritardo
+          // dell'animazione insegue la transition di riempimento qui sopra,
+          // così il bagliore parte proprio quando l'anello finisce di
+          // chiudersi.
+          const isComplete = filled && clamped >= 100
           return (
             <g key={ring.key}>
               <circle cx={c} cy={c} r={r} fill="none" stroke="var(--grey)" strokeWidth={strokeWidth} />
@@ -71,7 +80,11 @@ export default function PisoRing({
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={offset}
-                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.34, 1.2, 0.64, 1)' }}
+                className={isComplete ? 'piso-ring-complete' : undefined}
+                style={{
+                  transition: 'stroke-dashoffset 1s cubic-bezier(0.34, 1.2, 0.64, 1)',
+                  ...(isComplete ? ({ '--ring-color': ring.color } as React.CSSProperties) : {}),
+                }}
               />
             </g>
           )

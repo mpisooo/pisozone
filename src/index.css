@@ -314,6 +314,38 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 }
 
 
+/* ── Donut chart: spazzata di rivelazione (roadmap v5, pilastro 01 punto 1):
+   il conic-gradient con le proporzioni reali (DonutChart.tsx) resta intatto,
+   qui sopra un secondo conic-gradient in maschera scopre la torta in senso
+   orario da 0 a 360°. --reveal va registrata con @property per essere
+   interpolabile: senza, il browser tratterebbe "0%"→"100%" come due stringhe
+   opache e salterebbe di scatto invece di transitare. ── */
+@property --reveal {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+.donut-reveal {
+  -webkit-mask-image: conic-gradient(black var(--reveal), transparent 0);
+  mask-image: conic-gradient(black var(--reveal), transparent 0);
+  transition: --reveal 1s var(--ease-out);
+}
+
+/* ── PisoRing: l'anello che si chiude (roadmap v5, pilastro 01 punto 3) — un
+   impulso di luce UNA TANTUM (mai infinite, a differenza di medal-glow-pulse)
+   quando un anello tocca il 100%. Il ritardo di 1s insegna la transition di
+   riempimento del cerchio in PisoRing.tsx: il bagliore parte a chiusura
+   avvenuta, non prima. --ring-color arriva inline (il colore è per-anello,
+   deciso da chi usa PisoRing, non un token fisso). ── */
+@keyframes ring-close-glow {
+  0%   { filter: drop-shadow(0 0 0 transparent); }
+  45%  { filter: drop-shadow(0 0 9px var(--ring-color, var(--red))); }
+  100% { filter: drop-shadow(0 0 0 transparent); }
+}
+.piso-ring-complete {
+  animation: ring-close-glow 1.2s ease-out 1s 1 both;
+}
+
 /* ── Badge shine animation ── */
 @keyframes badge-shine {
   0%   { background-position: -200% center; }

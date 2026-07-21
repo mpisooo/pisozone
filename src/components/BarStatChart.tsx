@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 export interface BarStatItem {
   key: string
   label: string
@@ -30,6 +32,23 @@ export default function BarStatChart({
   showValueLabels = true,
   formatValue,
 }: Props) {
+  // Le colonne crescono dall'asse invece di comparire già alte (roadmap v5,
+  // pilastro 01 punto 1): stesso pattern a doppio rAF di PisoRing/AnimatedNumber
+  // per garantire che il frame "vuoto" venga davvero dipinto prima del
+  // riempimento. Da qui in poi `filled` resta true: un cambio dati successivo
+  // (es. il filtro periodo in Statistiche) aggiorna l'altezza della STESSA
+  // colonna (stessa key), e la transition sotto anima anche quel cambio da
+  // sola, senza bisogno di ripartire da zero. `prefers-reduced-motion` è già
+  // rispettato a livello globale in index.css (transition-duration → 0.01ms).
+  const [filled, setFilled] = useState(false)
+  useEffect(() => {
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFilled(true))
+    })
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2) }
+  }, [])
+
   if (items.length === 0) return null
   const labelReserve = showValueLabels ? 20 : 0
   const usableH = height - labelReserve
@@ -61,7 +80,14 @@ export default function BarStatChart({
                   {formatValue ? formatValue(item.value) : item.value}
                 </span>
               )}
-              <div className="w-full rounded-t" style={{ height: barH, background: item.color ?? color }} />
+              <div
+                className="w-full rounded-t"
+                style={{
+                  height: filled ? barH : 0,
+                  background: item.color ?? color,
+                  transition: 'height .7s var(--ease-spring)',
+                }}
+              />
             </div>
           )
         })}
