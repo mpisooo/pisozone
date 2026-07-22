@@ -79,8 +79,9 @@ const it = {
     bmiOverweight: 'Sovrappeso',
     bmiObese: 'Obeso',
     sportTitle: 'SPORT PREFERITI',
-    sportSelectedCount: (n: number) => `${n}/3 selezionati`,
-    sportHint: 'Scegli fino a 3 attività che pratichi di più',
+    sportSelectedCount: (n: number, max: number) => `${n}/${max} selezionati`,
+    sportHint: (max: number) => `Scegli fino a ${max} attività che pratichi di più: compariranno per prime nel picker di Registra`,
+    editSportButton: 'Modifica sport preferiti',
     // Roadmap v7: nella vetrina i preferiti sono sola lettura, si modificano
     // dalle Impostazioni (stesso form dei dati personali).
     editInSettings: 'Modifica nelle Impostazioni',
@@ -307,8 +308,9 @@ const en: Widen<typeof it> = {
     bmiOverweight: 'Overweight',
     bmiObese: 'Obese',
     sportTitle: 'FAVORITE SPORTS',
-    sportSelectedCount: (n: number) => `${n}/3 selected`,
-    sportHint: 'Choose up to 3 activities you practice most',
+    sportSelectedCount: (n: number, max: number) => `${n}/${max} selected`,
+    sportHint: (max: number) => `Choose up to ${max} activities you practice most: they'll show up first in the Log picker`,
+    editSportButton: 'Edit favorite sports',
     editInSettings: 'Edit in Settings',
     saved: '✅ Saved!',
     saving: 'Saving...',

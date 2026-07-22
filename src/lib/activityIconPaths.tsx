@@ -55,6 +55,37 @@ export const ACTIVITY_ICON_COLORS: Record<ActivityType, string> = {
   salto_corda: '#F59E0B',
   trekking: '#B45309',
   boxe: '#DC2626',
+  // Catalogo Strava (22/07/2026)
+  corsa_trail: '#047857',
+  mountain_bike: '#4D7C0F',
+  gravel: '#A8A29E',
+  canoa: '#0369A1',
+  sup: '#06B6D4',
+  kayak: '#3B82F6',
+  surf: '#14B8A6',
+  kitesurf: '#38BDF8',
+  canottaggio: '#4338CA',
+  windsurf: '#0E7490',
+  vela: '#0284C7',
+  pattinaggio_ghiaccio: '#22D3EE',
+  sci_fondo: '#60A5FA',
+  sci_alpino: '#818CF8',
+  snowboard: '#A855F7',
+  scialpinismo: '#1D4ED8',
+  ciaspole: '#94A3B8',
+  allenamento: '#F43F5E',
+  badminton: '#4ADE80',
+  ellittica: '#6B7280',
+  pattini_inline: '#E879F9',
+  skateboard: '#EA580C',
+  step: '#F87171',
+  pickleball: '#FACC15',
+  crossfit: '#B91C1C',
+  hiit: '#C2410C',
+  pilates: '#A78BFA',
+  racquetball: '#9333EA',
+  squash: '#D946EF',
+  cricket: '#10B981',
 }
 
 const RAW_PATHS: Record<ActivityType, ReactNode> = {
@@ -253,6 +284,295 @@ const RAW_PATHS: Record<ActivityType, ReactNode> = {
       <rect x="14" y="5" width="21" height="25" rx="10" fill="currentColor" stroke="none" />
       <circle cx="12" cy="23" r="6" fill="currentColor" stroke="none" />
       <rect x="17.5" y="33.5" width="14" height="9.5" rx="2.5" fill="currentColor" stroke="none" />
+    </>
+  ),
+
+  // — Catalogo Strava (22/07/2026): stesso linguaggio visivo, riuso di pose
+  // e template già verificati dove il soggetto è imparentato (corsa/bici/
+  // trekking → varianti; racchette → stessa coppia testa+manico+pallina) —
+  // vedi ACTIVITY_ICON_COLORS per la scelta colore di ognuno.
+  corsa_trail: (
+    <>
+      <circle cx="30.5" cy="7.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M28.6 12.4 L25 22" strokeWidth={6.5} />
+      <path d="M37 11 L33 16.5 L28 12.5 L23 17 L18 14.5" />
+      <path d="M25 22 L31 28 L29.5 35" />
+      <path d="M25 22 L18.5 27 L13 24.5" />
+      {/* profilo collina sotto i piedi: distingue il trail dalla corsa piana */}
+      <path d="M4 41 L14 30 L20 37 L28 26 L36 35 L44 41 Z" fill="currentColor" fillOpacity="0.18" stroke="none" />
+    </>
+  ),
+  mountain_bike: (
+    <>
+      <circle cx="10.5" cy="35.5" r="7" strokeWidth={4} />
+      <circle cx="37.5" cy="35.5" r="7" strokeWidth={4} />
+      {/* tacche pneumatico tassellato */}
+      <path d="M10.5 28.3 L10.5 30.3 M10.5 40.7 L10.5 42.7 M3.3 35.5 L5.3 35.5 M15.7 35.5 L17.7 35.5" strokeWidth={2} />
+      <path d="M37.5 28.3 L37.5 30.3 M37.5 40.7 L37.5 42.7 M30.3 35.5 L32.3 35.5 M42.7 35.5 L44.7 35.5" strokeWidth={2} />
+      <path d="M10.5 35.5 L19.5 23.5 L24 35 L33.5 21" strokeWidth={3.5} />
+      <path d="M37.5 35.5 L33.5 20.5" strokeWidth={3.5} />
+      <circle cx="32.5" cy="8.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M20 22.5 L29.5 13" strokeWidth={6.5} />
+      {/* manubrio piatto da mtb, non da corsa */}
+      <path d="M24.5 15.5 L34.5 15.5" strokeWidth={2.5} />
+      <path d="M20 22.5 L27.5 28.5 L24.5 34.5" />
+    </>
+  ),
+  gravel: (
+    <>
+      <circle cx="10.5" cy="35.5" r="7" strokeWidth={4} />
+      <circle cx="37.5" cy="35.5" r="7" strokeWidth={4} />
+      <path d="M10.5 28.3 L10.5 30.3 M3.3 35.5 L5.3 35.5" strokeWidth={2} />
+      <path d="M37.5 28.3 L37.5 30.3 M44.7 35.5 L42.7 35.5" strokeWidth={2} />
+      <path d="M10.5 35.5 L19.5 23.5 L24 35 L33.5 21" strokeWidth={3.5} />
+      <path d="M37.5 35.5 L33.5 20.5" strokeWidth={3.5} />
+      <circle cx="32.5" cy="8.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M20 22.5 L29.5 13" strokeWidth={6.5} />
+      <path d="M29 14 L34.5 20.5" />
+      <path d="M20 22.5 L27.5 28.5 L24.5 34.5" />
+    </>
+  ),
+  canoa: (
+    <>
+      {/* scafo con profilo visibile: stesso trattamento "riempimento tenue +
+          contorno" dei palloni (calcio/pallavolo/basket), non solo fillOpacity */}
+      <path d="M3 34 Q24 24 45 34 Q24 41 3 34 Z" strokeWidth={3} fill="currentColor" fillOpacity="0.3" />
+      <path d="M13 9 L33 39" strokeWidth={3.2} />
+      <path d="M10 4 L18 12 L13 15 L6 8 Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  sup: (
+    <>
+      <path d="M3 39 Q24 34 45 39 Q24 43 3 39 Z" strokeWidth={2.6} fill="currentColor" fillOpacity="0.3" />
+      <circle cx="26" cy="9" r="4" fill="currentColor" stroke="none" />
+      <path d="M25.5 13.5 L25 29" strokeWidth={6} />
+      {/* pagaia unica, più alta della persona */}
+      <path d="M16 7 L34 32" strokeWidth={2.8} />
+      <path d="M14 3 L20 9 L16 12 L10 6 Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  kayak: (
+    <>
+      <path d="M4 34 Q24 25 44 34 Q24 40 4 34 Z" strokeWidth={3} fill="currentColor" fillOpacity="0.3" />
+      {/* pagaia a doppia pala: distingue il kayak dalla canoa */}
+      <path d="M10 13 L38 30" strokeWidth={3.2} />
+      <path d="M7 8 L15 16 L10 19 L4 11 Z" fill="currentColor" stroke="none" />
+      <path d="M41 33 L33 25 L38 22 L44 30 Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  surf: (
+    <>
+      <path d="M18 4 C26 4 30 10 28 22 C26 32 20 40 15 44 C11 40 10 30 12 20 C14 10 14 4 18 4 Z" fill="currentColor" stroke="none" />
+      <path d="M4 33.5 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0" strokeWidth={3} />
+      <path d="M26 33.5 c3.2 -4.4 6.3 -4.4 9.5 0 c3.2 4.4 6.3 4.4 9.5 0" strokeWidth={3} />
+    </>
+  ),
+  kitesurf: (
+    <>
+      <path d="M8 38 L34 30 L36 34 L10 42 Z" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="38" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="20" cy="35" r="1.4" fill="currentColor" stroke="none" />
+      {/* vela ad arco in alto, collegata da due linee */}
+      <path d="M32 6 C24 8 20 14 24 18 C30 22 40 18 42 10 C38 8 35 6 32 6 Z" fill="currentColor" fillOpacity="0.85" stroke="none" />
+      <path d="M27 15 L18 33 M35 15 L26 33" strokeWidth={1.6} />
+    </>
+  ),
+  canottaggio: (
+    <>
+      <path d="M1 34 Q24 28 47 34 Q24 38 1 34 Z" strokeWidth={2.6} fill="currentColor" fillOpacity="0.3" />
+      {/* remi incrociati */}
+      <path d="M10 14 L38 26" strokeWidth={2.6} />
+      <path d="M38 8 L10 26" strokeWidth={2.6} />
+      <path d="M6 10 L14 17 L10 20 L3 13 Z" fill="currentColor" stroke="none" />
+      <path d="M42 4 L34 11 L38 14 L45 7 Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  windsurf: (
+    <>
+      <path d="M5 38 Q24 33 43 38 Q24 42 5 38 Z" strokeWidth={2.4} fill="currentColor" fillOpacity="0.3" />
+      <path d="M24 37 L24 6" strokeWidth={2.6} />
+      <path d="M24 8 L40 30 L24 30 Z" fill="currentColor" fillOpacity="0.85" stroke="none" />
+    </>
+  ),
+  vela: (
+    <>
+      <path d="M8 34 L40 34 L34 42 L14 42 Z" fill="currentColor" stroke="none" />
+      <path d="M22 34 L22 6" strokeWidth={2.6} />
+      <path d="M22 8 L36 32 L22 32 Z" fill="currentColor" fillOpacity="0.85" stroke="none" />
+    </>
+  ),
+  pattinaggio_ghiaccio: (
+    <>
+      {/* pattino da ghiaccio: scarpone + lama curva, icona-oggetto come golf/ping_pong */}
+      <path d="M10 18 L28 18 C33 18 36 22 36 26 L36 31 L10 31 Z" fill="currentColor" stroke="none" />
+      <path d="M5 34 Q23 29 41 34" strokeWidth={3.2} fill="none" />
+    </>
+  ),
+  sci_fondo: (
+    <>
+      <circle cx="27" cy="7" r="4" fill="currentColor" stroke="none" />
+      <path d="M26 11.5 L22 24" strokeWidth={6.5} />
+      {/* falcata asimmetrica con racchette: un braccio avanti, uno indietro */}
+      <path d="M23 15 L32 11 L38 15" />
+      <path d="M23 15 L14 19 L9 14" />
+      <path d="M22 24 L29 29 L33 38" />
+      <path d="M22 24 L14 28 L7 24" />
+      {/* sci sfalsati sotto ciascun piede */}
+      <path d="M19 38 L44 34" strokeWidth={2.6} />
+      <path d="M1 24 L26 20" strokeWidth={2.6} />
+    </>
+  ),
+  sci_alpino: (
+    <>
+      <circle cx="22" cy="7" r="4" fill="currentColor" stroke="none" />
+      <path d="M23 11 L26 22" strokeWidth={6.5} />
+      <path d="M26 14 L35 11" />
+      <path d="M26 14 L20 19" />
+      <path d="M26 22 L31 29 L30 36" />
+      <path d="M26 22 L23 29 L24 36" />
+      {/* due sci accostati (non un'unica tavola come lo snowboard) */}
+      <path d="M14 37 L38 33" strokeWidth={2} />
+      <path d="M14 40 L38 36" strokeWidth={2} />
+    </>
+  ),
+  snowboard: (
+    <>
+      <circle cx="24" cy="7" r="4" fill="currentColor" stroke="none" />
+      <path d="M24 11.5 L24 24" strokeWidth={6.5} />
+      <path d="M24 15 L33 17" />
+      <path d="M24 15 L15 13" />
+      <path d="M24 24 L30 30 L30 35" />
+      <path d="M24 24 L18 30 L18 35" />
+      {/* tavola unica, posizione laterale */}
+      <rect x="8" y="35" width="32" height="4.5" rx="2.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // scialpinismo: stessa posa dello sci di fondo (colore diverso basta a
+  // distinguerlo nel picker) — stesso riuso già visto tra medaglie corsa.
+  scialpinismo: (
+    <>
+      <circle cx="27" cy="7" r="4" fill="currentColor" stroke="none" />
+      <path d="M26 11.5 L22 24" strokeWidth={6.5} />
+      <path d="M23 15 L32 11 L38 15" />
+      <path d="M23 15 L14 19 L9 14" />
+      <path d="M22 24 L29 29 L33 38" />
+      <path d="M22 24 L14 28 L7 24" />
+      <path d="M19 38 L44 34" strokeWidth={2.6} />
+      <path d="M1 24 L26 20" strokeWidth={2.6} />
+    </>
+  ),
+  ciaspole: (
+    <>
+      <circle cx="27" cy="7.5" r="4" fill="currentColor" stroke="none" />
+      <path d="M26 12 L24 24" strokeWidth={6.5} />
+      <path d="M25 15 L33 19.5" />
+      <path d="M25 15 L17 18" />
+      <path d="M24 24 L31 29.5 L30.5 36" />
+      <path d="M24 24 L17 30.5 L15 36" />
+      {/* racchette da neve ovali sotto i piedi */}
+      <ellipse cx="30" cy="39" rx="6" ry="3.2" fill="currentColor" fillOpacity="0.5" stroke="none" />
+      <ellipse cx="15.5" cy="39" rx="6" ry="3.2" fill="currentColor" fillOpacity="0.5" stroke="none" />
+    </>
+  ),
+  allenamento: (
+    <>
+      {/* battito cardiaco: sport generico non legato a un attrezzo specifico */}
+      <path d="M24 38 C10 28 6 18 14 12 C19 8.5 24 12 24 17 C24 12 29 8.5 34 12 C42 18 38 28 24 38 Z" fill="currentColor" fillOpacity="0.18" stroke="none" />
+      <path d="M8 24 L16 24 L19 17 L23 30 L27 15 L30 24 L40 24" strokeWidth={2.6} />
+    </>
+  ),
+  badminton: (
+    <>
+      <ellipse cx="16" cy="13" rx="8" ry="10" strokeWidth={3.6} fill="currentColor" fillOpacity="0.12" />
+      <path d="M16 23 L16 39" strokeWidth={4.4} />
+      {/* volano: cono + testa */}
+      <path d="M33 30 L38 40 L30 38 Z" fill="currentColor" stroke="none" />
+      <circle cx="33" cy="28.5" r="2.6" fill="currentColor" stroke="none" />
+    </>
+  ),
+  ellittica: (
+    <>
+      {/* anello pedali ovale (non un cerchio, per non leggersi come un divieto) + colonna manubrio */}
+      <ellipse cx="19" cy="31" rx="16" ry="8" strokeWidth={3} />
+      <path d="M30 11 L30 25" strokeWidth={3.2} />
+      <path d="M25 13 L37 13" strokeWidth={2.6} />
+      <circle cx="10" cy="31" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="31" r="2.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  pattini_inline: (
+    <>
+      <path d="M8 15 L26 15 C31 15 34 19 34 23 L34 27 L12 27 L8 23 Z" fill="currentColor" stroke="none" />
+      <path d="M8 27 L38 27 L42 31 L4 31 Z" fill="currentColor" stroke="none" />
+      {/* fila di ruote in linea: distingue dal pattino da ghiaccio */}
+      <circle cx="13" cy="37" r="3" fill="currentColor" stroke="none" />
+      <circle cx="20.5" cy="37" r="3" fill="currentColor" stroke="none" />
+      <circle cx="28" cy="37" r="3" fill="currentColor" stroke="none" />
+      <circle cx="35.5" cy="37" r="3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  skateboard: (
+    <>
+      <path d="M6 24 C6 20 10 18 16 18 L32 18 C38 18 42 20 42 24 C42 27 38 27 32 27 L16 27 C10 27 6 27 6 24 Z" fill="currentColor" stroke="none" />
+      <circle cx="14" cy="31" r="4" fill="currentColor" stroke="none" />
+      <circle cx="34" cy="31" r="4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  step: (
+    <path d="M6 40 L6 32 L16 32 L16 24 L26 24 L26 16 L36 16 L36 8 L42 8" strokeWidth={4} fill="none" />
+  ),
+  pickleball: (
+    <>
+      {/* paletta piena e rettangolare: distingue il pickleball dalle racchette a testa ovale */}
+      <rect x="8" y="4" width="18" height="24" rx="9" fill="currentColor" stroke="none" />
+      <path d="M17 28 L17 41" strokeWidth={5} />
+      <circle cx="34" cy="33" r="5.5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  crossfit: (
+    <>
+      {/* kettlebell: massa piena + maniglia ad arco */}
+      <path d="M18 12 C18 7 21 4 24 4 C27 4 30 7 30 12" strokeWidth={3.6} />
+      <circle cx="24" cy="27" r="15" fill="currentColor" stroke="none" />
+      <rect x="18" y="10" width="12" height="6" rx="2.5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  hiit: (
+    <>
+      <circle cx="24" cy="24" r="17" strokeWidth={3.4} fill="currentColor" fillOpacity="0.12" />
+      <path d="M26.5 12 L16.5 26 L23 26 L21 37 L32 21 L24.5 21 Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  pilates: (
+    <>
+      {/* figura distesa in stiramento: distingue dalla posa seduta dello yoga */}
+      <circle cx="10" cy="30" r="4" fill="currentColor" stroke="none" />
+      <path d="M14 30 L26 30" strokeWidth={6} />
+      <path d="M26 30 L34 22 L34 12" />
+      <path d="M26 30 L32 36 L40 36" />
+      <path d="M14 30 L12 38 L18 40" />
+    </>
+  ),
+  racquetball: (
+    <>
+      <ellipse cx="17" cy="14" rx="9.5" ry="10.5" strokeWidth={4} fill="currentColor" fillOpacity="0.12" />
+      <path d="M17 24.5 L17 41" strokeWidth={5} />
+      <circle cx="34.5" cy="35" r="5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  squash: (
+    <>
+      <ellipse cx="16" cy="13" rx="7.5" ry="11.5" strokeWidth={3.6} fill="currentColor" fillOpacity="0.12" />
+      <path d="M16 24.5 L16 41" strokeWidth={4.6} />
+      <circle cx="33" cy="35" r="4.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  cricket: (
+    <>
+      {/* mazza + palla */}
+      <path d="M14 6 L20 6 L20 26 C20 30 14 30 14 26 Z" fill="currentColor" stroke="none" />
+      <rect x="15.5" y="28" width="3" height="12" rx="1.4" fill="currentColor" stroke="none" />
+      <circle cx="34" cy="16" r="5.5" fill="currentColor" stroke="none" />
     </>
   ),
 }

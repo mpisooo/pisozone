@@ -19,6 +19,41 @@ export type ActivityType =
   | 'salto_corda'
   | 'trekking'
   | 'boxe'
+  // Catalogo Strava (roadmap "seleziona come Strava", 22/07/2026) — esclusi
+  // deliberatamente mezzi motorizzati/assistiti e attrezzatura adattiva
+  // (E-Bike, E-MTB, Velomobile, Handcycle, Wheelchair, Roller Ski): fuori
+  // target per un'app di fitness personale, stessa logica già usata per
+  // escludere il nuoto dal tracciamento GPS.
+  | 'corsa_trail'
+  | 'mountain_bike'
+  | 'gravel'
+  | 'canoa'
+  | 'sup'
+  | 'kayak'
+  | 'surf'
+  | 'kitesurf'
+  | 'canottaggio'
+  | 'windsurf'
+  | 'vela'
+  | 'pattinaggio_ghiaccio'
+  | 'sci_fondo'
+  | 'sci_alpino'
+  | 'snowboard'
+  | 'scialpinismo'
+  | 'ciaspole'
+  | 'allenamento'
+  | 'badminton'
+  | 'ellittica'
+  | 'pattini_inline'
+  | 'skateboard'
+  | 'step'
+  | 'pickleball'
+  | 'crossfit'
+  | 'hiit'
+  | 'pilates'
+  | 'racquetball'
+  | 'squash'
+  | 'cricket'
 
 export interface Activity {
   id: string

@@ -26,11 +26,12 @@ import {
 import { ZONES, type ZoneId } from '../lib/zones'
 import { haptic } from '../lib/haptics'
 import PhotoPickerField from '../components/PhotoPickerField'
-import ActivityIcon from '../components/ActivityIcon'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import ExerciseSetsFields from '../components/ExerciseSetsFields'
 import RoutinePickerModal from '../components/RoutinePickerModal'
 import GpxImportModal from '../components/GpxImportModal'
+import SportQuickRow from '../components/SportQuickRow'
+import SportPickerModal from '../components/SportPickerModal'
 import WorkoutTrackingOverlay from '../components/WorkoutTrackingOverlay'
 import WorkoutRecapOverlay from '../components/WorkoutRecapOverlay'
 import log from '../lib/i18n/log'
@@ -56,6 +57,7 @@ export default function LogPage() {
   const [savedOffline, setSavedOffline] = useState(false)
   const [savedOfflineExtras, setSavedOfflineExtras] = useState(false)
   const [showGpxImport, setShowGpxImport] = useState(false)
+  const [showSportPicker, setShowSportPicker] = useState(false)
   const [gpxImported, setGpxImported] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [photoWarning, setPhotoWarning] = useState(false)
@@ -344,34 +346,16 @@ export default function LogPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-        {/* Activity type grid */}
+        {/* Selezione sport "come Strava" (22/07/2026): riga rapida coi
+            preferiti + ricerca sull'intero catalogo, vedi SportQuickRow. */}
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{log.form.activityTypeTitle}</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {ACTIVITY_OPTIONS.map((opt) => {
-              const isSelected = selectedType === opt.value
-              return (
-                <label
-                  key={opt.value}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-200 tap ${
-                    isSelected
-                      ? 'border-[var(--red)] bg-[var(--red)]/10'
-                      : 'border-transparent hover:border-gray-600'
-                  }`}
-                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.1)' : 'var(--grey)' }}
-                >
-                  <input
-                    type="radio"
-                    value={opt.value}
-                    {...register('type')}
-                    className="sr-only"
-                  />
-                  <ActivityIcon type={opt.value} className={`transition-all duration-200 ${isSelected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
-                  <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
-                </label>
-              )
-            })}
-          </div>
+          <SportQuickRow
+            favorites={profile?.sport_preferiti ?? []}
+            selected={selectedType}
+            onSelect={(type) => setValue('type', type)}
+            onOpenPicker={() => setShowSportPicker(true)}
+          />
 
           {/* Indoor/outdoor: solo per gli sport dove il "dove" cambia il nome
               (tapis roulant, cyclette, piscina...). Tocca di nuovo per azzerare. */}
@@ -758,6 +742,16 @@ export default function LogPage() {
           )}
         </button>
       </form>
+
+      {showSportPicker && (
+        <SportPickerModal
+          mode="single"
+          favorites={profile?.sport_preferiti ?? []}
+          selected={selectedType}
+          onSelect={(type) => setValue('type', type)}
+          onClose={() => setShowSportPicker(false)}
+        />
+      )}
 
       {showGpxImport && (
         <GpxImportModal

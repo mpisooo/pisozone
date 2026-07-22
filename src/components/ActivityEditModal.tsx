@@ -14,7 +14,8 @@ import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { useProfile } from '../hooks/useProfile'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { isPendingActivityId } from '../lib/offlineQueue'
-import ActivityIcon from './ActivityIcon'
+import SportQuickRow from './SportQuickRow'
+import SportPickerModal from './SportPickerModal'
 import PhotoPickerField from './PhotoPickerField'
 import PerceivedMetricsFields from './PerceivedMetricsFields'
 import ExerciseSetsFields from './ExerciseSetsFields'
@@ -82,6 +83,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [isFavorite, setIsFavorite] = useState(activity.is_favorite ?? false)
   // Segmenti personali (v47): modale di creazione dal percorso di questa attività.
   const [showSegmentCreate, setShowSegmentCreate] = useState(false)
+  const [showSportPicker, setShowSportPicker] = useState(false)
   const [segmentCreated, setSegmentCreated] = useState(false)
   // Esercizi (v32): setsLoaded resta false se il fetch iniziale fallisce, e in
   // quel caso il salvataggio NON tocca exercise_sets — un delete+reinsert a
@@ -135,7 +137,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   }, [])
 
   const parsed = parseISO(activity.date)
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       type: activity.type,
       date: format(parsed, 'yyyy-MM-dd'),
@@ -324,27 +326,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-4"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)', WebkitOverflowScrolling: 'touch' }}
       >
-        {/* Activity type grid */}
+        {/* Selezione sport "come Strava" (22/07/2026): riga rapida coi
+            preferiti + ricerca sull'intero catalogo, vedi SportQuickRow. */}
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{log.form.activityTypeTitle}</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {ACTIVITY_OPTIONS.map((opt) => {
-              const isSelected = selectedType === opt.value
-              return (
-                <label
-                  key={opt.value}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg cursor-pointer border transition-all duration-150 ${
-                    isSelected ? 'border-[var(--red)]' : 'border-transparent'
-                  }`}
-                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
-                >
-                  <input type="radio" value={opt.value} {...register('type')} className="sr-only" />
-                  <ActivityIcon type={opt.value} className={`transition-all duration-200 ${isSelected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
-                  <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
-                </label>
-              )
-            })}
-          </div>
+          <SportQuickRow
+            favorites={profile?.sport_preferiti ?? []}
+            selected={selectedType}
+            onSelect={(type) => setValue('type', type)}
+            onOpenPicker={() => setShowSportPicker(true)}
+          />
 
           {indoorVariant && (
             <div className="mt-3">
@@ -501,6 +492,16 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             userId={activity.user_id}
             onClose={() => setShowSegmentCreate(false)}
             onCreated={() => { setShowSegmentCreate(false); setSegmentCreated(true); haptic('success') }}
+          />
+        )}
+
+        {showSportPicker && (
+          <SportPickerModal
+            mode="single"
+            favorites={profile?.sport_preferiti ?? []}
+            selected={selectedType}
+            onSelect={(type) => setValue('type', type)}
+            onClose={() => setShowSportPicker(false)}
           />
         )}
 

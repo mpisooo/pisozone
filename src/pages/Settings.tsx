@@ -16,6 +16,7 @@ import { THEME_DEFINITIONS, type ThemeId } from '../lib/levels'
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
+import SportPickerModal from '../components/SportPickerModal'
 import WeightLineChart from '../components/WeightLineChart'
 import RecoveryEmailCard from '../components/RecoveryEmailCard'
 import NotificationSettingsCard from '../components/NotificationSettingsCard'
@@ -61,6 +62,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [sportPreferiti, setSportPreferiti] = useState<ActivityType[]>([])
+  const [showSportPicker, setShowSportPicker] = useState(false)
   const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [loggingWeight, setLoggingWeight] = useState(false)
   const [weightLogError, setWeightLogError] = useState('')
@@ -100,10 +102,12 @@ export default function SettingsPage() {
   const bmiInfo = bmi ? bmiCategory(bmi) : null
   const age = birthDate ? differenceInYears(new Date(), parseISO(birthDate)) : null
 
+  const MAX_SPORT_PREFERITI = 6
+
   const toggleSport = (type: ActivityType) => {
     setSportPreferiti((prev) => {
       if (prev.includes(type)) return prev.filter((t) => t !== type)
-      if (prev.length >= 3) return prev
+      if (prev.length >= MAX_SPORT_PREFERITI) return prev
       return [...prev, type]
     })
   }
@@ -389,38 +393,15 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Sport preferiti */}
+        {/* Sport preferiti: catalogo di 50 sport (roadmap "seleziona come
+            Strava", 22/07/2026) — la scelta si fa nel modale con ricerca e
+            categorie invece di una griglia enorme, vedi SportPickerModal. */}
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.sportTitle}</h2>
-            <span className="text-xs text-gray-500">{profileText.account.sportSelectedCount(sportPreferiti.length)}</span>
+            <span className="text-xs text-gray-500">{profileText.account.sportSelectedCount(sportPreferiti.length, MAX_SPORT_PREFERITI)}</span>
           </div>
-          <p className="text-xs text-gray-500">{profileText.account.sportHint}</p>
-          <div className="grid grid-cols-5 gap-2">
-            {ACTIVITY_OPTIONS.map((opt) => {
-              const isSelected = sportPreferiti.includes(opt.value)
-              const isDisabled = !isSelected && sportPreferiti.length >= 3
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => toggleSport(opt.value)}
-                  disabled={isDisabled}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 ${
-                    isSelected
-                      ? 'border-[var(--red)] scale-105'
-                      : isDisabled
-                      ? 'border-transparent opacity-30 cursor-not-allowed'
-                      : 'border-transparent hover:border-gray-600'
-                  }`}
-                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
-                >
-                  <ActivityIcon type={opt.value} className={`transition-all duration-200 ${isSelected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
-                  <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
-                </button>
-              )
-            })}
-          </div>
+          <p className="text-xs text-gray-500">{profileText.account.sportHint(MAX_SPORT_PREFERITI)}</p>
           {sportPreferiti.length > 0 && (
             <div className="flex gap-2 flex-wrap">
               {sportPreferiti.map((s) => {
@@ -435,7 +416,26 @@ export default function SettingsPage() {
               })}
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => setShowSportPicker(true)}
+            className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
+            style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+          >
+            {profileText.account.editSportButton}
+          </button>
         </div>
+
+        {showSportPicker && (
+          <SportPickerModal
+            mode="multi"
+            favorites={sportPreferiti}
+            selected={sportPreferiti}
+            onToggle={toggleSport}
+            max={MAX_SPORT_PREFERITI}
+            onClose={() => setShowSportPicker(false)}
+          />
+        )}
 
         <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2" disabled={saving}>
           {saved ? (

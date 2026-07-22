@@ -21,7 +21,68 @@ export const ACTIVITY_OPTIONS: { value: ActivityType; label: string; hasDist: bo
   { value: 'salto_corda',  label: 'Salto corda',  hasDist: false },
   { value: 'trekking',     label: 'Trekking',     hasDist: true  },
   { value: 'boxe',         label: 'Boxe',         hasDist: false },
+  // Catalogo Strava (52 sport ufficiali, esclusi mezzi motorizzati/assistiti
+  // e attrezzatura adattiva — vedi ActivityType in types/index.ts)
+  { value: 'corsa_trail',    label: 'Corsa in trail',   hasDist: true  },
+  { value: 'mountain_bike',  label: 'Mountain bike',    hasDist: true  },
+  { value: 'gravel',         label: 'Gravel',           hasDist: true  },
+  { value: 'canoa',          label: 'Canoa',            hasDist: true  },
+  { value: 'sup',            label: 'SUP',              hasDist: true  },
+  { value: 'kayak',          label: 'Kayak',            hasDist: true  },
+  { value: 'surf',           label: 'Surf',             hasDist: false },
+  { value: 'kitesurf',       label: 'Kitesurf',         hasDist: false },
+  { value: 'canottaggio',    label: 'Canottaggio',      hasDist: true  },
+  { value: 'windsurf',       label: 'Windsurf',         hasDist: false },
+  { value: 'vela',           label: 'Vela',             hasDist: false },
+  { value: 'pattinaggio_ghiaccio', label: 'Pattinaggio su ghiaccio', hasDist: false },
+  { value: 'sci_fondo',      label: 'Sci di fondo',     hasDist: true  },
+  { value: 'sci_alpino',     label: 'Sci alpino',       hasDist: false },
+  { value: 'snowboard',      label: 'Snowboard',        hasDist: false },
+  { value: 'scialpinismo',   label: 'Scialpinismo',     hasDist: true  },
+  { value: 'ciaspole',       label: 'Ciaspole',         hasDist: true  },
+  { value: 'allenamento',    label: 'Allenamento libero', hasDist: false },
+  { value: 'badminton',      label: 'Badminton',        hasDist: false },
+  { value: 'ellittica',      label: 'Ellittica',        hasDist: true  },
+  { value: 'pattini_inline', label: 'Pattini in linea', hasDist: true  },
+  { value: 'skateboard',     label: 'Skateboard',       hasDist: false },
+  { value: 'step',           label: 'Step',             hasDist: false },
+  { value: 'pickleball',     label: 'Pickleball',       hasDist: false },
+  { value: 'crossfit',       label: 'Crossfit',         hasDist: false },
+  { value: 'hiit',           label: 'HIIT',             hasDist: false },
+  { value: 'pilates',        label: 'Pilates',          hasDist: false },
+  { value: 'racquetball',    label: 'Racquetball',      hasDist: false },
+  { value: 'squash',         label: 'Squash',           hasDist: false },
+  { value: 'cricket',        label: 'Cricket',          hasDist: false },
 ]
+
+export type SportCategory = 'piedi' | 'ciclismo' | 'fitness' | 'palla' | 'racchetta' | 'acqua' | 'neve' | 'ruote' | 'altro'
+
+// Raggruppamento per il picker sport (roadmap "seleziona come Strava"):
+// Strava mette 25 sport in un unico calderone "Other", qui li dividiamo in
+// famiglie più utili per la ricerca (miglioria deliberata rispetto a Strava).
+export const SPORT_CATEGORY_LABELS: Record<SportCategory, string> = {
+  piedi: 'A piedi',
+  ciclismo: 'Ciclismo',
+  fitness: 'Fitness',
+  palla: 'Sport di squadra',
+  racchetta: 'Racchetta',
+  acqua: 'Acqua',
+  neve: 'Neve',
+  ruote: 'Ruote',
+  altro: 'Altro',
+}
+
+export const ACTIVITY_CATEGORY: Record<ActivityType, SportCategory> = {
+  corsa: 'piedi', camminata: 'piedi', trekking: 'piedi', corsa_trail: 'piedi',
+  bici: 'ciclismo', mountain_bike: 'ciclismo', gravel: 'ciclismo',
+  tennis: 'racchetta', padel: 'racchetta', ping_pong: 'racchetta', badminton: 'racchetta', squash: 'racchetta', racquetball: 'racchetta', pickleball: 'racchetta',
+  calcio: 'palla', pallavolo: 'palla', basket: 'palla', beach_volley: 'palla', cricket: 'palla',
+  nuoto: 'acqua', canoa: 'acqua', sup: 'acqua', kayak: 'acqua', surf: 'acqua', kitesurf: 'acqua', canottaggio: 'acqua', windsurf: 'acqua', vela: 'acqua',
+  pattinaggio_ghiaccio: 'neve', sci_fondo: 'neve', sci_alpino: 'neve', snowboard: 'neve', scialpinismo: 'neve', ciaspole: 'neve',
+  palestra: 'fitness', yoga: 'fitness', danza: 'fitness', salto_corda: 'fitness', boxe: 'fitness', allenamento: 'fitness', crossfit: 'fitness', hiit: 'fitness', pilates: 'fitness', ellittica: 'fitness', step: 'fitness',
+  skateboard: 'ruote', pattini_inline: 'ruote',
+  golf: 'altro', arrampicata: 'altro', motocross: 'altro',
+}
 
 // MET values (metabolic equivalent) per activity
 export const MET: Record<ActivityType, number> = {
@@ -45,6 +106,38 @@ export const MET: Record<ActivityType, number> = {
   salto_corda: 11.0,
   trekking:     6.0,
   boxe:         7.8,
+  // Catalogo Strava — valori dal Compendium of Physical Activities, stessa
+  // fonte usata sopra
+  corsa_trail:    10.5,
+  mountain_bike:   8.5,
+  gravel:          8.0,
+  canoa:           5.0,
+  sup:             6.0,
+  kayak:           5.0,
+  surf:            3.0,
+  kitesurf:        6.0,
+  canottaggio:     7.0,
+  windsurf:        5.0,
+  vela:            3.0,
+  pattinaggio_ghiaccio: 7.0,
+  sci_fondo:       8.0,
+  sci_alpino:      6.0,
+  snowboard:       5.3,
+  scialpinismo:   10.0,
+  ciaspole:        8.0,
+  allenamento:     5.0,
+  badminton:       5.5,
+  ellittica:       5.0,
+  pattini_inline:  9.0,
+  skateboard:      5.0,
+  step:            7.0,
+  pickleball:      5.0,
+  crossfit:        8.0,
+  hiit:            8.5,
+  pilates:         3.0,
+  racquetball:     7.0,
+  squash:         10.0,
+  cricket:         5.0,
 }
 
 // Varianti indoor/outdoor (v38): solo per gli sport dove il "dove" cambia il
@@ -96,16 +189,23 @@ export type GpsTrackableType = 'corsa' | 'bici' | 'camminata' | 'trekking'
 // ACTIVITY_OPTIONS hanno hasDist: true per l'inserimento manuale.
 export const GPS_TRACKABLE_TYPES: GpsTrackableType[] = ['corsa', 'bici', 'camminata', 'trekking']
 
-export type ElevationCapableType = 'corsa' | 'bici' | 'camminata' | 'trekking' | 'arrampicata' | 'motocross'
+export type ElevationCapableType =
+  | 'corsa' | 'bici' | 'camminata' | 'trekking' | 'arrampicata' | 'motocross'
+  | 'corsa_trail' | 'mountain_bike' | 'gravel' | 'sci_fondo' | 'scialpinismo' | 'ciaspole'
 
 // Sport dove il dislivello positivo (D+) ha senso come dato manuale: gli
 // stessi del GPS (per chi non traccia comunque lo vuole segnare a mano) più
 // arrampicata (mai tracciabile via GPS, ma il dislivello È la sessione) e
 // motocross (fuoristrada). Il campo compare nel form solo per questi tipi,
 // e solo quando l'attività non è già tracciata via GPS (lì il dato arriva
-// da computeElevationProfile, non va sovrascritto a mano).
+// da computeElevationProfile, non va sovrascritto a mano). Catalogo Strava:
+// aggiunti gli sport di montagna a propulsione umana (trail, mtb, gravel,
+// sci di fondo, scialpinismo, ciaspole) — NON sci alpino/snowboard, dove il
+// dislivello "interessante" è la discesa assistita da impianti, non una
+// salita: il campo D+ non avrebbe lo stesso significato.
 export const ELEVATION_CAPABLE_TYPES: ElevationCapableType[] = [
   'corsa', 'bici', 'camminata', 'trekking', 'arrampicata', 'motocross',
+  'corsa_trail', 'mountain_bike', 'gravel', 'sci_fondo', 'scialpinismo', 'ciaspole',
 ]
 
 // MET per fascia di velocità media (km/h), valori approssimati dal Compendium

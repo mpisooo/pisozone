@@ -12,7 +12,8 @@ const it = {
       icon: '🏃',
       title: 'Registrare un\'attività',
       paragraphs: [
-        'Dalla scheda Registra scegli uno dei 20 sport, imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
+        'Dalla scheda Registra scegli uno sport dalla riga rapida coi tuoi preferiti, oppure tocca "Cerca altro sport" per il catalogo completo — oltre 50 discipline con ricerca e categorie, come su Strava — poi imposta data, ora e durata e aggiungi se vuoi distanza, note e una foto (visibile agli amici nel feed).',
+        'I tuoi sport preferiti (fino a 6) si scelgono nelle Impostazioni: compaiono per primi nella riga rapida di Registra e nella tua vetrina del Profilo.',
         'Per corsa, bici, camminata, nuoto e arrampicata puoi indicare anche il "dove": al chiuso l\'attività prende il suo nome vero — tapis roulant, cyclette, piscina. È facoltativo: tocca di nuovo per azzerare.',
         'Per corsa, bici, camminata, trekking, arrampicata e motocross puoi anche segnare a mano il dislivello positivo (metri di salita), utile quando non tracci con il GPS — una gita in montagna o una falesia contano comunque per le medaglie della montagna.',
         'Le calorie si calcolano da sole in base a peso, sesso e intensità dello sport (formula MET): puoi sempre scriverle a mano per sovrascriverle.',
@@ -229,7 +230,8 @@ const en: Widen<typeof it> = {
       icon: '🏃',
       title: 'Logging an activity',
       paragraphs: [
-        'From the Log tab, pick one of 20 sports, set the date, time and duration, and optionally add distance, notes and a photo (visible to friends in the feed).',
+        'From the Log tab, pick a sport from your quick row of favorites, or tap "Search more sports" for the full catalog — over 50 disciplines with search and categories, just like Strava — then set the date, time and duration, and optionally add distance, notes and a photo (visible to friends in the feed).',
+        'Your favorite sports (up to 6) are chosen in Settings: they show up first in the Log quick row and on your Profile showcase.',
         'For running, cycling, walking, swimming and climbing you can also specify "where": indoors, the activity takes its real name — treadmill, stationary bike, pool. It\'s optional: tap again to clear it.',
         'For running, cycling, walking, trekking, climbing and motocross you can also log elevation gain by hand (climbing meters), handy when you\'re not tracking with GPS — a mountain hike or a climbing crag still counts toward the mountain medals.',
         'Calories are calculated automatically based on your weight, sex and the sport\'s intensity (MET formula): you can always type them in by hand to override the value.',
