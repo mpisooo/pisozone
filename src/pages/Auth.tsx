@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -13,7 +13,10 @@ type Tab = 'login' | 'register' | 'recover'
 export default function AuthPage() {
   const { user, signIn, signUp } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('login')
+  const [searchParams] = useSearchParams()
+  // Arrivo dalla landing pubblica con "Inizia gratis" (→ /auth?tab=register):
+  // apre direttamente la scheda di registrazione invece del login di default.
+  const [tab, setTab] = useState<Tab>(() => (searchParams.get('tab') === 'register' ? 'register' : 'login'))
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 

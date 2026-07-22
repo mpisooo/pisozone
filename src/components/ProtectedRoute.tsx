@@ -1,8 +1,10 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import LandingPage from '../pages/Landing'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -12,5 +14,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     )
   }
 
-  return user ? <>{children}</> : <Navigate to="/auth" replace />
+  if (user) return <>{children}</>
+  // La home pubblica ("/") mostra la landing invece di rimbalzare subito su
+  // /auth — ogni altra rotta protetta (es. /log, /calendar) continua a
+  // richiedere il login com'era prima.
+  if (location.pathname === '/') return <LandingPage />
+  return <Navigate to="/auth" replace />
 }
