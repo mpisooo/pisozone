@@ -1,13 +1,15 @@
 import { createNamespaceProxy, type Widen } from './proxy'
 
 // Namespace per le card condivisibili come immagine (lib/shareCard.ts e i
-// punti di ingresso: ActivityEditModal, WrappedOverlay). I valori numerici
-// vengono formattati in lib/shareCard.ts; qui vivono etichette e messaggi.
+// punti di ingresso: ActivityEditModal, WrappedOverlay, Stats.tsx, Profile.tsx
+// roadmap v7). I valori numerici vengono formattati in lib/shareCard.ts; qui
+// vivono etichette e messaggi.
 const it = {
   activityButton: "Condividi l'attività come immagine",
   readinessButton: 'Condividi la prontezza come immagine',
   segmentPrButton: 'Condividi il record come immagine',
   racePredictorButton: 'Condividi la stima gara come immagine',
+  profileButton: 'Condividi il profilo come immagine',
   error: 'Condivisione non riuscita. Riprova.',
 
   card: {
@@ -36,6 +38,13 @@ const it = {
     segmentDistance: 'Distanza',
     racePredictorKicker: 'PASSO GARA PREVISTO',
     racePredictorTitle: 'STIMA GARA',
+    // Condividi il profilo (roadmap v7): livello, streak, attività e medaglie
+    // in un'unica card — stesso trattamento delle altre flagship.
+    profileKicker: 'IL MIO PROFILO',
+    profileLevel: 'Livello',
+    profileStreak: 'Streak',
+    profileActivities: 'Attività',
+    profileMedals: 'Medaglie',
   },
 } as const
 
@@ -44,6 +53,7 @@ const en: Widen<typeof it> = {
   readinessButton: 'Share readiness as image',
   segmentPrButton: 'Share record as image',
   racePredictorButton: 'Share race estimate as image',
+  profileButton: 'Share profile as image',
   error: 'Sharing failed. Please try again.',
 
   card: {
@@ -68,6 +78,11 @@ const en: Widen<typeof it> = {
     segmentDistance: 'Distance',
     racePredictorKicker: 'PREDICTED RACE PACE',
     racePredictorTitle: 'RACE ESTIMATE',
+    profileKicker: 'MY PROFILE',
+    profileLevel: 'Level',
+    profileStreak: 'Streak',
+    profileActivities: 'Activities',
+    profileMedals: 'Medals',
   },
 }
 

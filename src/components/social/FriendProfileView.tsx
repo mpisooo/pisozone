@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, Ban, Flag } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
+import { it } from 'date-fns/locale'
 import { supabase } from '../../lib/supabase'
 import { getLevelDef } from '../../lib/levels'
-import { ACTIVITY_OPTIONS } from '../../lib/constants'
+import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../../lib/constants'
 import common from '../../lib/i18n/common'
 import social from '../../lib/i18n/social'
 import ActivityIcon from '../ActivityIcon'
 import ActionSheet from './ActionSheet'
+import type { Activity, MedalDefinition } from '../../types'
 
 // ── Friend Profile View ───────────────────────────────────────────────────────
 interface Props {
@@ -23,11 +26,14 @@ interface Props {
   onRemove: (fid: string) => Promise<void>
   onBlock: (id: string) => Promise<{ error: Error | null }>
   onReport: (id: string, reason: string) => Promise<{ error: Error | null }>
+  // Amici in comune (roadmap v6/v7): stessa RPC batch della ricerca (v49),
+  // qui richiamata con un array di un solo id — nessuna nuova migrazione.
+  fetchMutualFriendsCounts: (userIds: string[]) => Promise<Map<string, number>>
 }
 
 export default function FriendProfileView({
   userId, username, photo, friendshipId, isFriend, isPendingSent, isPendingReceived, onBack,
-  onSendRequest, onAcceptRequest, onRemove, onBlock, onReport,
+  onSendRequest, onAcceptRequest, onRemove, onBlock, onReport, fetchMutualFriendsCounts,
 }: Props) {
   const [remoteProfile, setRemoteProfile] = useState<any>(null)
   const [acting, setActing] = useState(false)
@@ -63,7 +69,8 @@ export default function FriendProfileView({
 
   // Statistiche pubbliche (v37): solo aggregati via RPC security definer,
   // mai attività grezze. Tollerante pre-migrazione: errore → griglia nascosta.
-  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number } | null>(null)
+  // active_days (roadmap v7): la RPC lo restituiva già, solo mai letto qui.
+  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number; active_days: number } | null>(null)
   useEffect(() => {
     supabase.rpc('get_public_profile_stats', { p_user_id: userId }).then(({ data, error }) => {
       const row = Array.isArray(data) ? data[0] : data
@@ -73,6 +80,7 @@ export default function FriendProfileView({
           total_minutes: Number(row.total_minutes),
           total_km: Number(row.total_km),
           medals: Number(row.medals),
+          active_days: Number(row.active_days),
         })
       }
     })
@@ -95,6 +103,49 @@ export default function FriendProfileView({
       const friendRow = data.find((r: any) => r.user_id === userId)
       if (meRow && friendRow) setWeeklyVs({ me: toSide(meRow), friend: toSide(friendRow) })
     })
+  }, [userId, isFriend])
+
+  // Amici in comune (roadmap v7): sul profilo stesso, non solo in ricerca.
+  const [mutualCount, setMutualCount] = useState(0)
+  useEffect(() => {
+    fetchMutualFriendsCounts([userId]).then((map) => setMutualCount(map.get(userId) ?? 0))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
+
+  // Bacheca medaglie vera (roadmap v7, migrazione v50): "achievements" ha RLS
+  // owner-only, serve una RPC dedicata. Tollerante pre-migrazione: RPC
+  // assente → sezione nascosta (come le altre RPC pubbliche v37).
+  const [friendMedalKeys, setFriendMedalKeys] = useState<string[]>([])
+  useEffect(() => {
+    supabase.rpc('get_public_profile_medals', { p_user_id: userId }).then(({ data, error }) => {
+      if (!error && Array.isArray(data)) setFriendMedalKeys(data.map((r: any) => r.medal_key))
+    })
+  }, [userId])
+  const friendMedals: MedalDefinition[] = friendMedalKeys
+    .map((key) => MEDALS.find((m) => m.key === key))
+    .filter((m): m is MedalDefinition => m != null)
+
+  // Numeri per sport (roadmap v7, migrazione v50): stesso principio, un
+  // aggregato presentabile invece delle attività grezze.
+  const [sportBreakdown, setSportBreakdown] = useState<{ type: string; count: number }[]>([])
+  useEffect(() => {
+    supabase.rpc('get_public_profile_sport_breakdown', { p_user_id: userId }).then(({ data, error }) => {
+      if (!error && Array.isArray(data)) {
+        setSportBreakdown(data.map((r: any) => ({ type: r.type as string, count: Number(r.count) })))
+      }
+    })
+  }, [userId])
+  const maxSportCount = sportBreakdown[0]?.count ?? 1
+
+  // Attività recenti (roadmap v7): la policy "view own and friends activities"
+  // (v8) ammette già la lettura completa delle attività di un amico accettato
+  // — zero migrazione. Solo tra amici (per gli estranei la query tornerebbe
+  // comunque vuota, ma evitiamo la richiesta inutile).
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([])
+  useEffect(() => {
+    if (!isFriend) { setRecentActivities([]); return }
+    supabase.from('activities').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(5)
+      .then(({ data, error }) => { if (!error) setRecentActivities((data as Activity[]) ?? []) })
   }, [userId, isFriend])
 
   const ld = getLevelDef(remoteProfile?.level ?? 1)
@@ -130,6 +181,9 @@ export default function FriendProfileView({
             <p className="text-sm font-semibold mt-1" style={{ color: ld.color }}>
               {ld.emoji} {social.shared.levelPrefix}{remoteProfile?.level ?? 1} — {ld.title}
             </p>
+            {mutualCount > 0 && (
+              <p className="text-xs text-gray-500 mt-1">🤝 {social.friends.mutualFriendsLabel(mutualCount)}</p>
+            )}
           </div>
           <button
             onClick={handleAction}
@@ -146,15 +200,17 @@ export default function FriendProfileView({
           </button>
         </div>
 
-        {/* Profilo pubblico presentabile (v37): la card "In numeri" */}
+        {/* Profilo pubblico presentabile (v37): la card "In numeri" — 5 cifre
+            da roadmap v7 (active_days era già nella RPC, mai mostrato prima) */}
         {pubStats && pubStats.total_activities > 0 && (
           <div className="card">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{social.friends.profile.statsHeading}</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-3 gap-x-3 gap-y-3">
               {[
                 [String(pubStats.total_activities), social.friends.profile.statActivities],
                 [`${Math.round(pubStats.total_minutes / 60)}h`, social.friends.profile.statHours],
                 [(Math.round(pubStats.total_km * 10) / 10).toLocaleString('it-IT'), social.friends.profile.statKm],
+                [String(pubStats.active_days), social.friends.profile.statActiveDays],
                 [String(pubStats.medals), social.friends.profile.statMedals],
               ].map(([value, label]) => (
                 <div key={label}>
@@ -209,6 +265,45 @@ export default function FriendProfileView({
           </div>
         )}
 
+        {/* Bacheca medaglie (roadmap v7, migrazione v50) */}
+        {friendMedals.length > 0 && (
+          <div className="card space-y-3">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{social.friends.profile.trophyHeading}</p>
+            <div className="flex flex-wrap gap-3">
+              {friendMedals.map((m) => (
+                <div key={m.key} className="flex flex-col items-center gap-1 w-16">
+                  <span className="text-3xl">{m.icon}</span>
+                  <span className="text-[10px] text-gray-400 text-center leading-tight">{m.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Numeri per sport (roadmap v7, migrazione v50) */}
+        {sportBreakdown.length > 0 && (
+          <div className="card space-y-3">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">{social.friends.profile.sportBreakdownHeading}</p>
+            <div className="space-y-2.5">
+              {sportBreakdown.slice(0, 5).map(({ type, count }) => {
+                const opt = ACTIVITY_OPTIONS.find((o) => o.value === type)
+                if (!opt) return null
+                const pct = (count / maxSportCount) * 100
+                return (
+                  <div key={type} className="flex items-center gap-2.5">
+                    <ActivityIcon type={opt.value} size={18} className="text-[var(--red)] flex-shrink-0" />
+                    <span className="text-xs text-gray-300 w-20 flex-shrink-0 truncate">{opt.label}</span>
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--red)' }} />
+                    </div>
+                    <span className="text-xs font-semibold text-white w-6 text-right flex-shrink-0">{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {sports.length > 0 && (
           <div className="card">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{social.friends.profile.favoriteSportsHeading}</p>
@@ -220,6 +315,25 @@ export default function FriendProfileView({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Attività recenti (roadmap v7): zero migrazione, RLS "friends" già esistente */}
+        {isFriend && recentActivities.length > 0 && (
+          <div className="card space-y-1">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{social.friends.profile.recentActivitiesHeading}</p>
+            {recentActivities.map((a) => (
+              <div key={a.id} className="flex items-center gap-2.5 py-1">
+                <ActivityIcon type={a.type} size={18} className="text-[var(--red)] flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white truncate">{activityLabel(a.type, a.indoor)}</p>
+                  <p className="text-[10px] text-gray-500">{format(parseISO(a.date), 'd MMM', { locale: it })}</p>
+                </div>
+                <span className="text-xs text-gray-400 flex-shrink-0">
+                  {a.distance_km ? `${a.distance_km.toLocaleString('it-IT')} km` : `${a.duration_min} min`}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

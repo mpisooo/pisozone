@@ -46,7 +46,7 @@ export function subscribeLanguage(listener: () => void): () => void {
 
 // Sottoscrive il componente chiamante ai cambi di lingua: usato in App.tsx
 // per resettare (via key) il sottoalbero visibile quando l'utente cambia
-// lingua dal Profilo, così ogni pagina già montata rilegge i namespace col
+// lingua dalle Impostazioni, così ogni pagina già montata rilegge i namespace col
 // valore aggiornato senza bisogno di un reload manuale.
 export function useLanguage(): Language {
   return useSyncExternalStore(subscribeLanguage, getLanguage)

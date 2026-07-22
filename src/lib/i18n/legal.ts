@@ -96,7 +96,7 @@ const it = {
 
     rights: {
       heading: '7. I TUOI DIRITTI',
-      intro: 'In qualsiasi momento, direttamente dalla pagina Profilo → sezione "Privacy e dati", puoi:',
+      intro: 'In qualsiasi momento, direttamente dalla pagina Impostazioni → sezione "Privacy e dati", puoi:',
       export: {
         label: 'Esportare',
         text: ' una copia completa di tutti i tuoi dati in formato JSON (diritto alla portabilità, art. 20 GDPR).',
@@ -163,12 +163,12 @@ const it = {
 
     liability: {
       heading: '6. LIMITAZIONE DI RESPONSABILITÀ',
-      text: 'Il servizio è fornito gratuitamente "così com\'è", senza garanzie di disponibilità continua, assenza di errori o conservazione perpetua dei dati. Ti consigliamo di esportare periodicamente i tuoi dati dalla pagina Profilo. Nei limiti consentiti dalla legge, il titolare non risponde di danni derivanti dall\'uso dell\'app o dall\'indisponibilità del servizio.',
+      text: 'Il servizio è fornito gratuitamente "così com\'è", senza garanzie di disponibilità continua, assenza di errori o conservazione perpetua dei dati. Ti consigliamo di esportare periodicamente i tuoi dati dalla pagina Impostazioni. Nei limiti consentiti dalla legge, il titolare non risponde di danni derivanti dall\'uso dell\'app o dall\'indisponibilità del servizio.',
     },
 
     accountClosure: {
       heading: '7. CHIUSURA DELL\'ACCOUNT',
-      text: 'Puoi eliminare il tuo account in autonomia in qualsiasi momento dalla pagina Profilo → "Privacy e dati": la cancellazione è immediata e irreversibile. Il titolare si riserva di sospendere o chiudere account che violino questi termini, previa comunicazione ove possibile.',
+      text: 'Puoi eliminare il tuo account in autonomia in qualsiasi momento dalla pagina Impostazioni → "Privacy e dati": la cancellazione è immediata e irreversibile. Il titolare si riserva di sospendere o chiudere account che violino questi termini, previa comunicazione ove possibile.',
     },
 
     termsChanges: {
@@ -273,7 +273,7 @@ const en: Widen<typeof it> = {
 
     rights: {
       heading: '7. YOUR RIGHTS',
-      intro: 'At any time, directly from the Profile page → "Privacy and data" section, you can:',
+      intro: 'At any time, directly from the Settings page → "Privacy and data" section, you can:',
       export: {
         label: 'Export',
         text: ' a complete copy of all your data in JSON format (right to data portability, art. 20 GDPR).',
@@ -340,12 +340,12 @@ const en: Widen<typeof it> = {
 
     liability: {
       heading: '6. LIMITATION OF LIABILITY',
-      text: 'The service is provided free of charge "as is", with no guarantee of continuous availability, error-free operation, or permanent data retention. We recommend periodically exporting your data from the Profile page. To the extent permitted by law, the controller is not liable for damages arising from use of the app or from unavailability of the service.',
+      text: 'The service is provided free of charge "as is", with no guarantee of continuous availability, error-free operation, or permanent data retention. We recommend periodically exporting your data from the Settings page. To the extent permitted by law, the controller is not liable for damages arising from use of the app or from unavailability of the service.',
     },
 
     accountClosure: {
       heading: '7. ACCOUNT CLOSURE',
-      text: 'You can delete your account yourself at any time from the Profile page → "Privacy and data": deletion is immediate and irreversible. The controller reserves the right to suspend or close accounts that violate these terms, with prior notice where possible.',
+      text: 'You can delete your account yourself at any time from the Settings page → "Privacy and data": deletion is immediate and irreversible. The controller reserves the right to suspend or close accounts that violate these terms, with prior notice where possible.',
     },
 
     termsChanges: {

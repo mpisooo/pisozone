@@ -158,6 +158,31 @@ export function buildRacePredictorShareData(result: RacePredictorResult, subtitl
   }
 }
 
+// Condividi il profilo (roadmap v7): la vetrina personale in un'unica card —
+// livello e titolo in sottotitolo, streak/attività/medaglie come statistiche.
+// Nessuna foto (i builder esistenti restano testo/numeri puri, mai immagini
+// asincrone da caricare nel canvas).
+export function buildProfileShareData(input: {
+  username: string
+  level: number
+  levelTitle: string
+  streak: number
+  totalActivities: number
+  medalsCount: number
+}): ShareCardData {
+  return {
+    kicker: shareText.card.profileKicker,
+    title: `@${input.username}`.toUpperCase(),
+    subtitle: `${shareText.card.profileLevel} ${input.level} — ${input.levelTitle}`,
+    stats: [
+      { value: String(input.streak), label: shareText.card.profileStreak },
+      { value: String(input.totalActivities), label: shareText.card.profileActivities },
+      { value: String(input.medalsCount), label: shareText.card.profileMedals },
+    ],
+    footer: shareText.card.footer,
+  }
+}
+
 // — Da qui in giù si tocca il DOM: non coperto dai test (environment node). —
 
 function fillRoundedRect(

@@ -1,18 +1,24 @@
 import { createNamespaceProxy, type Widen } from './proxy'
 
-// Namespace della pagina Profilo (dati personali, BMI, sport preferiti, livello,
-// crediti, temi, storico peso, privacy/export) e dei componenti che vive solo lì:
-// NotificationSettingsCard, RecoveryEmailCard, DeleteAccountModal, CreditsInfoModal,
-// LanguageSettingsCard.
+// Namespace condiviso da DUE pagine (roadmap v7, pilastro 01: Profilo/
+// Impostazioni si separano): Profile.tsx (vetrina — avatar, livello, bacheca
+// medaglie, streak, sport preferiti, "in numeri") e Settings.tsx (dati
+// anagrafici, BMI, temi, storico peso, notifiche, lingua, privacy/export) e i
+// componenti che vivono solo in quest'ultima: NotificationSettingsCard,
+// RecoveryEmailCard, DeleteAccountModal, CreditsInfoModal, LanguageSettingsCard.
 // `errors` raccoglie i messaggi di showError() di ProfileContext/useWeightLogs;
 // gli altri errori mostrati inline (upload avatar, peso, export...) restano vicino
 // alla loro sezione per restare leggibili nel contesto d'uso.
 const it = {
   pageTitle: 'PROFILO',
+  // Roadmap v7, pilastro 01: Profilo (vetrina) e Impostazioni (configurazione)
+  // sono ora due pagine separate — questo è il titolo della seconda.
+  settingsPageTitle: 'IMPOSTAZIONI',
   creditsAmount: (n: number) => `${n} 💎`,
 
   // La stessa card "In numeri" dei profili pubblici (RPC get_public_profile_stats),
   // vista su se stessi: quello che gli altri vedono aprendo il tuo profilo.
+  // Roadmap v7: active_days (già restituito dalla RPC v37) entra come 5ª cifra.
   publicStats: {
     title: 'IN NUMERI',
     hint: 'È il biglietto da visita che vedono gli altri sul tuo profilo.',
@@ -20,6 +26,29 @@ const it = {
     hours: 'Ore totali',
     km: 'Km totali',
     medals: 'Medaglie',
+    activeDays: 'Giorni attivi',
+  },
+
+  // Bacheca medaglie vera (roadmap v7): le medaglie realmente sbloccate, non
+  // solo il conteggio aggregato di "In numeri". Riusa useAchievements/MEDALS,
+  // le stesse fonti di Medals.tsx.
+  trophyCase: {
+    title: 'BACHECA MEDAGLIE',
+    emptyHint: 'Nessuna medaglia sbloccata ancora: scoprile nella pagina Medaglie.',
+    seeAllButton: 'Vedi tutte le medaglie',
+  },
+
+  // Streak nella vetrina personale (roadmap v7): stesso calcStreak di Home/
+  // Calendario/Sfide, mai ricalcolata a mano.
+  streak: {
+    title: 'STREAK ATTUALE',
+    daysLabel: (n: number) => (n === 1 ? '1 giorno consecutivo' : `${n} giorni consecutivi`),
+    zeroHint: 'Registra un\'attività oggi per iniziare una nuova streak.',
+  },
+
+  // I tuoi numeri per sport (roadmap v7): riusa activityTypeCounts di computeStats.
+  sportBreakdown: {
+    title: 'I TUOI NUMERI PER SPORT',
   },
 
   account: {
@@ -52,6 +81,9 @@ const it = {
     sportTitle: 'SPORT PREFERITI',
     sportSelectedCount: (n: number) => `${n}/3 selezionati`,
     sportHint: 'Scegli fino a 3 attività che pratichi di più',
+    // Roadmap v7: nella vetrina i preferiti sono sola lettura, si modificano
+    // dalle Impostazioni (stesso form dei dati personali).
+    editInSettings: 'Modifica nelle Impostazioni',
     saved: '✅ Salvato!',
     saving: 'Salvataggio...',
     save: 'Salva profilo',
@@ -203,7 +235,7 @@ const it = {
     achievementsTitle: 'Medaglie sbloccate',
     achievementsDescription: (bronze: number, silver: number, gold: number, diamond: number) =>
       `Bonus una tantum allo sblocco: 🥉 ${bronze} · 🥈 ${silver} · 🥇 ${gold} · 💎 ${diamond}`,
-    footer: 'Usa i crediti per sbloccare livelli, temi e cornici nella pagina Profilo.',
+    footer: 'Usa i crediti per sbloccare livelli nel Profilo e temi nelle Impostazioni.',
   },
 
   errors: {
@@ -218,6 +250,7 @@ const it = {
 
 const en: Widen<typeof it> = {
   pageTitle: 'PROFILE',
+  settingsPageTitle: 'SETTINGS',
   creditsAmount: (n: number) => `${n} 💎`,
 
   publicStats: {
@@ -227,6 +260,23 @@ const en: Widen<typeof it> = {
     hours: 'Total hours',
     km: 'Total km',
     medals: 'Medals',
+    activeDays: 'Active days',
+  },
+
+  trophyCase: {
+    title: 'TROPHY CASE',
+    emptyHint: 'No medals unlocked yet: discover them on the Medals page.',
+    seeAllButton: 'See all medals',
+  },
+
+  streak: {
+    title: 'CURRENT STREAK',
+    daysLabel: (n: number) => (n === 1 ? '1 day in a row' : `${n} days in a row`),
+    zeroHint: 'Log an activity today to start a new streak.',
+  },
+
+  sportBreakdown: {
+    title: 'YOUR NUMBERS BY SPORT',
   },
 
   account: {
@@ -259,6 +309,7 @@ const en: Widen<typeof it> = {
     sportTitle: 'FAVORITE SPORTS',
     sportSelectedCount: (n: number) => `${n}/3 selected`,
     sportHint: 'Choose up to 3 activities you practice most',
+    editInSettings: 'Edit in Settings',
     saved: '✅ Saved!',
     saving: 'Saving...',
     save: 'Save profile',
@@ -406,7 +457,7 @@ const en: Widen<typeof it> = {
     achievementsTitle: 'Unlocked medals',
     achievementsDescription: (bronze: number, silver: number, gold: number, diamond: number) =>
       `One-time bonus on unlock: 🥉 ${bronze} · 🥈 ${silver} · 🥇 ${gold} · 💎 ${diamond}`,
-    footer: 'Use credits to unlock levels, themes and frames on the Profile page.',
+    footer: 'Use credits to unlock levels in Profile and themes in Settings.',
   },
 
   errors: {

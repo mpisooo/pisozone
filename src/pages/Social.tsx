@@ -193,6 +193,7 @@ export default function SocialPage() {
             onRemove={async (fid) => { await runFriendAction(() => rejectOrRemove(fid)); await refetchFriends() }}
             onBlock={async (id) => { const r = await blockUser(id); await refetchFriends(); return r }}
             onReport={reportUser}
+            fetchMutualFriendsCounts={fetchMutualFriendsCounts}
           />
         )}
         {activeView.type === 'create-group' && (

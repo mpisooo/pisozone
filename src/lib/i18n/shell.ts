@@ -22,7 +22,10 @@ const it = {
     levelPrefix: 'Lv.',
     creditsSuffix: 'crediti',
     creditsInfoLabel: 'Come guadagnare crediti',
-    profileSettings: 'Impostazioni profilo',
+    // Roadmap v7, pilastro 01: Profilo (vetrina) e Impostazioni
+    // (configurazione) sono due voci distinte, non più una sola.
+    profileMenuItem: 'Profilo',
+    settingsMenuItem: 'Impostazioni',
     signOut: 'Esci',
   },
   pushPrompt: {
@@ -33,8 +36,8 @@ const it = {
     enable: 'Attiva',
     enabling: 'Attivazione...',
     understood: 'Ho capito',
-    retryHint: 'Potrai riprovare quando vuoi da Profilo → Notifiche.',
-    toggleHint: 'Potrai disattivarle o riattivarle quando vuoi da Profilo → Notifiche.',
+    retryHint: 'Potrai riprovare quando vuoi da Impostazioni → Notifiche.',
+    toggleHint: 'Potrai disattivarle o riattivarle quando vuoi da Impostazioni → Notifiche.',
   },
   onboarding: {
     ariaLabel: 'Benvenuto su PisoZone',
@@ -72,7 +75,7 @@ const it = {
       {
         icon: '🎨',
         title: 'FAI TUO IL TUO SPAZIO',
-        text: 'Spendi i crediti nella pagina Profilo: 6 temi colore per tutta l\'app e cornici speciali per il tuo avatar.',
+        text: 'Sali di livello nel Profilo spendendo i crediti che guadagni, e sblocca 6 temi colore per tutta l\'app dalle Impostazioni.',
       },
       {
         icon: '👥',
@@ -80,7 +83,7 @@ const it = {
         text: 'Nella sezione Amici trovi feed con reazioni e commenti, classifica settimanale, messaggi e gruppi: aggiungi i tuoi amici e sfidatevi.',
       },
     ],
-    guideHint: 'Tutte le funzioni sono spiegate nella Guida: la trovi nel tuo Profilo.',
+    guideHint: 'Tutte le funzioni sono spiegate nella Guida: la trovi nelle Impostazioni.',
   },
 
   // Annuncio one-shot delle novità per chi usa già l'app (WhatsNewOverlay):
@@ -150,7 +153,8 @@ const en: Widen<typeof it> = {
     levelPrefix: 'Lv.',
     creditsSuffix: 'credits',
     creditsInfoLabel: 'How to earn credits',
-    profileSettings: 'Profile settings',
+    profileMenuItem: 'Profile',
+    settingsMenuItem: 'Settings',
     signOut: 'Sign out',
   },
   pushPrompt: {
@@ -161,8 +165,8 @@ const en: Widen<typeof it> = {
     enable: 'Enable',
     enabling: 'Enabling...',
     understood: 'Got it',
-    retryHint: 'You can try again anytime from Profile → Notifications.',
-    toggleHint: 'You can turn them on or off anytime from Profile → Notifications.',
+    retryHint: 'You can try again anytime from Settings → Notifications.',
+    toggleHint: 'You can turn them on or off anytime from Settings → Notifications.',
   },
   onboarding: {
     ariaLabel: 'Welcome to PisoZone',
@@ -200,7 +204,7 @@ const en: Widen<typeof it> = {
       {
         icon: '🎨',
         title: 'MAKE IT YOURS',
-        text: 'Spend your credits on the Profile page: 6 color themes for the whole app and special frames for your avatar.',
+        text: 'Level up in Profile by spending the credits you earn, and unlock 6 color themes for the whole app from Settings.',
       },
       {
         icon: '👥',
@@ -208,7 +212,7 @@ const en: Widen<typeof it> = {
         text: 'In the Friends section you\'ll find a feed with reactions and comments, a weekly leaderboard, messages and groups: add your friends and challenge them.',
       },
     ],
-    guideHint: 'Every feature is explained in the Guide: find it in your Profile.',
+    guideHint: 'Every feature is explained in the Guide: find it in Settings.',
   },
 
   // Annuncio one-shot delle novità per chi usa già l'app (WhatsNewOverlay):

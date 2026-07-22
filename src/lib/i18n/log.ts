@@ -104,7 +104,7 @@ const it = {
       weightLabel: 'Peso',
       weightDesc: (weightKg: number | null | undefined) => weightKg
         ? `preso dal tuo profilo (${weightKg} kg)`
-        : 'preso dal tuo profilo — impostalo nel Profilo per attivare il calcolo auto',
+        : 'preso dal tuo profilo — impostalo nelle Impostazioni per attivare il calcolo auto',
       durationLabel: 'Durata',
       durationDesc: 'ore inserite nella sezione DURATA',
       genderLabel: 'Sesso',
@@ -112,7 +112,7 @@ const it = {
         ? 'femmina (−10% kcal per composizione corporea)'
         : gender === 'male'
         ? 'maschio'
-        : 'non impostato — aggiungilo nel Profilo per una stima più precisa',
+        : 'non impostato — aggiungilo nelle Impostazioni per una stima più precisa',
       estimateBefore: 'È una ',
       estimateEmphasis: 'stima',
       estimateAfter: ': il valore reale dipende dall\'intensità effettiva, dalla frequenza cardiaca e dalla tua forma fisica. Puoi sempre sovrascriverlo manualmente.',
@@ -429,7 +429,7 @@ const en: Widen<typeof it> = {
       weightLabel: 'Weight',
       weightDesc: (weightKg: number | null | undefined) => weightKg
         ? `taken from your profile (${weightKg} kg)`
-        : 'taken from your profile — set it in Profile to enable auto-calculation',
+        : 'taken from your profile — set it in Settings to enable auto-calculation',
       durationLabel: 'Duration',
       durationDesc: 'hours entered in the DURATION section',
       genderLabel: 'Sex',
@@ -437,7 +437,7 @@ const en: Widen<typeof it> = {
         ? 'female (−10% kcal for body composition)'
         : gender === 'male'
         ? 'male'
-        : 'not set — add it in Profile for a more accurate estimate',
+        : 'not set — add it in Settings for a more accurate estimate',
       estimateBefore: 'It\'s an ',
       estimateEmphasis: 'estimate',
       estimateAfter: ': the real value depends on actual intensity, heart rate and your fitness level. You can always override it manually.',

@@ -1,7 +1,7 @@
 import { createNamespaceProxy, type Widen } from './proxy'
 
 // Namespace della Guida (pages/Guide.tsx): la "wiki" di tutte le funzionalità
-// dell'app, raggiungibile dal Profilo e dall'annuncio Novità. Ogni sezione è
+// dell'app, raggiungibile dalle Impostazioni e dall'annuncio Novità. Ogni sezione è
 // un accordion; i paragrafi sono frasi brevi, dalla parte dell'utente.
 const it = {
   pageTitle: 'GUIDA',
@@ -143,7 +143,7 @@ const it = {
       title: 'Crediti, livelli e negozio',
       paragraphs: [
         'I crediti si guadagnano registrando attività, completando sfide giornaliere, sbloccando medaglie e chiudendo i programmi di allenamento.',
-        'Si spendono nel Profilo: 10 livelli da sbloccare in sequenza, 6 temi colore per tutta l\'app e cornici speciali per l\'avatar. E per i freeze dello streak.',
+        'Livelli (10, da sbloccare in sequenza) e freeze dello streak si sbloccano nel Profilo; i 6 temi colore per tutta l\'app si comprano nelle Impostazioni.',
       ],
     },
     {
@@ -170,7 +170,7 @@ const it = {
       icon: '⚖️',
       title: 'Peso e obiettivo',
       paragraphs: [
-        'Nel Profilo, la card "Storico peso" tiene il grafico delle tue pesate: con il peso compilato nei dati personali basta un tocco su "Salva" per registrare quella di oggi.',
+        'Nelle Impostazioni, la card "Storico peso" tiene il grafico delle tue pesate: con il peso compilato nei dati personali basta un tocco su "Salva" per registrare quella di oggi.',
         'Puoi fissare un obiettivo di peso: compare come linea tratteggiata sul grafico e, con pesate regolari (almeno 3 in una settimana), l\'app calcola il tuo ritmo in kg a settimana e la data in cui, di questo passo, ci arrivi.',
         'La proiezione è una stima onesta: se il peso è stabile, va nella direzione opposta o il traguardo è troppo lontano, te lo dice — senza inventare date.',
       ],
@@ -193,7 +193,8 @@ const it = {
         'C\'è la chat 1:1, i gruppi e la classifica settimanale — tra amici o globale. Tocca chiunque in classifica per aprire il suo profilo pubblico, con livello, numeri e sport preferiti; nella scheda Amici trovi anche "Persone da scoprire", i più attivi del mese. Ogni messaggio, in chat 1:1 o di gruppo, mostra anche l\'orario.',
         'I gruppi crescono con te: se sei admin puoi rinominargli il nome, dargli una foto, aggiungere amici in qualsiasi momento ed espellere chi non c\'entra più — toccando la foto del gruppo o un membro dalla scheda "membri".',
         'Sul profilo di un amico c\'è anche "Io vs te": il confronto della settimana in corso — allenamenti, minuti, chilometri e calorie — tu da un lato, l\'amico dall\'altro. La barra di ogni voce dice a colpo d\'occhio chi è avanti: più rosso, più sei tu.',
-        'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km e medaglie totali.',
+        'La card "In numeri" che gli altri vedono sul tuo profilo la trovi anche nel TUO Profilo, subito sotto la foto: attività, ore, km, giorni attivi e medaglie totali.',
+        'Sempre nel TUO Profilo trovi la bacheca delle medaglie sbloccate, la streak attuale e i tuoi numeri per sport — più un bottone per condividerlo come immagine. Sul profilo di un amico compaiono le sue medaglie, i suoi amici in comune con te e le sue attività più recenti.',
         'Puoi bloccare o segnalare chi si comporta male: chi è bloccato non può scriverti né mandarti richieste.',
       ],
     },
@@ -203,7 +204,7 @@ const it = {
       paragraphs: [
         'Le notifiche push ti avvisano per messaggi, richieste di amicizia e con un promemoria serale se alle 22:00 non hai ancora registrato nulla. Toccarne una apre direttamente il punto giusto: la conversazione esatta per un messaggio, la scheda Amici per una richiesta.',
         'Se ti assenti per qualche giorno il promemoria non ti martella: si fa vivo solo ogni tanto, con un invito a ripartire con poco. Al rientro ti accoglie una card dedicata in Home.',
-        'Dal Profilo le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
+        'Dalle Impostazioni le attivi, le disattivi per singola categoria e imposti una fascia oraria di silenzio.',
         'La campanella in alto (centro notifiche) tiene una cronologia che le push non hanno: richieste di amicizia, accettazioni, reazioni e commenti ricevuti, i tuoi level-up — e ora anche i duelli (sfida ricevuta, accettata, conclusa) e il podio degli eventi stagionali quando c\'è da riscattare. Si apre e si segna letta da sola; toccando una voce vai dritto al punto esatto: l\'attività commentata evidenziata nel feed, la sezione duelli o l\'evento stagionale in fondo a Sfide. Il cestino su ogni voce la elimina, "Cancella tutte" (con conferma) svuota l\'intera lista.',
         'Con l\'app installata (su iPhone: Condividi → Aggiungi a Home, con le notifiche attive), l\'icona mostra un numerino con i messaggi e le notifiche non letti — come le app native. Si azzera da solo quando li leggi.',
       ],
@@ -212,8 +213,8 @@ const it = {
       icon: '🔒',
       title: 'Privacy e i tuoi dati',
       paragraphs: [
-        'I tuoi dati sono tuoi: dal Profilo puoi scaricarli tutti in JSON — attività, percorsi GPS punto per punto, messaggi, commenti, tutto — o eliminare l\'account con ciò che contiene.',
-        'Privacy policy e termini di servizio sono sempre consultabili dai link nel Profilo.',
+        'I tuoi dati sono tuoi: dalle Impostazioni puoi scaricarli tutti in JSON — attività, percorsi GPS punto per punto, messaggi, commenti, tutto — o eliminare l\'account con ciò che contiene.',
+        'Privacy policy e termini di servizio sono sempre consultabili dai link nelle Impostazioni.',
       ],
     },
   ],
@@ -359,7 +360,7 @@ const en: Widen<typeof it> = {
       title: 'Credits, levels and shop',
       paragraphs: [
         'Credits are earned by logging activities, completing daily challenges, unlocking medals and finishing training plans.',
-        'Spend them in Profile: 10 levels to unlock in sequence, 6 color themes for the whole app, and special frames for your avatar. And on streak freezes.',
+        'Levels (10, to unlock in sequence) and streak freezes are unlocked in Profile; the 6 color themes for the whole app are bought in Settings.',
       ],
     },
     {
@@ -386,7 +387,7 @@ const en: Widen<typeof it> = {
       icon: '⚖️',
       title: 'Weight and goal',
       paragraphs: [
-        'In Profile, the "Weight history" card charts your weigh-ins: with your weight filled in under personal data, one tap on "Save" logs today\'s.',
+        'In Settings, the "Weight history" card charts your weigh-ins: with your weight filled in under personal data, one tap on "Save" logs today\'s.',
         'You can set a weight goal: it shows up as a dashed line on the chart, and with regular weigh-ins (at least 3 in a week), the app calculates your pace in kg per week and the date you\'ll reach it at that rate.',
         'The projection is an honest estimate: if your weight is stable, moving the other way, or the goal is too far off, it tells you so — without making up dates.',
       ],
@@ -409,7 +410,8 @@ const en: Widen<typeof it> = {
         'There\'s 1:1 chat, groups, and the weekly leaderboard — among friends or global. Tap anyone on the leaderboard to open their public profile, with level, numbers and favorite sports; in the Friends tab you\'ll also find "People to discover", the month\'s most active users. Every message, in 1:1 or group chat, now shows a timestamp too.',
         'Groups grow with you: if you\'re an admin you can rename the group, give it a photo, add friends at any time, and remove anyone who no longer belongs — just tap the group photo or a member from the "members" panel.',
         'On a friend\'s profile there\'s also "Me vs you": a comparison for the current week — workouts, minutes, kilometers and calories — you on one side, your friend on the other. Each row\'s bar shows at a glance who\'s ahead: the more red, the more it\'s you.',
-        'The "By the numbers" card that others see on your profile is also on YOUR Profile, right below your photo: total activities, hours, km and medals.',
+        'The "By the numbers" card that others see on your profile is also on YOUR Profile, right below your photo: total activities, hours, km, active days and medals.',
+        'Also on YOUR Profile: your trophy case of unlocked medals, your current streak, and your numbers by sport — plus a button to share it as an image. A friend\'s profile shows their medals, your mutual friends, and their most recent activities.',
         'You can block or report anyone behaving badly: someone you\'ve blocked can\'t message you or send you requests.',
       ],
     },
@@ -419,7 +421,7 @@ const en: Widen<typeof it> = {
       paragraphs: [
         'Push notifications alert you for messages, friend requests, and with an evening reminder if you haven\'t logged anything by 10 PM. Tapping one opens the right place directly: the exact conversation for a message, the Friends tab for a request.',
         'If you\'re away for a few days, the reminder won\'t hound you: it only shows up now and then, inviting you to ease back in. When you return, a dedicated card welcomes you back in Home.',
-        'From Profile you can turn them on or off per category and set a quiet hours window.',
+        'From Settings you can turn them on or off per category and set a quiet hours window.',
         'The bell at the top (notification center) keeps a history that push doesn\'t: friend requests, acceptances, reactions and comments received, your level-ups — and now also duels (challenge received, accepted, finished) and the seasonal event podium when there\'s something to claim. It opens and marks itself read automatically; tapping an entry takes you straight to the exact spot: the commented activity highlighted in the feed, the duels section, or the seasonal event at the bottom of Challenges. The trash icon on each entry deletes it, "Delete all" (with confirmation) clears the whole list.',
         'With the app installed (on iPhone: Share → Add to Home Screen, with notifications enabled), the icon shows a badge with your unread messages and notifications — just like native apps. It clears itself once you\'ve read them.',
       ],
@@ -428,8 +430,8 @@ const en: Widen<typeof it> = {
       icon: '🔒',
       title: 'Privacy and your data',
       paragraphs: [
-        'Your data is yours: from Profile you can download all of it as JSON — activities, point-by-point GPS routes, messages, comments, everything — or delete your account along with everything it contains.',
-        'The privacy policy and terms of service are always available via the links in Profile.',
+        'Your data is yours: from Settings you can download all of it as JSON — activities, point-by-point GPS routes, messages, comments, everything — or delete your account along with everything it contains.',
+        'The privacy policy and terms of service are always available via the links in Settings.',
       ],
     },
   ],

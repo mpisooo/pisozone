@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, LogOut, Info } from 'lucide-react'
+import { User, Settings, LogOut, Info } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../context/ThemeContext'
@@ -127,7 +127,17 @@ export default function TopBar() {
               onClick={() => { setOpen(false); navigate('/profile') }}
             >
               <User size={16} className="text-gray-400" />
-              {shell.topBar.profileSettings}
+              {shell.topBar.profileMenuItem}
+            </button>
+            {/* Roadmap v7, pilastro 01: voce distinta da Profilo — la vetrina
+                identitaria e la configurazione privata sono due pagine ora. */}
+            <button
+              type="button"
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-400 hover:bg-[var(--grey)] transition-colors"
+              onClick={() => { setOpen(false); navigate('/settings') }}
+            >
+              <Settings size={16} className="text-gray-400" />
+              {shell.topBar.settingsMenuItem}
             </button>
             <div className="h-px bg-[var(--grey)]" />
             <button

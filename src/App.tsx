@@ -21,6 +21,7 @@ import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
 
 const ProfilePage    = lazy(() => import('./pages/Profile'))
+const SettingsPage   = lazy(() => import('./pages/Settings'))
 const PrivacyPage    = lazy(() => import('./pages/Privacy'))
 const TermsPage      = lazy(() => import('./pages/Terms'))
 const LogPage        = lazy(() => import('./pages/Log'))
@@ -58,6 +59,7 @@ function AppLayout() {
               <Routes>
                 <Route path="/"            element={<HomePage />} />
                 <Route path="/profile"     element={<ProfilePage />} />
+                <Route path="/settings"    element={<SettingsPage />} />
                 <Route path="/log"         element={<LogPage />} />
                 <Route path="/calendar"    element={<CalendarPage />} />
                 <Route path="/stats"       element={<StatsPage />} />

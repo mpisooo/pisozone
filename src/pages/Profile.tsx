@@ -1,88 +1,64 @@
-import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { differenceInYears, parseISO, format } from 'date-fns'
-import { it } from 'date-fns/locale'
-import { Camera, Save, User, Scale, TrendingUp, Lock, Check, ChevronRight, ShieldCheck, Download, Trash2, BookOpen, Target, X } from 'lucide-react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Camera, User, Lock, ChevronRight, Share2, Flame } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
-import { useWeightLogs } from '../hooks/useWeightLogs'
-import { useTheme } from '../context/ThemeContext'
+import { useActivities } from '../hooks/useActivities'
+import { useStreakFreeze } from '../hooks/useStreakFreeze'
+import { useRecovery } from '../hooks/useRecovery'
+import { useAchievements } from '../hooks/useAchievements'
 import { supabase } from '../lib/supabase'
-import { buildUserDataExport, downloadAsJson } from '../lib/dataExport'
-import { computeWeightTrend, goalOutlook } from '../lib/weightTrend'
-import { ACTIVITY_OPTIONS } from '../lib/constants'
-import {
-  LEVEL_DEFINITIONS, THEME_DEFINITIONS,
-  getLevelDef, getNextLevelDef,
-  type ThemeId,
-} from '../lib/levels'
-import type { Profile, ActivityType } from '../types'
+import { computeStats } from '../lib/achievementStats'
+import { calcStreak } from '../lib/challenges'
+import { getZoneByPercent } from '../lib/zones'
+import { buildProfileShareData, shareCardImage } from '../lib/shareCard'
+import { haptic } from '../lib/haptics'
+import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
+import { LEVEL_DEFINITIONS, getLevelDef, getNextLevelDef } from '../lib/levels'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
-import WeightLineChart from '../components/WeightLineChart'
 import CelebrationOverlay from '../components/CelebrationOverlay'
-import RecoveryEmailCard from '../components/RecoveryEmailCard'
-import NotificationSettingsCard from '../components/NotificationSettingsCard'
-import LanguageSettingsCard from '../components/LanguageSettingsCard'
-import DeleteAccountModal from '../components/DeleteAccountModal'
 import common from '../lib/i18n/common'
 import profileText from '../lib/i18n/profile'
+import shareText from '../lib/i18n/share'
+import heatmapText from '../lib/i18n/heatmap'
 
-type FormValues = {
-  name: string
-  birth_date: string
-  height_cm: number | ''
-  weight_kg: number | ''
-  weekly_goal: number
-  daily_calorie_goal: number | ''
-}
-
-function calcBMI(weight: number, height: number) {
-  const h = height / 100
-  return weight / (h * h)
-}
-
-function bmiCategory(bmi: number): { label: string; color: string } {
-  // Colori semantici della scala BMI (blu/verde/giallo/rosso): NON seguono il
-  // tema — "Obeso" deve restare rosso anche con accento verde/blu/viola.
-  if (bmi < 18.5) return { label: profileText.account.bmiUnderweight, color: '#60a5fa' }
-  if (bmi < 25)   return { label: profileText.account.bmiNormal,      color: '#4ade80' }
-  if (bmi < 30)   return { label: profileText.account.bmiOverweight,  color: '#facc15' }
-  return             { label: profileText.account.bmiObese,           color: '#F44352' }
-}
-
+// Roadmap v7, pilastro 01 "Non un modulo, una vetrina": questa pagina è ORA
+// solo la vetrina identitaria (avatar, livello, bacheca medaglie, streak,
+// sport preferiti, "in numeri") — tutta la configurazione privata (dati
+// anagrafici, BMI, notifiche, lingua, temi, storico peso, guida, privacy)
+// vive in Settings.tsx. Pilastro 02 "Il profilo racconta una storia": streak,
+// bacheca medaglie, numeri per sport e condivisione riusano calcoli già
+// esistenti altrove nel codice (Home/Calendar/Sfide, Medals.tsx), zero nuovi
+// calcoli inventati qui.
 export default function ProfilePage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { profile, loading, updateProfile, refetch: refetchProfile } = useProfile()
-  const { logs: weightLogs, addLog: addWeightLog } = useWeightLogs()
-  const { setTheme } = useTheme()
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const { activities, loading: actsLoading } = useActivities()
+  const { frozenDates } = useStreakFreeze()
+  const { restDates } = useRecovery()
+
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
-  const [sportPreferiti, setSportPreferiti] = useState<ActivityType[]>([])
-  const [gender, setGender] = useState<'male' | 'female' | null>(null)
-  const [loggingWeight, setLoggingWeight] = useState(false)
-  const [weightLogError, setWeightLogError] = useState('')
-  // Obiettivo peso (roadmap v3, pilastro 02): traguardo su profiles (v43),
-  // proiezione calcolata dalla regressione sulle pesate recenti.
-  const [goalInput, setGoalInput] = useState('')
-  const [savingGoal, setSavingGoal] = useState(false)
-  const [goalError, setGoalError] = useState('')
   const [shopMsg, setShopMsg] = useState('')
   const [shopWorking, setShopWorking] = useState(false)
   const [levelUpCelebration, setLevelUpCelebration] = useState<{ emoji: string; level: number; title: string } | null>(null)
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState('')
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [sharingProfile, setSharingProfile] = useState(false)
+  const [profileShareError, setProfileShareError] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!loading && profile) setPhotoUrl(profile.photo_url)
+  }, [loading, profile])
 
   // Card "In numeri": la stessa RPC dei profili pubblici (v37) chiamata su se
   // stessi — quello che vedono gli altri aprendo il tuo profilo. Tollerante
-  // pre-migrazione: errore o zero attività → card nascosta.
-  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number } | null>(null)
+  // pre-migrazione: errore o zero attività → card nascosta. active_days era
+  // già restituito dalla RPC ma mai letto (roadmap v7: quick win a zero
+  // migrazione, si aggiunge come 5ª cifra).
+  const [pubStats, setPubStats] = useState<{ total_activities: number; total_minutes: number; total_km: number; medals: number; active_days: number } | null>(null)
   useEffect(() => {
     if (!user) return
     supabase.rpc('get_public_profile_stats', { p_user_id: user.id }).then(({ data, error }) => {
@@ -93,112 +69,11 @@ export default function ProfilePage() {
           total_minutes: Number(row.total_minutes),
           total_km: Number(row.total_km),
           medals: Number(row.medals),
+          active_days: Number(row.active_days),
         })
       }
     })
   }, [user])
-
-
-  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>()
-
-  useEffect(() => {
-    if (!loading && profile) {
-      reset({
-        name: profile.name ?? '',
-        birth_date: profile.birth_date ?? '',
-        height_cm: profile.height_cm ?? '',
-        weight_kg: profile.weight_kg ?? '',
-        weekly_goal: profile.weekly_goal,
-        daily_calorie_goal: profile.daily_calorie_goal ?? '',
-      })
-      setPhotoUrl(profile.photo_url)
-      setSportPreferiti(profile.sport_preferiti ?? [])
-      setGender(profile.gender ?? null)
-    }
-  }, [loading, profile, reset])
-
-  const weight = Number(watch('weight_kg')) || null
-  const height = Number(watch('height_cm')) || null
-  const birthDate = watch('birth_date')
-
-  const bmi = weight && height ? calcBMI(weight, height) : null
-  const bmiInfo = bmi ? bmiCategory(bmi) : null
-  const age = birthDate ? differenceInYears(new Date(), parseISO(birthDate)) : null
-
-  const toggleSport = (type: ActivityType) => {
-    setSportPreferiti((prev) => {
-      if (prev.includes(type)) return prev.filter((t) => t !== type)
-      if (prev.length >= 3) return prev
-      return [...prev, type]
-    })
-  }
-
-  const onSubmit = async (values: FormValues) => {
-    setSaving(true)
-    const updates: Partial<Profile> = {
-      name: values.name || null,
-      birth_date: values.birth_date || null,
-      height_cm: values.height_cm !== '' ? Number(values.height_cm) : null,
-      weight_kg: values.weight_kg !== '' ? Number(values.weight_kg) : null,
-      weekly_goal: Number(values.weekly_goal),
-      daily_calorie_goal: values.daily_calorie_goal !== '' ? Number(values.daily_calorie_goal) : null,
-      photo_url: photoUrl,
-      sport_preferiti: sportPreferiti,
-      gender,
-    }
-    await updateProfile(updates)
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
-  const handleLogWeight = async () => {
-    if (!weight) return
-    if (weight <= 20 || weight >= 400) {
-      setWeightLogError(profileText.weight.outOfRange)
-      setTimeout(() => setWeightLogError(''), 3500)
-      return
-    }
-    setLoggingWeight(true)
-    setWeightLogError('')
-    const { error } = await addWeightLog(weight)
-    setLoggingWeight(false)
-    if (error) {
-      setWeightLogError(profileText.weight.saveFailed)
-      setTimeout(() => setWeightLogError(''), 3500)
-    }
-  }
-
-  // undefined = colonna weight_goal_kg assente (migrazione v43 non ancora
-  // eseguita): la sezione obiettivo non compare e il campo resta fuori
-  // dall'upsert del profilo, come da pattern dei flag one-shot.
-  const weightGoal = profile?.weight_goal_kg
-  const goalAvailable = weightGoal !== undefined
-
-  const handleSetGoal = async () => {
-    const value = Number(goalInput.replace(',', '.'))
-    if (!Number.isFinite(value) || value <= 20 || value >= 400) {
-      setGoalError(profileText.weight.goal.outOfRange)
-      setTimeout(() => setGoalError(''), 3500)
-      return
-    }
-    setSavingGoal(true)
-    setGoalError('')
-    const { error } = await updateProfile({ weight_goal_kg: Math.round(value * 10) / 10 })
-    setSavingGoal(false)
-    if (error) {
-      setGoalError(profileText.weight.goal.saveFailed)
-      setTimeout(() => setGoalError(''), 3500)
-    } else {
-      setGoalInput('')
-    }
-  }
-
-  const handleRemoveGoal = async () => {
-    setSavingGoal(true)
-    await updateProfile({ weight_goal_kg: null })
-    setSavingGoal(false)
-  }
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -226,20 +101,6 @@ export default function ProfilePage() {
     setTimeout(() => setShopMsg(''), 3000)
   }
 
-  const handleExportData = async () => {
-    if (!user || exporting) return
-    setExporting(true)
-    setExportError('')
-    try {
-      const data = await buildUserDataExport(user)
-      downloadAsJson(data, `pisozone-dati-${format(new Date(), 'yyyy-MM-dd')}.json`)
-    } catch {
-      setExportError(profileText.privacy.exportFailed)
-      setTimeout(() => setExportError(''), 3500)
-    }
-    setExporting(false)
-  }
-
   const handleLevelUp = async () => {
     if (!user || shopWorking) return
     setShopWorking(true)
@@ -252,64 +113,61 @@ export default function ProfilePage() {
     await refetchProfile()
   }
 
-  const handlePurchaseTheme = async (themeId: string, cost: number) => {
-    if (!user || shopWorking) return
-    setShopWorking(true)
-    const { data, error } = await supabase.rpc('purchase_theme', {
-      p_user_id: user.id,
-      p_theme_id: themeId,
-      p_cost: cost,
-    })
-    setShopWorking(false)
-    if (error) { showShopMsg(profileText.level.errorWithMessage(error.message)); return }
-    if (!data.success) { showShopMsg(data.error ?? profileText.level.purchaseError); return }
-    setTheme(themeId as ThemeId)
-    showShopMsg(profileText.level.themeUnlockedActivated)
-    await refetchProfile()
-  }
-
-  const handleActivateTheme = async (themeId: string) => {
-    if (!user || shopWorking) return
-    setShopWorking(true)
-    await supabase.rpc('activate_theme', { p_user_id: user.id, p_theme_id: themeId })
-    setShopWorking(false)
-    setTheme(themeId as ThemeId)
-    await refetchProfile()
-  }
-
   const username: string = (user?.user_metadata?.username as string) || 'Atleta'
   const currentLevel = profile?.level ?? 1
   const levelDef = getLevelDef(currentLevel)
   const nextLevel = getNextLevelDef(currentLevel)
   const credits = profile?.credits ?? 0
-  const unlockedThemes: string[] = profile?.unlocked_themes ?? ['dark', 'light']
-  const activeTheme = profile?.active_theme ?? 'dark'
+  const sportPreferiti = profile?.sport_preferiti ?? []
 
-  const chartData = weightLogs.map((l) => ({
-    date: format(parseISO(l.logged_at), 'd MMM', { locale: it }),
-    peso: Number(l.weight_kg),
-  }))
+  // Streak (pilastro 02): STESSO calcStreak di Home/Calendario/Sfide, mai
+  // ricalcolata a mano — freeze + giorni di riposo proteggono allo stesso modo.
+  const streak = useMemo(
+    () => calcStreak(activities, [...frozenDates, ...restDates]),
+    [activities, frozenDates, restDates],
+  )
+  const streakZone = getZoneByPercent(Math.min((streak / 30) * 100, 100))
 
-  // Proiezione verso l'obiettivo: trend dalle pesate recenti (regressione),
-  // messaggio onesto se il trend è piatto, contrario o troppo lento.
-  const weightTrend = computeWeightTrend(weightLogs)
-  const outlook = weightGoal != null && weightTrend ? goalOutlook(weightTrend, Number(weightGoal)) : null
-  const trendRate = weightTrend
-    ? profileText.weight.goal.ratePerWeek(
-        `${weightTrend.slopeKgPerWeek > 0 ? '+' : '−'}${Math.abs(weightTrend.slopeKgPerWeek).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 2 })}`,
-      )
-    : ''
-  let goalHint: string = profileText.weight.goal.needMoreData
-  if (outlook) {
-    if (outlook.kind === 'reached') goalHint = profileText.weight.goal.reached
-    else if (outlook.kind === 'onTrack') {
-      goalHint = `${profileText.weight.goal.onTrack(trendRate, format(outlook.etaDate, 'd MMMM', { locale: it }))} ${profileText.weight.goal.onTrackWeeks(Math.max(1, Math.round(outlook.days / 7)))}`
-    } else if (outlook.kind === 'flat') goalHint = profileText.weight.goal.flat
-    else if (outlook.kind === 'away') goalHint = profileText.weight.goal.away(trendRate)
-    else goalHint = profileText.weight.goal.tooFar
+  const stats = useMemo(
+    () => computeStats(activities, profile?.weekly_goal ?? 3),
+    [activities, profile?.weekly_goal],
+  )
+  const { claimedKeys } = useAchievements(stats)
+  const claimedMedals = useMemo(
+    () => MEDALS.filter((m) => claimedKeys.has(m.key)),
+    [claimedKeys],
+  )
+
+  const sportCounts = useMemo(
+    () => Object.entries(stats.activityTypeCounts)
+      .filter(([, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5) as [string, number][],
+    [stats],
+  )
+  const maxSportCount = sportCounts[0]?.[1] ?? 1
+
+  const hasGpsRoutes = useMemo(() => activities.some((a) => a.gps_tracked), [activities])
+
+  const handleShareProfile = async () => {
+    if (sharingProfile) return
+    setSharingProfile(true)
+    setProfileShareError(false)
+    const data = buildProfileShareData({
+      username,
+      level: currentLevel,
+      levelTitle: levelDef.title,
+      streak,
+      totalActivities: stats.totalActivities,
+      medalsCount: claimedKeys.size,
+    })
+    const outcome = await shareCardImage(data, 'pisozone-profilo.png')
+    setSharingProfile(false)
+    if (outcome === 'failed') setProfileShareError(true)
+    else if (outcome !== 'cancelled') haptic('success')
   }
 
-  if (loading) {
+  if (loading || actsLoading) {
     return (
       <div className="page-enter p-4 space-y-4">
         <SkeletonCard lines={4} />
@@ -348,15 +206,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Email di recupero (necessaria per il reset password) */}
-      <RecoveryEmailCard />
-
-      {/* Notifiche push */}
-      <NotificationSettingsCard />
-
-      {/* Lingua (roadmap v3, pilastro 04): puramente client, nessuna colonna DB */}
-      <LanguageSettingsCard />
-
       {/* Avatar con cornice */}
       <div className="card flex flex-col items-center gap-3">
         <div
@@ -388,13 +237,25 @@ export default function ProfilePage() {
       {/* In numeri: il proprio profilo come lo vedono gli altri */}
       {pubStats && pubStats.total_activities > 0 && (
         <div className="card">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.publicStats.title}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.publicStats.title}</h2>
+            <button
+              type="button"
+              onClick={handleShareProfile}
+              disabled={sharingProfile}
+              aria-label={shareText.profileButton}
+              className="p-1.5 -mr-1.5 text-gray-500 hover:text-white disabled:opacity-40 tap flex-shrink-0"
+            >
+              <Share2 size={16} />
+            </button>
+          </div>
           <p className="text-xs text-gray-500 mb-3">{profileText.publicStats.hint}</p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div className="grid grid-cols-3 gap-x-3 gap-y-3">
             {[
               [String(pubStats.total_activities), profileText.publicStats.activities],
               [`${Math.round(pubStats.total_minutes / 60)}h`, profileText.publicStats.hours],
               [(Math.round(pubStats.total_km * 10) / 10).toLocaleString('it-IT'), profileText.publicStats.km],
+              [String(pubStats.active_days), profileText.publicStats.activeDays],
               [String(pubStats.medals), profileText.publicStats.medals],
             ].map(([value, label]) => (
               <div key={label}>
@@ -403,186 +264,120 @@ export default function ProfilePage() {
               </div>
             ))}
           </div>
+          {profileShareError && (
+            <p className="text-xs text-center mt-2" style={{ color: 'var(--red)' }}>{shareText.error}</p>
+          )}
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Dati personali */}
-        <div className="card space-y-4">
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.formTitle}</h2>
-
+      {/* Streak attuale (pilastro 02): stesso calcStreak di Home/Calendario/Sfide */}
+      <div className="card space-y-2">
+        <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.streak.title}</h2>
+        <div className="flex items-center gap-3">
+          <Flame
+            size={32}
+            style={{
+              color: streakZone.cssVar,
+              filter: streak > 0 ? `drop-shadow(0 0 5px ${streakZone.cssVar})` : 'none',
+            }}
+          />
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{profileText.account.nameLabel}</label>
-            <input {...register('name')} className="input-dark" placeholder={profileText.account.namePlaceholder} />
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-400 mb-2">{profileText.account.genderLabel}</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(['male', 'female'] as const).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setGender(prev => prev === g ? null : g)}
-                  className={`py-2.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
-                    gender === g
-                      ? 'border-[var(--red)] text-white bg-[var(--red)]/15'
-                      : 'border-transparent text-gray-400 hover:border-gray-600'
-                  }`}
-                  style={{ background: gender === g ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
-                >
-                  {g === 'male' ? profileText.account.genderMale : profileText.account.genderFemale}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-gray-600 mt-1.5">
-              {profileText.account.genderHint}
+            <p className="font-bebas text-3xl text-white leading-none">{streak}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {streak > 0 ? profileText.streak.daysLabel(streak) : profileText.streak.zeroHint}
             </p>
           </div>
-
-          <div className="min-w-0">
-            <label className="block text-xs text-gray-400 mb-1">
-              {profileText.account.birthDateLabel}
-              {age !== null && age >= 0 && (
-                <span className="ml-2 text-[var(--red)]">{profileText.account.ageSuffix(age)}</span>
-              )}
-            </label>
-            <input type="date" {...register('birth_date')} className="input-dark w-full" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="profile-height" className="block text-xs text-gray-400 mb-1">{profileText.account.heightLabel}</label>
-              <input
-                id="profile-height"
-                type="number"
-                {...register('height_cm', {
-                  min: { value: 50, message: profileText.account.valueTooLow },
-                  max: { value: 250, message: profileText.account.valueTooHigh },
-                })}
-                className="input-dark"
-                placeholder="175"
-                min={50}
-                max={250}
-              />
-              {errors.height_cm && <p className="text-xs text-red-400 mt-1">{errors.height_cm.message}</p>}
-            </div>
-            <div>
-              <label htmlFor="profile-weight" className="block text-xs text-gray-400 mb-1">{profileText.account.weightLabel}</label>
-              <input
-                id="profile-weight"
-                type="number"
-                step="0.1"
-                {...register('weight_kg', {
-                  min: { value: 20, message: profileText.account.valueTooLow },
-                  max: { value: 400, message: profileText.account.valueTooHigh },
-                })}
-                className="input-dark"
-                placeholder="75"
-                min={20}
-                max={400}
-              />
-              {errors.weight_kg && <p className="text-xs text-red-400 mt-1">{errors.weight_kg.message}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">{profileText.account.weeklyGoalLabel}</label>
-              <input type="number" {...register('weekly_goal')} className="input-dark" placeholder="3" min={1} max={14} />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">{profileText.account.dailyCalorieGoalLabel}</label>
-              <input type="number" {...register('daily_calorie_goal')} className="input-dark" placeholder={profileText.account.dailyCalorieGoalPlaceholder} min={100} max={5000} />
-            </div>
-          </div>
         </div>
+      </div>
 
-        {/* BMI */}
-        {bmi !== null && bmiInfo && (
-          <div className="card count-up" style={{ borderColor: bmiInfo.color }}>
-            <h2 className="font-bebas text-xl tracking-wider mb-3" style={{ color: bmiInfo.color }}>{profileText.account.bmiTitle}</h2>
-            <div className="flex items-end gap-3">
-              <span className="font-bebas text-5xl" style={{ color: bmiInfo.color }}>{bmi.toFixed(1)}</span>
-              <span className="text-sm text-gray-300 mb-1">{bmiInfo.label}</span>
-            </div>
-            <div className="progress-track mt-3 relative h-3 rounded-full overflow-hidden">
-              <div className="absolute inset-0 flex">
-                <div className="h-full flex-[4]"   style={{ background: '#60a5fa' }} />
-                <div className="h-full flex-[6.5]" style={{ background: '#4ade80' }} />
-                <div className="h-full flex-[5]"   style={{ background: '#facc15' }} />
-                <div className="h-full flex-[10]"  style={{ background: 'var(--red)' }} />
+      {/* Bacheca medaglie vera (pilastro 02): le medaglie sbloccate, non solo il conteggio */}
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.trophyCase.title}</h2>
+          <span className="text-xs text-gray-500">{claimedMedals.length}/{MEDALS.length}</span>
+        </div>
+        {claimedMedals.length === 0 ? (
+          <p className="text-xs text-gray-500 text-center py-2">{profileText.trophyCase.emptyHint}</p>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {claimedMedals.map((m) => (
+              <div key={m.key} className="flex flex-col items-center gap-1 w-16">
+                <span className="text-3xl">{m.icon}</span>
+                <span className="text-[10px] text-gray-400 text-center leading-tight">{m.name}</span>
               </div>
-              <div
-                className="absolute top-0 bottom-0 w-1 rounded bg-white shadow-lg"
-                style={{ left: `${Math.min(Math.max(((bmi - 10) / 40) * 100, 0), 100)}%`, transition: 'left 0.5s' }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>10</span><span>18.5</span><span>25</span><span>30</span><span>50</span>
-            </div>
+            ))}
           </div>
         )}
+        <Link
+          to="/medals"
+          className="w-full flex items-center justify-center gap-1 text-xs py-2 rounded-lg font-medium tap"
+          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+        >
+          {profileText.trophyCase.seeAllButton} <ChevronRight size={14} />
+        </Link>
+      </div>
 
-        {/* Sport preferiti */}
+      {/* I tuoi numeri per sport (pilastro 02): riusa activityTypeCounts */}
+      {sportCounts.length > 0 && (
         <div className="card space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.sportTitle}</h2>
-            <span className="text-xs text-gray-500">{profileText.account.sportSelectedCount(sportPreferiti.length)}</span>
-          </div>
-          <p className="text-xs text-gray-500">{profileText.account.sportHint}</p>
-          <div className="grid grid-cols-5 gap-2">
-            {ACTIVITY_OPTIONS.map((opt) => {
-              const isSelected = sportPreferiti.includes(opt.value)
-              const isDisabled = !isSelected && sportPreferiti.length >= 3
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.sportBreakdown.title}</h2>
+          <div className="space-y-2.5">
+            {sportCounts.map(([type, count]) => {
+              const opt = ACTIVITY_OPTIONS.find((o) => o.value === type)
+              if (!opt) return null
+              const pct = (count / maxSportCount) * 100
               return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => toggleSport(opt.value)}
-                  disabled={isDisabled}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 ${
-                    isSelected
-                      ? 'border-[var(--red)] scale-105'
-                      : isDisabled
-                      ? 'border-transparent opacity-30 cursor-not-allowed'
-                      : 'border-transparent hover:border-gray-600'
-                  }`}
-                  style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
-                >
-                  <ActivityIcon type={opt.value} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
-                  <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
-                </button>
+                <div key={type} className="flex items-center gap-2.5">
+                  <ActivityIcon type={opt.value} size={18} className="text-[var(--red)] flex-shrink-0" />
+                  <span className="text-xs text-gray-300 w-20 flex-shrink-0 truncate">{opt.label}</span>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--red)' }} />
+                  </div>
+                  <span className="text-xs font-semibold text-white w-6 text-right flex-shrink-0">{count}</span>
+                </div>
               )
             })}
           </div>
-          {sportPreferiti.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {sportPreferiti.map((s) => {
-                const opt = ACTIVITY_OPTIONS.find((o) => o.value === s)
-                if (!opt) return null
-                return (
-                  <span key={s} className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full text-[white] font-medium bg-[var(--red)]">
-                    <ActivityIcon type={opt.value} size={14} />
-                    {opt.label}
-                  </span>
-                )
-              })}
-            </div>
-          )}
         </div>
+      )}
 
-        <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2" disabled={saving}>
-          {saved ? (
-            <span className="count-up">{profileText.account.saved}</span>
-          ) : (
-            <>
-              <Save size={18} />
-              {saving ? profileText.account.saving : profileText.account.save}
-            </>
-          )}
-        </button>
-      </form>
+      {/* Sport preferiti: sola lettura, si modificano dalle Impostazioni */}
+      {sportPreferiti.length > 0 && (
+        <div className="card space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.account.sportTitle}</h2>
+            <Link to="/settings" className="text-[11px] text-gray-500 underline">{profileText.account.editInSettings}</Link>
+          </div>
+          <div className="flex gap-4">
+            {sportPreferiti.map((s) => {
+              const opt = ACTIVITY_OPTIONS.find((o) => o.value === s)
+              if (!opt) return null
+              return (
+                <div key={s} className="flex flex-col items-center gap-1">
+                  <ActivityIcon type={opt.value} className="text-[var(--red)]" />
+                  <span className="text-[10px] text-gray-400">{opt.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Heatmap personale (pilastro 02): stesso entry point condizionale di
+          Statistiche, resta rigorosamente privata — mai nel profilo di un amico. */}
+      {hasGpsRoutes && (
+        <div className="card">
+          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{heatmapText.entryCard.heading}</h2>
+          <p className="text-xs text-gray-400 mt-1">{heatmapText.entryCard.subtitle}</p>
+          <button
+            type="button"
+            className="btn-primary w-full py-2 text-sm mt-3"
+            onClick={() => navigate('/heatmap')}
+          >
+            {heatmapText.entryCard.button}
+          </button>
+        </div>
+      )}
 
       {/* ── LIVELLO ──────────────────────────────────────────────────────── */}
       <div className="card space-y-4">
@@ -691,243 +486,6 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
-
-      {/* ── TEMI ─────────────────────────────────────────────────────────── */}
-      <div className="card space-y-4">
-        <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>{profileText.theme.title}</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {THEME_DEFINITIONS.map((td) => {
-            const isUnlocked = td.free || unlockedThemes.includes(td.id)
-            const isActive = activeTheme === td.id
-            const canAfford = credits >= td.cost
-            return (
-              <div
-                key={td.id}
-                className="rounded-xl p-3 space-y-2 border transition-all duration-200"
-                style={{
-                  background: 'var(--grey)',
-                  borderColor: isActive ? 'var(--red)' : 'var(--grey-light)',
-                }}
-              >
-                {/* Preview */}
-                <div
-                  className="w-full h-10 rounded-lg flex items-center gap-2 px-3"
-                  style={{ background: td.previewBg, border: `2px solid ${td.previewAccent}` }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ background: td.previewAccent }}
-                  />
-                  <div className="h-2 rounded flex-1" style={{ background: td.previewAccent + '55' }} />
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-white">{td.name}</p>
-                  <p className="text-[11px] text-gray-500 leading-tight">{td.description}</p>
-                </div>
-
-                {isActive ? (
-                  <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'var(--red)' }}>
-                    <Check size={13} />
-                    {profileText.theme.active}
-                  </div>
-                ) : isUnlocked ? (
-                  <button
-                    type="button"
-                    onClick={() => handleActivateTheme(td.id)}
-                    disabled={shopWorking}
-                    className="w-full text-xs py-1.5 rounded-lg font-medium transition-all"
-                    style={{ background: 'var(--grey-light)', color: 'var(--color-text)' }}
-                  >
-                    {profileText.theme.activate}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handlePurchaseTheme(td.id, td.cost)}
-                    disabled={!canAfford || shopWorking}
-                    className="w-full text-xs py-1.5 rounded-lg font-medium transition-all flex items-center justify-center gap-1"
-                    style={
-                      canAfford
-                        ? { background: 'var(--red)', color: '#fff' }
-                        : { background: 'var(--grey-light)', color: '#6b7280', cursor: 'not-allowed' }
-                    }
-                  >
-                    {canAfford ? <></> : <Lock size={11} />}
-                    {canAfford ? profileText.theme.unlock(td.cost) : profileText.creditsAmount(td.cost)}
-                  </button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Storico peso */}
-      <div className="card space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Scale size={16} className="text-[var(--red)]" />
-            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.weight.title}</h2>
-          </div>
-          {weight && (
-            <button
-              type="button"
-              onClick={handleLogWeight}
-              disabled={loggingWeight}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-[white] tap disabled:opacity-50 bg-[var(--red)]"
-            >
-              <TrendingUp size={13} />
-              {loggingWeight ? profileText.weight.saveButtonSaving : profileText.weight.saveButton(weight)}
-            </button>
-          )}
-        </div>
-
-        {weightLogError && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
-            {weightLogError}
-          </p>
-        )}
-
-        {chartData.length < 2 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
-            {chartData.length === 0
-              ? profileText.weight.emptyHint
-              : profileText.weight.needMoreEntries}
-          </p>
-        ) : (
-          <WeightLineChart
-            points={chartData.map((d) => ({ label: d.date, value: d.peso }))}
-            ariaLabel={profileText.weight.chartAriaLabel}
-            referenceValue={weightGoal != null ? Number(weightGoal) : null}
-            referenceLabel={weightGoal != null ? profileText.weight.goal.chartLineLabel : undefined}
-            formatValue={(v) => profileText.weight.tooltipValue(v)}
-            height={160}
-          />
-        )}
-
-        {chartData.length > 0 && (
-          <p className="text-xs text-gray-600 text-center">
-            {profileText.weight.entriesCount(chartData.length)}
-          </p>
-        )}
-
-        {/* Obiettivo peso con proiezione (v43): compare solo a colonna presente */}
-        {goalAvailable && (
-          <div className="pt-3 space-y-2" style={{ borderTop: '1px solid var(--grey)' }}>
-            {weightGoal == null ? (
-              <div className="flex items-end gap-2">
-                <div className="flex-1 min-w-0">
-                  <label htmlFor="weight-goal" className="block text-xs text-gray-400 mb-1">
-                    {profileText.weight.goal.inputLabel}
-                  </label>
-                  <input
-                    id="weight-goal"
-                    type="number"
-                    step="0.1"
-                    min={20}
-                    max={400}
-                    value={goalInput}
-                    onChange={(e) => setGoalInput(e.target.value)}
-                    className="input-dark w-full"
-                    placeholder={profileText.weight.goal.inputPlaceholder}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSetGoal}
-                  disabled={savingGoal || goalInput === ''}
-                  className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
-                >
-                  {profileText.weight.goal.setButton}
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-white">
-                    <Target size={14} className="text-[var(--red)]" />
-                    {profileText.weight.goal.badge(Number(weightGoal))}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleRemoveGoal}
-                    disabled={savingGoal}
-                    aria-label={profileText.weight.goal.removeAria}
-                    className="p-1 text-gray-500 hover:text-white transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400 leading-relaxed">{goalHint}</p>
-              </>
-            )}
-            {goalError && (
-              <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
-                {goalError}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Guida: la wiki di tutte le funzionalità */}
-      <div className="card space-y-3">
-        <div className="flex items-center gap-2">
-          <BookOpen size={16} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.guide.title}</h2>
-        </div>
-        <p className="text-xs text-gray-500 leading-relaxed">{profileText.guide.body}</p>
-        <Link
-          to="/guide"
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
-          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
-        >
-          <BookOpen size={15} />
-          {profileText.guide.button}
-        </Link>
-      </div>
-
-      {/* Privacy e dati (GDPR: portabilità + cancellazione) */}
-      <div className="card space-y-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck size={16} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.privacy.title}</h2>
-        </div>
-        <p className="text-xs text-gray-500 leading-relaxed">
-          {profileText.privacy.body}
-        </p>
-        <div className="flex gap-4 text-xs">
-          <Link to="/privacy" className="text-[var(--red)] underline">{profileText.privacy.privacyPolicyLink}</Link>
-          <Link to="/termini" className="text-[var(--red)] underline">{profileText.privacy.termsLink}</Link>
-        </div>
-        {exportError && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
-            {exportError}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={handleExportData}
-          disabled={exporting}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap disabled:opacity-50"
-          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
-        >
-          <Download size={15} />
-          {exporting ? profileText.privacy.exportingButton : profileText.privacy.exportButton}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowDeleteModal(true)}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
-          style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
-        >
-          <Trash2 size={15} />
-          {profileText.privacy.deleteAccountButton}
-        </button>
-      </div>
-
-      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
 
       {levelUpCelebration && (
         <CelebrationOverlay
