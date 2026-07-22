@@ -8,6 +8,7 @@ import { computeStats } from '../lib/achievementStats'
 import type { MedalTier } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import MedalCelebrationOverlay from '../components/MedalCelebrationOverlay'
+import MedalIcon from '../components/MedalIcon'
 import medals from '../lib/i18n/medals'
 
 const TIERS: MedalTier[] = ['bronze', 'silver', 'gold', 'diamond']
@@ -99,10 +100,8 @@ export default function MedalsPage() {
                     {claimed && <div className="absolute inset-0 badge-shine pointer-events-none" />}
 
                     <div className="flex items-start gap-3 relative">
-                      <span
-                        className={`text-4xl transition-all duration-300 ${locked ? 'grayscale opacity-40' : ''}`}
-                      >
-                        {medal.icon}
+                      <span className={`flex-shrink-0 transition-all duration-300 ${locked ? 'grayscale opacity-40' : ''}`}>
+                        <MedalIcon medalKey={medal.key} size={44} />
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -170,7 +169,7 @@ export default function MedalsPage() {
 
       {newlyUnlocked && (
         <MedalCelebrationOverlay
-          icon={newlyUnlocked.icon}
+          medalKey={newlyUnlocked.key}
           name={newlyUnlocked.name}
           tier={newlyUnlocked.tier}
           credits={newlyUnlocked.credits}

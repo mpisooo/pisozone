@@ -5,10 +5,11 @@ import { useFocusTrap } from '../hooks/useFocusTrap'
 import { TIER_LABELS } from '../lib/constants'
 import { haptic } from '../lib/haptics'
 import medals from '../lib/i18n/medals'
+import MedalIcon from './MedalIcon'
 import type { MedalTier } from '../types'
 
 interface Props {
-  icon: string
+  medalKey: string
   name: string
   tier: MedalTier
   credits: number
@@ -22,7 +23,7 @@ const TIER_GLOW: Record<MedalTier, { c1: string; c2: string; darkText: boolean }
   diamond: { c1: '#22d3ee', c2: '#a855f7', darkText: false },
 }
 
-export default function MedalCelebrationOverlay({ icon, name, tier, credits, onDone }: Props) {
+export default function MedalCelebrationOverlay({ medalKey, name, tier, credits, onDone }: Props) {
   const glow = TIER_GLOW[tier]
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, true, onDone)
@@ -91,13 +92,13 @@ export default function MedalCelebrationOverlay({ icon, name, tier, credits, onD
           <div className="medal-celebration-ring" style={{ borderColor: glow.c1 }} />
           <div className="medal-celebration-ring" style={{ borderColor: glow.c2, animationDelay: '0.5s' }} />
           <div
-            className="relative w-28 h-28 rounded-full flex items-center justify-center text-6xl medal-celebration-icon-shine"
+            className="relative w-28 h-28 rounded-full flex items-center justify-center medal-celebration-icon-shine"
             style={{
               background: `linear-gradient(135deg, ${glow.c1}, ${glow.c2})`,
               boxShadow: `0 0 45px 10px ${glow.c1}55`,
             }}
           >
-            {icon}
+            <MedalIcon medalKey={medalKey} size={92} />
           </div>
         </div>
 

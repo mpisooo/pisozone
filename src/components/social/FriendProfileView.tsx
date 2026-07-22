@@ -8,6 +8,7 @@ import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../../lib/constants'
 import common from '../../lib/i18n/common'
 import social from '../../lib/i18n/social'
 import ActivityIcon from '../ActivityIcon'
+import MedalIcon from '../MedalIcon'
 import ActionSheet from './ActionSheet'
 import type { Activity, MedalDefinition } from '../../types'
 
@@ -272,7 +273,7 @@ export default function FriendProfileView({
             <div className="flex flex-wrap gap-3">
               {friendMedals.map((m) => (
                 <div key={m.key} className="flex flex-col items-center gap-1 w-16">
-                  <span className="text-3xl">{m.icon}</span>
+                  <MedalIcon medalKey={m.key} size={44} />
                   <span className="text-[10px] text-gray-400 text-center leading-tight">{m.name}</span>
                 </div>
               ))}

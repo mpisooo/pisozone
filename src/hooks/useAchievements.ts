@@ -9,7 +9,6 @@ import type { Achievement, AchievementStats, MedalTier } from '../types'
 export interface NewlyUnlockedMedal {
   key: string
   name: string
-  icon: string
   tier: MedalTier
   credits: number
 }
@@ -75,7 +74,6 @@ export function useAchievements(stats: AchievementStats) {
     setNewlyUnlocked({
       key: medal.key,
       name: medal.name,
-      icon: medal.icon,
       tier: medal.tier,
       credits: TIER_CREDITS[medal.tier],
     })

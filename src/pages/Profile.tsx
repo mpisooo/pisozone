@@ -17,6 +17,7 @@ import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { LEVEL_DEFINITIONS, getLevelDef, getNextLevelDef } from '../lib/levels'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
+import MedalIcon from '../components/MedalIcon'
 import CelebrationOverlay from '../components/CelebrationOverlay'
 import common from '../lib/i18n/common'
 import profileText from '../lib/i18n/profile'
@@ -302,7 +303,7 @@ export default function ProfilePage() {
           <div className="flex flex-wrap gap-3">
             {claimedMedals.map((m) => (
               <div key={m.key} className="flex flex-col items-center gap-1 w-16">
-                <span className="text-3xl">{m.icon}</span>
+                <MedalIcon medalKey={m.key} size={44} />
                 <span className="text-[10px] text-gray-400 text-center leading-tight">{m.name}</span>
               </div>
             ))}

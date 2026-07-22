@@ -33,6 +33,7 @@ import GoalsCard from '../components/GoalsCard'
 import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
+import MedalIcon from '../components/MedalIcon'
 import home from '../lib/i18n/home'
 import common from '../lib/i18n/common'
 import plansText from '../lib/i18n/plans'
@@ -482,11 +483,8 @@ export default function HomePage() {
               <ChevronRight size={16} className="text-gray-600" />
             </div>
             <div className="flex items-center gap-3">
-              <span
-                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: 'rgba(250,204,21,0.12)' }}
-              >
-                {nearestMedal.medal.icon}
+              <span className="flex-shrink-0">
+                <MedalIcon medalKey={nearestMedal.medal.key} size={44} />
               </span>
               <div className="flex-1 min-w-0">
                 <p className="font-bebas text-lg text-white leading-tight">{nearestMedal.medal.name}</p>
