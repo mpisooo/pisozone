@@ -5,6 +5,7 @@ import { it } from 'date-fns/locale'
 import { supabase } from '../../lib/supabase'
 import { getLevelDef } from '../../lib/levels'
 import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../../lib/constants'
+import { ACTIVITY_ICON_COLORS } from '../../lib/activityIconPaths'
 import common from '../../lib/i18n/common'
 import social from '../../lib/i18n/social'
 import ActivityIcon from '../ActivityIcon'
@@ -292,10 +293,10 @@ export default function FriendProfileView({
                 const pct = (count / maxSportCount) * 100
                 return (
                   <div key={type} className="flex items-center gap-2.5">
-                    <ActivityIcon type={opt.value} size={18} className="text-[var(--red)] flex-shrink-0" />
+                    <ActivityIcon type={opt.value} size={18} className="flex-shrink-0" />
                     <span className="text-xs text-gray-300 w-20 flex-shrink-0 truncate">{opt.label}</span>
                     <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--red)' }} />
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: ACTIVITY_ICON_COLORS[opt.value] }} />
                     </div>
                     <span className="text-xs font-semibold text-white w-6 text-right flex-shrink-0">{count}</span>
                   </div>
@@ -311,7 +312,7 @@ export default function FriendProfileView({
             <div className="flex gap-4">
               {sports.map((s: any) => (
                 <div key={s.value} className="flex flex-col items-center gap-1">
-                  <ActivityIcon type={s.value} className="text-[var(--red)]" />
+                  <ActivityIcon type={s.value} />
                   <span className="text-[10px] text-gray-400">{s.label}</span>
                 </div>
               ))}
@@ -325,7 +326,7 @@ export default function FriendProfileView({
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{social.friends.profile.recentActivitiesHeading}</p>
             {recentActivities.map((a) => (
               <div key={a.id} className="flex items-center gap-2.5 py-1">
-                <ActivityIcon type={a.type} size={18} className="text-[var(--red)] flex-shrink-0" />
+                <ActivityIcon type={a.type} size={18} className="flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-white truncate">{activityLabel(a.type, a.indoor)}</p>
                   <p className="text-[10px] text-gray-500">{format(parseISO(a.date), 'd MMM', { locale: it })}</p>

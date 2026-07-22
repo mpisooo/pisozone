@@ -2,17 +2,62 @@ import type { ReactNode } from 'react'
 import type { ActivityType } from '../types'
 
 // Geometria grezza (senza <svg> wrapper: quello vive in components/ActivityIcon,
-// qui solo i tratti) del set di icone per i 15 sport (roadmap v2, pilastro 01
-// punto 3). Stile "pittogramma pieno" in 2D piatto — figure con massa corporea
-// e pose riconoscibili come le emoji di sistema, ma monocromatiche
-// (currentColor) così ereditano i colori dell'app. Griglia 48×48 con un
-// linguaggio condiviso che fa leggere il set come UNA famiglia:
+// qui solo i tratti) del set di icone per i 20 sport (redesign 2026-07-12,
+// roadmap v2 pilastro 01 punto 3). Stile "pittogramma pieno" in 2D piatto —
+// figure con massa corporea e pose riconoscibili come le emoji di sistema.
+// Griglia 48×48 con un linguaggio condiviso che fa leggere il set come UNA
+// famiglia:
 // - figure umane: testa piena r=4, busto spesso (strokeWidth 6.5),
 //   arti a tratto 4.5 con round cap;
 // - palloni: cerchio r=16 con riempimento tenue (fillOpacity, secondo tono
 //   dello stesso colore) e cuciture a tratto 3;
 // - attrezzi: masse piene (fill) per le parti solide, tratto per i profili.
-export const ACTIVITY_ICON_PATHS: Record<ActivityType, ReactNode> = {
+//
+// **Colore fisso per sport** (22/07/2026, richiesta utente dopo le medaglie
+// colorate: "ricrea le icone degli sport con tutti i colori"): ogni sport ha
+// un hex proprio in ACTIVITY_ICON_COLORS invece di ereditare `currentColor`
+// da chi lo usa — stessa eccezione di lib/medalIconPaths.tsx al principio
+// "icona = oggetto/famiglia col proprio colore, non un glifo che eredita il
+// tema" (vedi CLAUDE.md e memoria feedback_icon_style). Scelta studiata su
+// convenzioni reali (Garmin Connect colora per sport: arancione corsa, verde
+// bici, azzurro nuoto — qui adattata) e sui colori già stabiliti dalle
+// medaglie per la stessa disciplina (corsa blu, palestra viola, montagna
+// grigio-pietra), per coerenza cross-sistema. Ogni valore alla scala
+// Tailwind 500/600 (eccetto poche 400/700 dove serve più contrasto o
+// distanza da un colore vicino) per restare leggibile sia sul tema scuro
+// (--grey #2a2a2a) sia su quello chiaro (--grey #EBEBED/bianco).
+//
+// Tecnica: la geometria di ogni sport resta ESATTAMENTE quella già
+// verificata (nessun path toccato) — ogni blocco è avvolto in un
+// `<g color={hex}>`, l'attributo di presentazione SVG che fissa il
+// `currentColor` ereditato dai path interni (fill/stroke="currentColor")
+// al valore scelto, indipendentemente dal className/style di chi usa
+// <ActivityIcon>. Chi ha bisogno del colore altrove (badge, barre) legge
+// ACTIVITY_ICON_COLORS invece di duplicare gli hex.
+export const ACTIVITY_ICON_COLORS: Record<ActivityType, string> = {
+  corsa: '#2563EB',
+  bici: '#65A30D',
+  calcio: '#16A34A',
+  pallavolo: '#EAB308',
+  basket: '#F97316',
+  palestra: '#7C3AED',
+  nuoto: '#0EA5E9',
+  camminata: '#0D9488',
+  tennis: '#84CC16',
+  yoga: '#6366F1',
+  danza: '#DB2777',
+  motocross: '#71717A',
+  golf: '#059669',
+  arrampicata: '#78716C',
+  padel: '#0891B2',
+  beach_volley: '#FB923C',
+  ping_pong: '#C026D3',
+  salto_corda: '#F59E0B',
+  trekking: '#B45309',
+  boxe: '#DC2626',
+}
+
+const RAW_PATHS: Record<ActivityType, ReactNode> = {
   corsa: (
     <>
       <circle cx="30.5" cy="7.5" r="4" fill="currentColor" stroke="none" />
@@ -211,3 +256,10 @@ export const ACTIVITY_ICON_PATHS: Record<ActivityType, ReactNode> = {
     </>
   ),
 }
+
+export const ACTIVITY_ICON_PATHS: Record<ActivityType, ReactNode> = Object.fromEntries(
+  (Object.keys(RAW_PATHS) as ActivityType[]).map((type) => [
+    type,
+    <g color={ACTIVITY_ICON_COLORS[type]}>{RAW_PATHS[type]}</g>,
+  ]),
+) as Record<ActivityType, ReactNode>

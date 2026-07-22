@@ -138,7 +138,7 @@ export default function SegmentsPage() {
         return (
           <details key={s.id} className="card group !p-0 overflow-hidden">
             <summary className="flex items-center gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden select-none">
-              <span className="text-[var(--red)] flex-shrink-0">
+              <span className="flex-shrink-0">
                 <ActivityIcon type={s.activity_type} size={32} />
               </span>
               <div className="flex-1 min-w-0">

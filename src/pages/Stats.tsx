@@ -341,7 +341,7 @@ export default function StatsPage() {
 
       {topOpt && (
         <div className="card flex items-center gap-3">
-          <span className="text-[var(--red)] flex-shrink-0">
+          <span className="flex-shrink-0">
             <ActivityIcon type={topOpt.value} size={40} />
           </span>
           <div>
@@ -680,7 +680,7 @@ export default function StatsPage() {
               <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{stats.gymRecords.heading}</h2>
               <p className="text-xs text-gray-400 mt-1">{stats.gymRecords.subtitle}</p>
             </div>
-            <span className="text-[var(--red)] flex-shrink-0">
+            <span className="flex-shrink-0">
               <ActivityIcon type="palestra" size={28} />
             </span>
           </div>

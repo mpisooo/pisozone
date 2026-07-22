@@ -338,8 +338,8 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-3">
                 <span
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
-                  style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
+                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--grey-light)' }}
                 >
                   <ActivityIcon type={lastOpt.value} size={24} />
                 </span>
@@ -380,8 +380,8 @@ export default function HomePage() {
         ) : (
           <div className="card text-center py-10">
             <div
-              className="w-28 h-28 rounded-full flex items-center justify-center text-[var(--red)] mx-auto mb-4"
-              style={{ background: 'rgba(var(--accent-rgb),0.1)' }}
+              className="w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ background: 'var(--grey-light)' }}
             >
               <ActivityIcon type="palestra" size={56} />
             </div>

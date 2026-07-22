@@ -177,7 +177,7 @@ export default function CalendarPage() {
                       }`}
                       style={{ background: selected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                     >
-                      <ActivityIcon type={type} size={14} className={selected ? 'text-[var(--red)]' : 'text-gray-400'} />
+                      <ActivityIcon type={type} size={14} className={`transition-all duration-200 ${selected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
                       {ACTIVITY_OPTIONS.find((o) => o.value === type)?.label ?? type}
                     </button>
                   )
@@ -265,7 +265,7 @@ export default function CalendarPage() {
                   className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] hover:brightness-110 active:brightness-90"
                   onClick={() => setEditingActivity(a)}
                 >
-                  <ActivityIcon type={opt?.value ?? 'corsa'} size={22} className="text-[var(--red)] flex-shrink-0" />
+                  <ActivityIcon type={opt?.value ?? 'corsa'} size={22} className="flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-white text-sm">{activityLabel(a.type, a.indoor)}</p>
                     <p className="text-xs text-gray-400">
@@ -431,7 +431,7 @@ export default function CalendarPage() {
                   className="w-full flex items-start gap-3 p-3 rounded-lg text-left transition-colors bg-[var(--grey)] hover:brightness-110 active:brightness-90"
                   onClick={() => setEditingActivity(a)}
                 >
-                  <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="text-[var(--red)] flex-shrink-0" />
+                  <ActivityIcon type={opt?.value ?? 'corsa'} size={26} className="flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-white">{activityLabel(a.type, a.indoor)}</p>

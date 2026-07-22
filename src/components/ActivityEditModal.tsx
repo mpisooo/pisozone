@@ -339,7 +339,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                   style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.15)' : 'var(--grey)' }}
                 >
                   <input type="radio" value={opt.value} {...register('type')} className="sr-only" />
-                  <ActivityIcon type={opt.value} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
+                  <ActivityIcon type={opt.value} className={`transition-all duration-200 ${isSelected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
                   <span className="text-[10px] text-gray-300 text-center leading-tight">{opt.label}</span>
                 </label>
               )

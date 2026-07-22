@@ -94,8 +94,8 @@ export default function FeedTab({
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--grey)' }}>
                 <span
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--red)] flex-shrink-0"
-                  style={{ background: 'rgba(var(--accent-rgb),0.15)' }}
+                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--grey-light)' }}
                 >
                   <ActivityIcon type={opt?.value ?? 'corsa'} size={24} />
                 </span>

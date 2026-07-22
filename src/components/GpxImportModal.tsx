@@ -158,7 +158,7 @@ export default function GpxImportModal({ onClose, onImported }: Props) {
                         }`}
                         style={{ background: isSelected ? 'rgba(var(--accent-rgb),0.1)' : 'var(--grey)' }}
                       >
-                        <ActivityIcon type={t} className={isSelected ? 'text-[var(--red)]' : 'text-gray-400'} />
+                        <ActivityIcon type={t} className={`transition-all duration-200 ${isSelected ? 'grayscale-0' : 'grayscale opacity-50'}`} />
                         <span className="text-[10px] text-gray-300">{opt?.label}</span>
                       </button>
                     )

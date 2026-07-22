@@ -14,6 +14,7 @@ import { getZoneByPercent } from '../lib/zones'
 import { buildProfileShareData, shareCardImage } from '../lib/shareCard'
 import { haptic } from '../lib/haptics'
 import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
+import { ACTIVITY_ICON_COLORS } from '../lib/activityIconPaths'
 import { LEVEL_DEFINITIONS, getLevelDef, getNextLevelDef } from '../lib/levels'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
@@ -329,10 +330,10 @@ export default function ProfilePage() {
               const pct = (count / maxSportCount) * 100
               return (
                 <div key={type} className="flex items-center gap-2.5">
-                  <ActivityIcon type={opt.value} size={18} className="text-[var(--red)] flex-shrink-0" />
+                  <ActivityIcon type={opt.value} size={18} className="flex-shrink-0" />
                   <span className="text-xs text-gray-300 w-20 flex-shrink-0 truncate">{opt.label}</span>
                   <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--grey)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--red)' }} />
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: ACTIVITY_ICON_COLORS[opt.value] }} />
                   </div>
                   <span className="text-xs font-semibold text-white w-6 text-right flex-shrink-0">{count}</span>
                 </div>
@@ -355,7 +356,7 @@ export default function ProfilePage() {
               if (!opt) return null
               return (
                 <div key={s} className="flex flex-col items-center gap-1">
-                  <ActivityIcon type={opt.value} className="text-[var(--red)]" />
+                  <ActivityIcon type={opt.value} />
                   <span className="text-[10px] text-gray-400">{opt.label}</span>
                 </div>
               )
