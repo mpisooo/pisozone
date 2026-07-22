@@ -25,6 +25,11 @@ type Props = {
 export default function SportPickerModal(props: Props) {
   const { onClose, favorites, mode } = props
   const [query, setQuery] = useState('')
+  // Il modale si apre in scorrimento, non in scrittura: niente autoFocus.
+  // La tastiera compare solo quando l'utente tocca davvero il campo — e da
+  // lì finché resta a fuoco lo scorrimento della lista sotto si blocca
+  // (era "un po' buggato" scorrere mentre si scrive, vedi isSearchFocused).
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   useFocusTrap(panelRef, true, onClose)
@@ -33,10 +38,6 @@ export default function SportPickerModal(props: Props) {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
-  }, [])
-
-  useEffect(() => {
-    inputRef.current?.focus()
   }, [])
 
   const normalizedQuery = query.trim().toLowerCase()
@@ -120,20 +121,30 @@ export default function SportPickerModal(props: Props) {
           </div>
         )}
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
             placeholder={sportPickerText.modal.searchPlaceholder}
             aria-label={sportPickerText.modal.searchAriaLabel}
-            className="input-dark w-full pl-9 pr-3 py-2.5 text-sm"
+            className="input-dark w-full py-2.5 text-sm"
+            style={{ paddingLeft: '2.25rem', paddingRight: '0.875rem' }}
           />
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-5"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+          overflowY: isSearchFocused ? 'hidden' : 'auto',
+          touchAction: isSearchFocused ? 'none' : 'auto',
+        }}
+      >
         {filtered ? (
           filtered.length > 0 ? (
             <div className="space-y-1">{filtered.map(renderRow)}</div>
