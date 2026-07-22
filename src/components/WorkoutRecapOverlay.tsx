@@ -12,6 +12,7 @@ import { buildActivityShareData, shareCardImage } from '../lib/shareCard'
 import type { WorkoutRecapData } from '../lib/workoutRecap'
 import RouteShape from './RouteShape'
 import RouteInsights from './RouteInsights'
+import ActivityPhotoGallery from './ActivityPhotoGallery'
 import recapText from '../lib/i18n/recap'
 
 // Stessa strategia di ActivityEditModal: Leaflet arriva solo quando serve
@@ -235,6 +236,15 @@ export default function WorkoutRecapOverlay({ data, onClose, updateActivity }: P
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Galleria multi-foto (roadmap v8, pilastro 03): il momento più
+            naturale per aggiungere una foto, subito dopo l'allenamento — solo
+            se l'attività ha già un id reale (mai in coda offline). */}
+        {!data.pending && (
+          <div className="card">
+            <ActivityPhotoGallery userId={activity.user_id} activityId={activity.id} />
           </div>
         )}
 

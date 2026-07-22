@@ -11,6 +11,7 @@ import { saveActivityRoute } from '../lib/activityRoutes'
 import { matchAndRecordSegments } from '../lib/routeSegments'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import { haptic } from '../lib/haptics'
+import { speak } from '../lib/voiceCues'
 import RouteShape from './RouteShape'
 import common from '../lib/i18n/common'
 import log from '../lib/i18n/log'
@@ -92,10 +93,19 @@ export default function WorkoutTrackingOverlay({ activityType, intervalPlan, add
   // uscirebbe come "partial" e un passo su mezzo km direbbe poco.
   const liveSplits = useMemo(() => computeSplits(points).filter((s) => !s.partial), [points])
   const prevSplitCountRef = useRef(0)
+  const splitCount = liveSplits.length
   useEffect(() => {
-    if (liveSplits.length > prevSplitCountRef.current) haptic('light')
-    prevSplitCountRef.current = liveSplits.length
-  }, [liveSplits.length])
+    if (splitCount > prevSplitCountRef.current) {
+      haptic('light')
+      const last = liveSplits[splitCount - 1]
+      if (last) {
+        speak(activityType === 'bici'
+          ? log.tracking.voiceSplitSpeed(last.index, (60 / last.paceMinPerKm).toLocaleString('it-IT', { maximumFractionDigits: 1 }))
+          : log.tracking.voiceSplitPace(last.index, formatPaceClock(last.paceMinPerKm)))
+      }
+    }
+    prevSplitCountRef.current = splitCount
+  }, [splitCount, activityType])
 
   // Allenamento a intervalli (roadmap v4, pilastro 01): la sequenza di step
   // è fissa per tutta la sessione (calcolata una sola volta dal piano), lo
@@ -116,10 +126,16 @@ export default function WorkoutTrackingOverlay({ activityType, intervalPlan, add
     const next = nextStepIndex(intervalSteps, stepIndex, distanceSinceStepStartM, secondsSinceStepStart)
     if (next !== stepIndex) {
       haptic('success')
+      const nextStep = intervalSteps[next]
+      if (nextStep && intervalPlan) {
+        speak(nextStep.kind === 'work'
+          ? log.intervals.voiceStepWork(nextStep.repNumber, intervalPlan.repeats)
+          : log.intervals.voiceStepRecovery(nextStep.repNumber, intervalPlan.repeats))
+      }
       setStepStart({ distanceKm: stats.distanceKm, elapsedMs })
       setStepIndex(next)
     }
-  }, [stats.distanceKm, elapsedMs, status, intervalSteps, stepIndex, currentStep, stepStart])
+  }, [stats.distanceKm, elapsedMs, status, intervalSteps, stepIndex, currentStep, stepStart, intervalPlan])
 
   const offTarget = currentStep != null && status === 'tracking' && points.length >= 2 && liveZone.id !== currentStep.zoneId
   useEffect(() => {

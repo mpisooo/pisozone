@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 export interface DonutSlice {
   key: string
   label: string
   value: number
   color: string
+  icon?: ReactNode
 }
 
 interface Props {
@@ -65,6 +66,7 @@ export default function DonutChart({ slices, ariaLabel, size = 160 }: Props) {
         {slices.map((s) => (
           <span key={s.key} className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+            {s.icon}
             {s.label}
             <span className="text-gray-600">· {Math.round((s.value / total) * 100)}%</span>
           </span>

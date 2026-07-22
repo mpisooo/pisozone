@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useChallengesBadge } from '../context/ChallengesBadgeContext'
 import { removeActivityPhoto, uploadActivityPhoto } from '../lib/activityPhotos'
+import { removeActivityGalleryFiles } from '../lib/activityPhotoGallery'
 import { saveActivityExercises } from '../lib/activityExercises'
 import { loadPendingAttachments, deletePendingAttachments } from '../lib/offlineAttachments'
 import {
@@ -218,6 +219,9 @@ export function useActivities() {
       return { error: null }
     }
     const target = serverActivities.find((a) => a.id === id)
+    // Va elencata PRIMA della delete: dopo, la cascata su activity_photos ha
+    // già svuotato la tabella e non c'è più nulla da recuperare per pulire lo Storage.
+    if (user) await removeActivityGalleryFiles(user.id, id)
     const { error } = await supabase.from('activities').delete().eq('id', id)
     if (!error) {
       setServerActivities((prev) => prev.filter((a) => a.id !== id))

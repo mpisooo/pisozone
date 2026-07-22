@@ -30,11 +30,24 @@ async function handler(req: VercelRequest, res: VercelResponse) {
   // evita loop infiniti se una remove fallisce silenziosamente.
   for (const bucket of ['avatars', 'activity-photos']) {
     for (let batch = 0; batch < 20; batch++) {
-      const { data: files } = await supabaseAdmin.storage.from(bucket).list(user.id)
-      if (!files?.length) break
-      const { error: removeError } = await supabaseAdmin.storage
-        .from(bucket)
-        .remove(files.map((f) => `${user.id}/${f.name}`))
+      const { data: entries } = await supabaseAdmin.storage.from(bucket).list(user.id)
+      if (!entries?.length) break
+      const filePaths: string[] = []
+      for (const entry of entries) {
+        if (entry.id) {
+          filePaths.push(`${user.id}/${entry.name}`)
+        } else {
+          // Galleria multi-foto (v51): path a due livelli
+          // ({userId}/{activityId}/{photoId}.jpg) — list() mostra la
+          // sottocartella come voce "cartella" (id null), va aperta un
+          // livello in più o le foto restano orfane e pubblicamente
+          // raggiungibili dopo la cancellazione dell'account.
+          const { data: nested } = await supabaseAdmin.storage.from(bucket).list(`${user.id}/${entry.name}`)
+          for (const n of nested ?? []) filePaths.push(`${user.id}/${entry.name}/${n.name}`)
+        }
+      }
+      if (filePaths.length === 0) break
+      const { error: removeError } = await supabaseAdmin.storage.from(bucket).remove(filePaths)
       if (removeError) break
     }
   }

@@ -10,6 +10,7 @@ import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import { buildGymRecords, buildExerciseProgression, progressionExercises } from '../lib/exerciseSets'
 import { useProfile } from '../hooks/useProfile'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
+import { ACTIVITY_ICON_COLORS } from '../lib/activityIconPaths'
 import {
   buildTrendSeries, buildWeekdayDistribution, buildWeeklyGoalSeries,
   buildWeightTrainingSeries, buildZoneDistribution, buildYearPixels,
@@ -21,7 +22,7 @@ import { buildWrapped, defaultWrappedPeriods, type WrappedData } from '../lib/wr
 import { downloadAsCsv } from '../lib/dataExport'
 import { buildRacePredictorShareData, shareCardImage } from '../lib/shareCard'
 import { haptic } from '../lib/haptics'
-import type { Activity } from '../types'
+import type { Activity, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import AnalisiTabs from '../components/AnalisiTabs'
 import AnimatedNumber from '../components/AnimatedNumber'
@@ -57,21 +58,6 @@ const METRICS: { value: Metric; label: string; unit: string }[] = [
   { value: 'sessions', label: stats.metrics.sessions.label, unit: stats.metrics.sessions.unit },
   { value: 'calories', label: stats.metrics.calories.label, unit: stats.metrics.calories.unit },
   { value: 'km',       label: stats.metrics.km.label,       unit: stats.metrics.km.unit       },
-]
-
-// Sfumature derivate dall'accento del tema attivo (rosso, blu, verde o viola):
-// la torta resta monocromatica e coerente qualunque tema sia attivo.
-const PIE_COLORS = [
-  'var(--red)',
-  'color-mix(in srgb, var(--red) 75%, white)',
-  'color-mix(in srgb, var(--red) 55%, white)',
-  'var(--red-dark)',
-  'color-mix(in srgb, var(--red) 35%, white)',
-  'color-mix(in srgb, var(--red) 75%, black)',
-  'color-mix(in srgb, var(--red) 55%, black)',
-  'color-mix(in srgb, var(--red) 45%, white)',
-  'color-mix(in srgb, var(--red) 25%, white)',
-  'color-mix(in srgb, var(--red) 40%, black)',
 ]
 
 function filterByPeriod(activities: Activity[], period: Period): Activity[] {
@@ -163,7 +149,7 @@ export default function StatsPage() {
     Object.entries(typeCounts)
       .map(([type, count]) => {
         const opt = ACTIVITY_OPTIONS.find((o) => o.value === type)
-        return { name: opt?.label ?? type, value: count }
+        return { type: type as ActivityType, name: opt?.label ?? type, value: count }
       })
       .sort((a, b) => b.value - a.value),
     [typeCounts]
@@ -419,7 +405,13 @@ export default function StatsPage() {
         <div className="card">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider mb-3">{stats.pie.heading}</h2>
           <DonutChart
-            slices={pieData.map((d, i) => ({ key: d.name, label: d.name, value: d.value, color: PIE_COLORS[i % PIE_COLORS.length] }))}
+            slices={pieData.map((d) => ({
+              key: d.name,
+              label: d.name,
+              value: d.value,
+              color: ACTIVITY_ICON_COLORS[d.type],
+              icon: <ActivityIcon type={d.type} size={14} />,
+            }))}
             ariaLabel={stats.pie.chartAriaLabel}
           />
         </div>

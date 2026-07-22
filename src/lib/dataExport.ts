@@ -55,12 +55,13 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
     group_memberships: supabase.from('group_members').select('*').eq('user_id', uid),
     group_messages_sent: supabase.from('group_messages').select('*').eq('sender_id', uid),
     push_subscriptions: supabase.from('push_subscriptions').select('*').eq('user_id', uid),
+    activity_photos: supabase.from('activity_photos').select('*').eq('user_id', uid).order('activity_id').order('seq'),
   }
 
   // Tabelle più recenti dello schema: se la migrazione non è ancora eseguita
   // la tabella può mancare, e non deve far fallire l'intero export —
   // pre-migrazione non c'è comunque alcun dato da restituire.
-  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments', 'personal_goals', 'duels', 'seasonal_claims', 'notifications'])
+  const optionalTables = new Set(['exercise_sets', 'recovery_logs', 'plan_enrollments', 'personal_goals', 'duels', 'seasonal_claims', 'notifications', 'activity_photos'])
 
   const [entries, activityRoutes] = await Promise.all([
     Promise.all(

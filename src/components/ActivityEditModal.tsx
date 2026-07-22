@@ -17,6 +17,7 @@ import { isPendingActivityId } from '../lib/offlineQueue'
 import SportQuickRow from './SportQuickRow'
 import SportPickerModal from './SportPickerModal'
 import PhotoPickerField from './PhotoPickerField'
+import ActivityPhotoGallery from './ActivityPhotoGallery'
 import PerceivedMetricsFields from './PerceivedMetricsFields'
 import ExerciseSetsFields from './ExerciseSetsFields'
 import RouteShape from './RouteShape'
@@ -579,6 +580,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
             </div>
           )}
           {isPending && <p className="text-xs text-gray-500">{log.edit.pendingExtrasHint}</p>}
+
+          {/* Galleria multi-foto (roadmap v8, pilastro 03): oltre alla
+              copertina sopra, fino a MAX_GALLERY_PHOTOS foto aggiuntive.
+              Stesso limite della copertina: non disponibile in coda offline. */}
+          {!isPending && <ActivityPhotoGallery userId={activity.user_id} activityId={activity.id} />}
         </div>
 
         <PerceivedMetricsFields rpe={rpe} mood={mood} onRpeChange={setRpe} onMoodChange={setMood} />

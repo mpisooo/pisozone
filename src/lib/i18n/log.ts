@@ -193,6 +193,17 @@ const it = {
     stepProgressRecovery: (remainingSec: number) => `${remainingSec}s`,
     offTarget: 'Fuori zona',
     allDone: 'Serie completata — continua libero o termina quando vuoi',
+    // Coach vocale (roadmap v8, pilastro 02): stesso cambio step del badge,
+    // ma in una frase leggibile a voce ("1/5" suonerebbe come una frazione).
+    voiceStepWork: (rep: number, total: number) => `Ripetuta ${rep} di ${total}`,
+    voiceStepRecovery: (rep: number, total: number) => `Recupero ${rep} di ${total}`,
+  },
+
+  // Coach vocale (roadmap v8, pilastro 02): interruttore in Log.tsx prima di
+  // avviare il GPS, SpeechSynthesis nativa (lib/voiceCues.ts), default OFF.
+  voiceCues: {
+    toggleLabel: 'Annunci vocali',
+    toggleHint: 'Passo ad ogni km e cambi di ripetuta annunciati a voce durante il tracciamento',
   },
 
   tracking: {
@@ -214,6 +225,10 @@ const it = {
     splitChipPace: (km: number, pace: string) => `Km ${km} · ${pace}`,
     splitChipSpeed: (km: number, kmh: string) => `Km ${km} · ${kmh} km/h`,
     splitsAria: 'Tempo degli ultimi chilometri completati',
+    // Coach vocale (roadmap v8, pilastro 02): stesso split del chip, in una
+    // frase leggibile a voce.
+    voiceSplitPace: (km: number, pace: string) => `Chilometro ${km}, passo ${pace} al chilometro`,
+    voiceSplitSpeed: (km: number, kmh: string) => `Chilometro ${km}, velocità media ${kmh} chilometri orari`,
     kmUnit: 'km',
     avgSpeedLabel: 'velocità media',
     avgPaceLabel: 'passo medio',
@@ -237,6 +252,18 @@ const it = {
     previewAlt: 'Anteprima della foto allegata',
     removeAria: 'Rimuovi foto',
     addPhoto: 'Aggiungi una foto',
+  },
+
+  // Galleria multi-foto (roadmap v8, pilastro 03): foto aggiuntive oltre alla
+  // copertina (che resta gestita da photoPicker/activities.photo_url) — vedi
+  // lib/activityPhotoGallery.ts e components/ActivityPhotoGallery.tsx.
+  gallery: {
+    title: 'Altre foto',
+    photoAlt: 'Foto della galleria dell\'attività',
+    addAria: 'Aggiungi foto alla galleria',
+    removeAria: 'Rimuovi foto dalla galleria',
+    uploading: 'Caricamento...',
+    uploadFailed: 'Caricamento non riuscito. Riprova.',
   },
 
   routeShapeAriaLabel: 'Sagoma del percorso registrato',
@@ -514,6 +541,13 @@ const en: Widen<typeof it> = {
     stepProgressRecovery: (remainingSec: number) => `${remainingSec}s`,
     offTarget: 'Off target',
     allDone: 'Set complete — keep going freely or finish whenever you want',
+    voiceStepWork: (rep: number, total: number) => `Repeat ${rep} of ${total}`,
+    voiceStepRecovery: (rep: number, total: number) => `Recovery ${rep} of ${total}`,
+  },
+
+  voiceCues: {
+    toggleLabel: 'Voice announcements',
+    toggleHint: 'Pace every km and repeat changes announced by voice during tracking',
   },
 
   tracking: {
@@ -535,6 +569,8 @@ const en: Widen<typeof it> = {
     splitChipPace: (km: number, pace: string) => `Km ${km} · ${pace}`,
     splitChipSpeed: (km: number, kmh: string) => `Km ${km} · ${kmh} km/h`,
     splitsAria: 'Time of the last completed kilometers',
+    voiceSplitPace: (km: number, pace: string) => `Kilometer ${km}, pace ${pace} per kilometer`,
+    voiceSplitSpeed: (km: number, kmh: string) => `Kilometer ${km}, average speed ${kmh} kilometers per hour`,
     kmUnit: 'km',
     avgSpeedLabel: 'average speed',
     avgPaceLabel: 'average pace',
@@ -558,6 +594,15 @@ const en: Widen<typeof it> = {
     previewAlt: 'Preview of the attached photo',
     removeAria: 'Remove photo',
     addPhoto: 'Add a photo',
+  },
+
+  gallery: {
+    title: 'More photos',
+    photoAlt: 'Activity gallery photo',
+    addAria: 'Add a photo to the gallery',
+    removeAria: 'Remove photo from the gallery',
+    uploading: 'Uploading...',
+    uploadFailed: 'Upload failed. Try again.',
   },
 
   routeShapeAriaLabel: 'Shape of the recorded route',

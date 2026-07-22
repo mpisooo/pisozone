@@ -25,6 +25,7 @@ import {
 } from '../lib/intervalWorkout'
 import { ZONES, type ZoneId } from '../lib/zones'
 import { haptic } from '../lib/haptics'
+import { getVoiceCuesEnabled, setVoiceCuesEnabled, primeVoice } from '../lib/voiceCues'
 import PhotoPickerField from '../components/PhotoPickerField'
 import PerceivedMetricsFields from '../components/PerceivedMetricsFields'
 import ExerciseSetsFields from '../components/ExerciseSetsFields'
@@ -95,6 +96,18 @@ export default function LogPage() {
     recoveryZoneId: intervalRecoveryZone,
   }
   const intervalPlanValid = isValidIntervalPlan(intervalPlan)
+
+  // Coach vocale (roadmap v8, pilastro 02): preferenza locale, non un dato
+  // personale da sincronizzare — vedi lib/voiceCues.ts.
+  const [voiceEnabled, setVoiceEnabled] = useState(() => getVoiceCuesEnabled())
+  const toggleVoiceEnabled = () => {
+    haptic('light')
+    setVoiceEnabled((v) => {
+      const next = !v
+      setVoiceCuesEnabled(next)
+      return next
+    })
+  }
 
   const photoPreview = useMemo(
     () => (photoFile ? URL.createObjectURL(photoFile) : null),
@@ -487,10 +500,31 @@ export default function LogPage() {
         )}
 
         {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
+          <div className="card">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm text-gray-300">{log.voiceCues.toggleLabel}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{log.voiceCues.toggleHint}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={voiceEnabled ? 'true' : 'false'}
+                aria-label={log.voiceCues.toggleLabel}
+                onClick={toggleVoiceEnabled}
+                className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${voiceEnabled ? 'bg-[var(--red)]' : 'bg-gray-600'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${voiceEnabled ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(GPS_TRACKABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true && (
           <>
             <button
               type="button"
-              onClick={() => setTracking(true)}
+              onClick={() => { if (voiceEnabled) primeVoice(); setTracking(true) }}
               className="btn-primary w-full flex items-center justify-center gap-2"
             >
               <Satellite size={18} />
