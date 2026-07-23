@@ -7,7 +7,7 @@
 // serve farlo sopravvivere al cambio dispositivo.
 const STORAGE_PREFIX = 'pz-tip-seen-'
 
-export type TipId = 'challenges' | 'social'
+export type TipId = 'challenges' | 'social' | 'secondWorkout' | 'streak'
 
 export function hasSeenTip(id: TipId): boolean {
   try {

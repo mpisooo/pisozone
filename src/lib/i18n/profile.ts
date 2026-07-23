@@ -251,6 +251,20 @@ const it = {
     footer: 'Usa i crediti per sbloccare livelli nel Profilo e temi nelle Impostazioni.',
   },
 
+  // Spiegazione dello streak (roadmap "PisoZone Next" P2-05): stesso pattern
+  // on-demand di CreditsInfoModal, prima assente per lo streak.
+  streakInfo: {
+    ariaLabel: 'Come funziona lo streak',
+    title: '🔥 COME FUNZIONA LO STREAK',
+    growTitle: 'Un giorno alla volta',
+    growDescription: 'Registra almeno un\'attività ogni giorno: lo streak cresce di un giorno consecutivo alla volta.',
+    freezeTitle: 'Freeze streak',
+    freezeDescription: 'Se salti un giorno, puoi proteggere lo streak spendendo 300 💎 — te lo proponiamo dalla Home quando serve.',
+    restTitle: 'Giorno di riposo',
+    restDescription: (perWeek: number) => `Fino a ${perWeek} a settimana, gratis: lo segni dalla card Recupero e protegge lo streak come un freeze.`,
+    footer: 'Ti aspettano medaglie dedicate allo streak più lungo.',
+  },
+
   errors: {
     profileLoadFailed: 'Errore nel caricamento del profilo. Riprova.',
     weightLoadFailed: 'Errore nel caricamento dello storico peso. Riprova.',
@@ -481,6 +495,18 @@ const en: Widen<typeof it> = {
     achievementsDescription: (bronze: number, silver: number, gold: number, diamond: number) =>
       `One-time bonus on unlock: 🥉 ${bronze} · 🥈 ${silver} · 🥇 ${gold} · 💎 ${diamond}`,
     footer: 'Use credits to unlock levels in Profile and themes in Settings.',
+  },
+
+  streakInfo: {
+    ariaLabel: 'How the streak works',
+    title: '🔥 HOW THE STREAK WORKS',
+    growTitle: 'One day at a time',
+    growDescription: 'Log at least one activity every day: the streak grows one consecutive day at a time.',
+    freezeTitle: 'Streak freeze',
+    freezeDescription: "If you skip a day, you can protect your streak by spending 300 💎 — we'll offer it from Home when it matters.",
+    restTitle: 'Rest day',
+    restDescription: (perWeek: number) => `Up to ${perWeek} a week, free: mark it from the Recovery card and it protects your streak like a freeze.`,
+    footer: 'Medals dedicated to your longest streak are waiting for you.',
   },
 
   errors: {

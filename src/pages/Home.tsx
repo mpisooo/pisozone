@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, subDays, startOfWeek, parseISO, isAfter } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2, CloudOff, RotateCcw } from 'lucide-react'
+import { Flame, Zap, Trophy, ChevronRight, Plus, Users, Target, CheckCircle2, CloudOff, RotateCcw, X, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
@@ -15,9 +15,10 @@ import { usePersonalGoals } from '../hooks/usePersonalGoals'
 import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
-import { getPlanTemplate, computePlanProgress } from '../lib/plans'
+import { getPlanTemplate, computePlanProgress, suggestPlan, isPlanSuggestionDismissed, dismissPlanSuggestion } from '../lib/plans'
 import { calcStreak } from '../lib/challenges'
 import { daysSinceLastActivity, isComeback } from '../lib/comeback'
+import { secondWorkoutNudge } from '../lib/secondWorkoutNudge'
 import { getZoneByPercent } from '../lib/zones'
 import { isPendingActivityId } from '../lib/offlineQueue'
 import { prefillFromActivity } from '../lib/quickLog'
@@ -34,6 +35,9 @@ import PisoRing from '../components/PisoRing'
 import AnimatedNumber from '../components/AnimatedNumber'
 import ActivityIcon from '../components/ActivityIcon'
 import MedalIcon from '../components/MedalIcon'
+import ContextualTip from '../components/ContextualTip'
+import StreakInfoModal from '../components/StreakInfoModal'
+import PwaInstallPrompt from '../components/PwaInstallPrompt'
 import home from '../lib/i18n/home'
 import common from '../lib/i18n/common'
 import plansText from '../lib/i18n/plans'
@@ -57,10 +61,11 @@ export default function HomePage() {
   const { entries: lbEntries, hasFriends } = useLeaderboard()
   const { frozenDates, freeze, freezing } = useStreakFreeze()
   const { logs: recoveryLogs, restDates, patchDay } = useRecovery()
-  const { activeEnrollment } = useTrainingPlan()
+  const { activeEnrollment, completedKeys } = useTrainingPlan()
   const { goals, working: goalsWorking, addGoal, deleteGoal } = usePersonalGoals()
   const navigate = useNavigate()
   const [showPushPrompt, setShowPushPrompt] = useState(false)
+  const [showStreakInfo, setShowStreakInfo] = useState(false)
   const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(
     () => Promise.all([refetchActivities(), refetchProfile()]),
   )
@@ -149,6 +154,13 @@ export default function HomePage() {
   const lastActivity = activities[0] ?? null
   const lastOpt = lastActivity ? ACTIVITY_OPTIONS.find((o) => o.value === lastActivity.type) : null
 
+  // Spinta verso il secondo allenamento (P2-06): i giorni 1-7 con 1-2
+  // attività sono il momento a più alto rischio di abbandono. Non una card
+  // separata — "Attività recente" ha già il bottone "Ripeti" (Log lampo):
+  // costruirne un'altra sarebbe ridondante. Un tip contestuale one-shot
+  // rimanda proprio a quel bottone, invece di ripetere la stessa funzione.
+  const secondWorkout = useMemo(() => secondWorkoutNudge(activities), [activities])
+
   // Rientro morbido (pilastro 04): da 4 giorni di assenza in su
   const absenceDays = useMemo(() => daysSinceLastActivity(activities), [activities])
 
@@ -164,6 +176,17 @@ export default function HomePage() {
       : null),
     [activeEnrollment, activePlanTemplate, activities],
   )
+
+  // Suggerimento contestuale di un programma (P2-04, roadmap "PisoZone
+  // Next"): solo se non già iscritto a uno, dopo qualche attività ripetuta
+  // dello stesso sport — non alla prima occhiata, non a intuito.
+  const [suggestionDismissTick, setSuggestionDismissTick] = useState(0)
+  const suggestedPlan = useMemo(() => {
+    if (activeEnrollment) return null
+    const plan = suggestPlan(activities, completedKeys)
+    if (plan && isPlanSuggestionDismissed(plan.key)) return null
+    return plan
+  }, [activeEnrollment, activities, completedKeys, suggestionDismissTick])
 
   // Punteggio di Prontezza (roadmap v4, pilastro 01, FLAGSHIP): sintesi di
   // sforzo percepito, carico settimanale, sonno e riposo — tutti dati già
@@ -265,8 +288,31 @@ export default function HomePage() {
             />
             <span className="text-xs text-gray-400 flex-1 truncate">{home.ring.streakLabel}</span>
             <span className="text-xs font-semibold text-white flex-shrink-0">{home.ring.streakDaysLabel(streak)}</span>
+            <button
+              type="button"
+              onClick={() => setShowStreakInfo(true)}
+              aria-label={home.ring.streakInfoAria}
+              className="p-0.5 -m-0.5 text-gray-600 hover:text-[var(--red)] transition-colors flex-shrink-0"
+            >
+              <Info size={14} />
+            </button>
           </div>
         </div>
+
+        {/* Micro-spiegazione alla prima attivazione (P2-05, roadmap "PisoZone
+            Next"): one-shot (localStorage) alla prima volta che lo streak è
+            attivo, non necessariamente il primo giorno esatto — un utente
+            potrebbe non riaprire l'app proprio a streak=1, e aspettare quel
+            valore esatto rischierebbe di non mostrarla mai. */}
+        {streak >= 1 && (
+          <ContextualTip
+            tipId="streak"
+            icon="🔥"
+            title={home.streakFirstTip.title}
+            text={home.streakFirstTip.text}
+            className="w-full mt-3"
+          />
+        )}
       </div>
 
       {/* Punteggio di Prontezza (roadmap v4, pilastro 01, FLAGSHIP) */}
@@ -327,6 +373,18 @@ export default function HomePage() {
       {/* Attività recente */}
       <div className="space-y-2">
         <SectionLabel>{home.sections.recent}</SectionLabel>
+        {lastActivity && lastOpt && secondWorkout && (
+          <ContextualTip
+            tipId="secondWorkout"
+            icon="🚀"
+            title={secondWorkout.kind === 'tryGps' ? home.secondWorkout.tryGpsTitle : home.secondWorkout.repeatTitle}
+            text={
+              secondWorkout.kind === 'tryGps'
+                ? home.secondWorkout.tryGpsBody(activityLabel(lastActivity.type, lastActivity.indoor))
+                : home.secondWorkout.repeatBody(activityLabel(lastActivity.type, lastActivity.indoor))
+            }
+          />
+        )}
         {lastActivity && lastOpt ? (
           <div className="card space-y-3">
             <button
@@ -445,6 +503,43 @@ export default function HomePage() {
               </span>
             </div>
           </button>
+        ) : suggestedPlan ? (
+          <div className="card tap relative">
+            <button
+              type="button"
+              className="w-full text-left"
+              onClick={() => navigate('/plans', { viewTransition: true })}
+            >
+              <div className="flex items-center justify-between mb-2 pr-6">
+                <span className="text-xs text-gray-400">{plansText.homeWidget.suggestLabel}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{ background: 'rgba(var(--accent-rgb),0.12)' }}
+                  aria-hidden="true"
+                >
+                  {suggestedPlan.icon}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bebas text-lg text-white leading-tight">{suggestedPlan.title}</p>
+                  <p className="text-xs text-gray-400">{suggestedPlan.tagline}</p>
+                </div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                dismissPlanSuggestion(suggestedPlan.key)
+                setSuggestionDismissTick((t) => t + 1)
+              }}
+              aria-label={plansText.homeWidget.suggestDismissAria}
+              className="absolute top-3 right-3 p-1 -m-1 text-gray-600 hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
         ) : (
           <button
             type="button"
@@ -617,6 +712,8 @@ export default function HomePage() {
       {showPushPrompt && user && (
         <PushNotificationPrompt userId={user.id} onDone={() => setShowPushPrompt(false)} />
       )}
+      {showStreakInfo && <StreakInfoModal onClose={() => setShowStreakInfo(false)} />}
+      <PwaInstallPrompt show={activities.length > 0} />
     </div>
   )
 }

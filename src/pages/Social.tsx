@@ -261,6 +261,7 @@ export default function SocialPage() {
               commentCounts={commentCounts}
               onCommentCountChange={updateCommentCount}
               onOpenLightbox={setLightboxPhoto}
+              onGoToFriends={() => setTab('friends')}
             />
           </div>
         )}

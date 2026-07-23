@@ -32,6 +32,7 @@ const it = {
     centerLabel: 'Settimana',
     streakLabel: 'Streak',
     streakDaysLabel: (n: number) => (n === 1 ? '1 giorno' : `${n} giorni`),
+    streakInfoAria: 'Come funziona lo streak',
     srSummary: (sessions: number, goal: number, calories: number, streakDays: number) =>
       `Obiettivo settimanale: ${sessions} su ${goal} sessioni. Calorie di oggi: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'giorno' : 'giorni'}.`,
   },
@@ -118,6 +119,26 @@ const it = {
     cta: 'Riparti con poco',
   },
 
+  // Spinta verso il secondo allenamento (roadmap "PisoZone Next" P2-06): i
+  // primi giorni sono il momento più delicato per formare l'abitudine.
+  // "attività" invariante di genere evita problemi di accordo con lo sport
+  // dinamico inserito tra parentesi (es. "il trekking" è maschile, "la
+  // corsa" femminile — la frase non deve dipendere da quale sia).
+  // Micro-spiegazione one-shot dello streak alla prima attivazione (P2-05),
+  // rimanda al bottone "?" appena aggiunto vicino allo streak in PisoRing.
+  streakFirstTip: {
+    title: 'Il tuo primo streak!',
+    text: 'Ogni giorno con un\'attività lo allunga di uno. Tocca l\'icona ⓘ vicino allo streak per sapere come proteggerlo se salti un giorno.',
+  },
+
+  secondWorkout: {
+    repeatTitle: 'Il secondo passo conta',
+    repeatBody: (sportLabel: string) => `Hai registrato la tua prima attività (${sportLabel}) da poco: un'altra sessione oggi trasforma un inizio in un'abitudine.`,
+    tryGpsTitle: 'Provala anche col GPS',
+    tryGpsBody: (sportLabel: string) => `La tua attività più recente (${sportLabel}) si può tracciare anche col GPS: distanza, passo e percorso calcolati in automatico.`,
+    cta: 'Registra ora',
+  },
+
   cta: 'Registra allenamento',
 } as const
 
@@ -150,6 +171,7 @@ const en: Widen<typeof it> = {
     centerLabel: 'Week',
     streakLabel: 'Streak',
     streakDaysLabel: (n: number) => (n === 1 ? '1 day' : `${n} days`),
+    streakInfoAria: 'How the streak works',
     srSummary: (sessions: number, goal: number, calories: number, streakDays: number) =>
       `Weekly goal: ${sessions} of ${goal} sessions. Today's calories: ${calories}. Streak: ${streakDays} ${streakDays === 1 ? 'day' : 'days'}.`,
   },
@@ -225,6 +247,19 @@ const en: Widen<typeof it> = {
     body: (days: number) => `It's been ${days} days since your last workout. No worries: you pick up right where you left off, not from zero.`,
     hint: 'Just 15 minutes to get everything moving again — and today\'s challenges are waiting for you.',
     cta: 'Ease back in',
+  },
+
+  streakFirstTip: {
+    title: 'Your first streak!',
+    text: 'Every day with an activity extends it by one. Tap the ⓘ icon next to the streak to learn how to protect it if you skip a day.',
+  },
+
+  secondWorkout: {
+    repeatTitle: 'The second step counts',
+    repeatBody: (sportLabel: string) => `You logged your first activity (${sportLabel}) recently: another session today turns a start into a habit.`,
+    tryGpsTitle: 'Try tracking it with GPS too',
+    tryGpsBody: (sportLabel: string) => `Your most recent activity (${sportLabel}) can also be tracked with GPS: distance, pace and route calculated automatically.`,
+    cta: 'Log it now',
   },
 
   cta: 'Log a workout',

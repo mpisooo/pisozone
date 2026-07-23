@@ -145,6 +145,68 @@ export function getPlanTemplate(key: string): PlanTemplate | undefined {
   return PLAN_CATALOG.find((p) => p.key === key)
 }
 
+// Suggerimento contestuale di un programma (roadmap "PisoZone Next" P2-04):
+// sport "trainante" di ogni piano, deliberatamente più stretto dei `types`
+// delle singole sessioni (corsa_5k include anche camminata per chi non corre
+// ancora) — qui serve il segnale forte "fai già questo sport con costanza",
+// non un match qualsiasi. `ritorno_movimento` non ha uno sport dominante
+// (è pensato per un rientro dopo una pausa, un trigger diverso da "attività
+// ripetute"): deliberatamente escluso da questo meccanismo.
+const PLAN_PRIMARY_TYPE: Partial<Record<string, ActivityType>> = {
+  corsa_5k: 'corsa',
+  corsa_10k: 'corsa',
+  palestra_solido: 'palestra',
+  yoga_equilibrio: 'yoga',
+}
+
+const SUGGEST_MIN_ACTIVITIES = 3
+
+// Il primo piano non completato il cui sport trainante è stato praticato
+// almeno SUGGEST_MIN_ACTIVITIES volte — l'ordine del catalogo fa da priorità
+// implicita (corsa_5k prima di corsa_10k, così il progresso resta naturale).
+export function suggestPlan(activities: Activity[], completedKeys: ReadonlySet<string>): PlanTemplate | null {
+  const counts = new Map<ActivityType, number>()
+  for (const a of activities) counts.set(a.type, (counts.get(a.type) ?? 0) + 1)
+
+  for (const plan of PLAN_CATALOG) {
+    if (completedKeys.has(plan.key)) continue
+    const primaryType = PLAN_PRIMARY_TYPE[plan.key]
+    if (!primaryType) continue
+    if ((counts.get(primaryType) ?? 0) >= SUGGEST_MIN_ACTIVITIES) return plan
+  }
+  return null
+}
+
+// Dismiss del suggerimento (client-only, localStorage): se il fondatore
+// chiude la card per un piano, quello specifico non ricompare più — ma un
+// piano diverso, se in futuro diventa pertinente, sì. Best-effort come
+// lib/i18n/language.ts: l'ambiente Vitest ('node') non ha localStorage.
+const DISMISSED_PLAN_SUGGESTIONS_KEY = 'pz-plan-suggest-dismissed'
+
+function getDismissedPlanSuggestions(): string[] {
+  try {
+    const raw = localStorage.getItem(DISMISSED_PLAN_SUGGESTIONS_KEY)
+    return raw ? (JSON.parse(raw) as string[]) : []
+  } catch {
+    return []
+  }
+}
+
+export function isPlanSuggestionDismissed(key: string): boolean {
+  return getDismissedPlanSuggestions().includes(key)
+}
+
+export function dismissPlanSuggestion(key: string): void {
+  try {
+    const current = getDismissedPlanSuggestions()
+    if (!current.includes(key)) {
+      localStorage.setItem(DISMISSED_PLAN_SUGGESTIONS_KEY, JSON.stringify([...current, key]))
+    }
+  } catch {
+    // Best effort
+  }
+}
+
 // Settimana del programma (1-based) in cui cade una data: 0 o negativa prima
 // dell'inizio, oltre `weeks` dopo la fine.
 export function weekOfPlan(startedOn: string, date: Date): number {

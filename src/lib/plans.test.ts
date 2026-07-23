@@ -4,6 +4,7 @@ import {
   getPlanTemplate,
   weekOfPlan,
   computePlanProgress,
+  suggestPlan,
   type PlanTemplate,
 } from './plans'
 import { ACTIVITY_OPTIONS } from './constants'
@@ -172,5 +173,37 @@ describe('computePlanProgress', () => {
 
   it('endsOn è l\'ultimo giorno dell\'ultima settimana', () => {
     expect(computePlanProgress(plan, START, [], now).endsOn).toBe('2026-07-19')
+  })
+})
+
+describe('suggestPlan', () => {
+  it('nessun suggerimento sotto la soglia minima di attività', () => {
+    const acts = [mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' })]
+    expect(suggestPlan(acts, new Set())).toBeNull()
+  })
+
+  it('suggerisce 5K dopo 3 corse, non ancora completato', () => {
+    const acts = [mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' })]
+    expect(suggestPlan(acts, new Set())?.key).toBe('corsa_5k')
+  })
+
+  it('passa a 10K se 5K è già completato', () => {
+    const acts = [mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' })]
+    expect(suggestPlan(acts, new Set(['corsa_5k']))?.key).toBe('corsa_10k')
+  })
+
+  it('nessun suggerimento se anche il 10K è già completato', () => {
+    const acts = [mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' }), mkAct({ type: 'corsa' })]
+    expect(suggestPlan(acts, new Set(['corsa_5k', 'corsa_10k']))).toBeNull()
+  })
+
+  it('suggerisce palestra dopo 3 sessioni in palestra', () => {
+    const acts = [mkAct({ type: 'palestra' }), mkAct({ type: 'palestra' }), mkAct({ type: 'palestra' })]
+    expect(suggestPlan(acts, new Set())?.key).toBe('palestra_solido')
+  })
+
+  it('camminata non attiva il suggerimento di corsa (sport trainante più stretto dei types di sessione)', () => {
+    const acts = [mkAct({ type: 'camminata' }), mkAct({ type: 'camminata' }), mkAct({ type: 'camminata' })]
+    expect(suggestPlan(acts, new Set())).toBeNull()
   })
 })

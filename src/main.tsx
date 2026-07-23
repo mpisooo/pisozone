@@ -5,6 +5,16 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { markUpdateAvailable } from './lib/serviceWorkerUpdate'
+import { captureInstallPromptEvent } from './lib/pwaInstall'
+
+// beforeinstallprompt (P2-02, roadmap "PisoZone Next") va catturato appena il
+// browser lo emette (preventDefault sopprime il mini-infobar nativo di
+// Chrome): il momento in cui MOSTRARLO all'utente resta deciso altrove
+// (PwaInstallPrompt.tsx), dopo un segnale di valore reale.
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault()
+  captureInstallPromptEvent(e)
+})
 
 // Register service worker
 if ('serviceWorker' in navigator) {

@@ -33,12 +33,14 @@ interface Props {
   commentCounts: Map<string, number>
   onCommentCountChange: (id: string, n: number) => void
   onOpenLightbox: (photo: { url: string; alt: string }) => void
+  onGoToFriends: () => void
 }
 
 export default function FeedTab({
   loading, feed, highlightedActivityId, myId, openProfile,
   openReactionsId, setOpenReactionsId, react, fetchReactors,
   openCommentsId, setOpenCommentsId, commentCounts, onCommentCountChange, onOpenLightbox,
+  onGoToFriends,
 }: Props) {
   // Chi ha reagito (roadmap v6): la lista nominale si scarica su richiesta,
   // non tenuta in memoria per tutte le attività del feed.
@@ -58,7 +60,13 @@ export default function FeedTab({
         <div className="space-y-4">{[1, 2].map(i => <SkeletonCard key={i} lines={4} />)}</div>
       ) : feed.length === 0 ? (
         <div className="card py-14">
-          <EmptyState icon="bolt" title={social.feed.emptyTitle} hint={social.feed.emptyHint} />
+          <EmptyState
+            icon="bolt"
+            title={social.feed.emptyTitle}
+            hint={social.feed.emptyHint}
+            cta={social.feed.emptyCta}
+            onCta={onGoToFriends}
+          />
         </div>
       ) : (
         feed.map((a, i) => {

@@ -62,6 +62,10 @@ const it = {
     sessionsShort: (done: number, total: number) => `${done}/${total}`,
     completedHint: 'Completato: riscatta la ricompensa!',
     expiredHint: 'Finestra terminata: passa a chiuderlo',
+    // Suggerimento contestuale (P2-04): compare al posto della card generica
+    // "scopri i programmi" quando un piano concreto è pertinente.
+    suggestLabel: 'Ti abbiamo preparato un percorso',
+    suggestDismissAria: 'Nascondi il suggerimento',
   },
 
   errors: {
@@ -128,6 +132,8 @@ const en: Widen<typeof it> = {
     sessionsShort: (done: number, total: number) => `${done}/${total}`,
     completedHint: 'Completed: claim your reward!',
     expiredHint: 'Window ended: go close it',
+    suggestLabel: "We've picked a plan for you",
+    suggestDismissAria: 'Hide suggestion',
   },
 
   errors: {

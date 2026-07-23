@@ -14,6 +14,17 @@ const it = {
     title: 'Nuova versione disponibile',
     action: 'Aggiorna',
   },
+  // Prompt di installazione PWA (P2-02, roadmap "PisoZone Next"): compare
+  // dopo un primo segnale di valore (almeno un'attività registrata), non al
+  // primo caricamento — vedi lib/pwaInstall.ts e PwaInstallPrompt.tsx.
+  pwaInstallPrompt: {
+    androidTitle: 'Installa PisoZone sulla home',
+    androidAction: 'Installa',
+    iosTitle: 'Aggiungi PisoZone alla home',
+    iosBody: 'Tocca l\'icona Condividi, poi "Aggiungi a Home". Si apre come un\'app vera, senza barra del browser.',
+    iosAction: 'Ho capito',
+    dismissAria: 'Nascondi',
+  },
   navbar: {
     home: 'Home',
     log: 'Registra',
@@ -130,6 +141,14 @@ const en: Widen<typeof it> = {
   updatePrompt: {
     title: 'New version available',
     action: 'Update',
+  },
+  pwaInstallPrompt: {
+    androidTitle: 'Install PisoZone on your home screen',
+    androidAction: 'Install',
+    iosTitle: 'Add PisoZone to your home screen',
+    iosBody: 'Tap the Share icon, then "Add to Home Screen". It opens like a real app, with no browser bar.',
+    iosAction: 'Got it',
+    dismissAria: 'Dismiss',
   },
   navbar: {
     home: 'Home',
