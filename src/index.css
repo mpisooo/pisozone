@@ -125,6 +125,32 @@ html.light {
 .tap:active { transform: scale(0.95); }
 .tap:disabled:active { transform: none; }
 
+/* ── Font self-hosted (P0-09, roadmap "PisoZone Next"): prima erano caricati
+   da fonts.googleapis.com in index.html — un profiling reale (Lighthouse su
+   pisozone-app.vercel.app) ha misurato 823ms sprecati perché quel foglio di
+   stile era render-blocking e aggiungeva un salto di dominio in più (CSS →
+   fonts.gstatic.com) prima del primo paint, causa dominante dello skeleton
+   prolungato. Solo il subset "latin" (copre italiano+inglese, inclusi gli
+   accenti): Inter arriva da Google Fonts come font VARIABILE per questo
+   subset, un solo file copre tutti i pesi 400-700 invece di quattro file
+   separati. */
+@font-face {
+  font-family: 'Bebas Neue';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/bebas-neue-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ── Base ── */
 * { box-sizing: border-box; }
 

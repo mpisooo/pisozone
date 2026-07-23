@@ -33,13 +33,13 @@
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg?v=3" />
     <link rel="icon" type="image/png" href="/icons/icon-192.png?v=3" />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Font self-hosted (P0-09, roadmap "PisoZone Next"): niente più
+         fonts.googleapis.com, un profiling reale ha misurato 823ms di
+         render-blocking dovuti a quel salto di dominio in più prima del
+         primo paint — vedi @font-face in index.css. Preload sui due file
+         effettivamente usati subito (titoli + corpo), non sull'intero set. -->
+    <link rel="preload" href="/fonts/bebas-neue-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-latin-var.woff2" as="font" type="font/woff2" crossorigin />
 
     <title>PisoZone</title>
   </head>
