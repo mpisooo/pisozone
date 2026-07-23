@@ -276,6 +276,7 @@ export default function SocialPage() {
         {/* ── AMICI ── */}
         {tab === 'friends' && (
           <FriendsTab
+            username={profile?.username ?? ''}
             friends={friends}
             friendsLoading={friendsLoading}
             pendingReceived={pendingReceived}

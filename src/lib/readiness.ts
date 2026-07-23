@@ -94,6 +94,19 @@ function restFactor(logs: RecoveryLog[], now: Date): number | null {
   return restedRecently ? 100 : 55
 }
 
+// Spiegabilità del punteggio (P3-04, roadmap "PisoZone Next"): stesse soglie
+// dell'advice generale (push/steady/rest), applicate per-fattore così la UI
+// può mostrare "cosa ha contribuito" senza esporre pesi o formule — un
+// pannello di debug non era l'obiettivo, un linguaggio umano sì.
+export type FactorTier = 'good' | 'ok' | 'low' | 'missing'
+
+export function factorTier(value: number | null): FactorTier {
+  if (value == null) return 'missing'
+  if (value >= READINESS_PUSH_THRESHOLD) return 'good'
+  if (value >= READINESS_STEADY_THRESHOLD) return 'ok'
+  return 'low'
+}
+
 export function computeReadiness(
   activities: Activity[],
   recoveryLogs: RecoveryLog[],

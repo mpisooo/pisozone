@@ -18,6 +18,7 @@ import SplashScreen from './components/SplashScreen'
 import PageLoader from './components/PageLoader'
 import ErrorBoundary from './components/ErrorBoundary'
 import UpdateAvailableToast from './components/UpdateAvailableToast'
+import PendingInviteHandler from './components/PendingInviteHandler'
 import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
 
@@ -86,6 +87,8 @@ function AppLayout() {
         <WhatsNewOverlay />
         {/* Avviso di nuova build già attiva (P0-08, roadmap "PisoZone Next") */}
         <UpdateAvailableToast />
+        {/* Consuma l'invito diretto in sessionStorage, se presente (P3-03) */}
+        <PendingInviteHandler />
       </div>
     </NotificationsProvider>
     </ChallengesBadgeProvider>

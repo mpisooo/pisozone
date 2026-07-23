@@ -147,6 +147,15 @@ const it = {
     // Amici in comune (roadmap v6): badge nella ricerca e nei suggerimenti.
     mutualFriendsLabel: (n: number) => (n === 1 ? '1 amico in comune' : `${n} amici in comune`),
 
+    // Invito diretto (P3-03, roadmap "PisoZone Next"): un link personale che
+    // pre-collega l'amicizia alla registrazione, senza dover spiegare a voce
+    // come cercarsi per username.
+    inviteTitle: 'Invita un amico',
+    inviteHint: 'Un link diretto: chi si registra da lì diventa già una richiesta di amicizia per te.',
+    inviteButton: 'Condividi',
+    inviteShareText: 'Vieni ad allenarti su PisoZone con me 💪',
+    inviteCopied: 'Link copiato!',
+
     profile: {
       title: 'PROFILO',
       favoriteSportsHeading: 'Sport preferiti',
@@ -391,6 +400,12 @@ const en: Widen<typeof it> = {
 
     // Amici in comune (roadmap v6): badge nella ricerca e nei suggerimenti.
     mutualFriendsLabel: (n: number) => (n === 1 ? '1 mutual friend' : `${n} mutual friends`),
+
+    inviteTitle: 'Invite a friend',
+    inviteHint: 'A direct link: whoever signs up from it already sends you a friend request.',
+    inviteButton: 'Share',
+    inviteShareText: 'Come train on PisoZone with me 💪',
+    inviteCopied: 'Link copied!',
 
     profile: {
       title: 'PROFILE',

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, X, Check, Clock, UserPlus, MessageCircle } from 'lucide-react'
+import { Search, X, Check, Clock, UserPlus, MessageCircle, Share2 } from 'lucide-react'
 import { SkeletonRow } from '../SkeletonCard'
 import EmptyState from '../EmptyState'
 import common from '../../lib/i18n/common'
@@ -12,6 +12,7 @@ import Av from './Av'
 interface Suggestion { user_id: string; username: string; photo_url: string | null; count: number }
 
 interface Props {
+  username: string
   friends: FriendProfile[]
   friendsLoading: boolean
   pendingReceived: FriendProfile[]
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function FriendsTab({
+  username,
   friends, friendsLoading, pendingReceived, pendingSent,
   friendsMap, pendingSentMap, pendingReceivedMap,
   suggestions, searchUsers, fetchMutualFriendsCounts, blockedIds,
@@ -42,7 +44,30 @@ export default function FriendsTab({
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [inviteCopied, setInviteCopied] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Invito diretto (P3-03): link personale che pre-collega l'amicizia alla
+  // registrazione (vedi PendingInviteHandler) — niente incentivi in crediti
+  // in questa fase, solo un tocco al posto di spiegare a voce lo username.
+  const handleInvite = useCallback(async () => {
+    const url = `${window.location.origin}/auth?tab=register&invite=${encodeURIComponent(username)}`
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'PisoZone', text: social.friends.inviteShareText, url })
+        return
+      } catch {
+        // Condivisione annullata o non disponibile: si ripiega sulla copia
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setInviteCopied(true)
+      setTimeout(() => setInviteCopied(false), 2000)
+    } catch {
+      // Clipboard non disponibile: nessun fallback ulteriore, non bloccante
+    }
+  }, [username])
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value)
@@ -70,6 +95,22 @@ export default function FriendsTab({
 
   return (
     <>
+      {/* Invito diretto (P3-03) */}
+      <div className="card flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white">{social.friends.inviteTitle}</p>
+          <p className="text-xs text-gray-500 mt-0.5 leading-snug">{social.friends.inviteHint}</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleInvite}
+          className="tap chip flex-shrink-0 flex items-center gap-1.5"
+          style={{ background: 'var(--red)', color: 'white' }}
+        >
+          <Share2 size={13} /> {inviteCopied ? social.friends.inviteCopied : social.friends.inviteButton}
+        </button>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <div className="search-input-box flex items-center gap-2 rounded-xl px-3 focus-within:border-[var(--red)] focus-within:shadow-[0_0_0_2px_rgba(var(--accent-rgb),0.2)]">

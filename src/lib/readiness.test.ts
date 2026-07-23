@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeReadiness } from './readiness'
+import { computeReadiness, factorTier } from './readiness'
 import type { Activity, RecoveryLog } from '../types'
 
 // 2026-07-15 è mercoledì: la settimana corrente va dal 13 al 19 luglio,
@@ -92,5 +92,19 @@ describe('computeReadiness', () => {
     expect(result!.advice).toBe('steady')
     expect(result!.score).toBeGreaterThanOrEqual(40)
     expect(result!.score).toBeLessThan(70)
+  })
+})
+
+describe('factorTier', () => {
+  it('è "missing" per un fattore assente', () => {
+    expect(factorTier(null)).toBe('missing')
+  })
+  it('rispetta le stesse soglie push/steady dell\'advice generale', () => {
+    expect(factorTier(70)).toBe('good')
+    expect(factorTier(100)).toBe('good')
+    expect(factorTier(69)).toBe('ok')
+    expect(factorTier(40)).toBe('ok')
+    expect(factorTier(39)).toBe('low')
+    expect(factorTier(0)).toBe('low')
   })
 })

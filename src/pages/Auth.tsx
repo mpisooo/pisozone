@@ -17,6 +17,10 @@ export default function AuthPage() {
   // Arrivo dalla landing pubblica con "Inizia gratis" (→ /auth?tab=register):
   // apre direttamente la scheda di registrazione invece del login di default.
   const [tab, setTab] = useState<Tab>(() => (searchParams.get('tab') === 'register' ? 'register' : 'login'))
+  // Invito diretto (P3-03): username di chi ha condiviso il link. Letto una
+  // volta sola al mount, non dallo stato del tab — l'utente potrebbe passare
+  // dal login e tornare a registrarsi senza perdere l'invito.
+  const inviteUsername = useState(() => searchParams.get('invite'))[0]
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -68,6 +72,9 @@ export default function AuthPage() {
       if (err) {
         setError(err.message.includes('already') ? auth.errors.usernameTaken : err.message)
       } else {
+        // PendingInviteHandler consuma questo valore appena la sessione è
+        // pronta (signUp non restituisce lo user id sincronicamente qui).
+        if (inviteUsername) sessionStorage.setItem('pz-pending-invite', inviteUsername)
         navigate('/profile')
       }
     } catch (e) {

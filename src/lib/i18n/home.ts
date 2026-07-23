@@ -52,6 +52,16 @@ const it = {
     factorSleep: 'Sonno',
     factorRpe: 'Sforzo recente',
     factorRest: 'Riposo',
+    detailToggle: 'Perché questo punteggio?',
+    detailHide: 'Nascondi il dettaglio',
+    tierGood: 'Buono',
+    tierOk: 'Nella norma',
+    tierLow: 'Basso',
+    tierMissing: 'Non disponibile',
+    missingLoad: 'Serve qualche settimana di attività per un confronto col carico precedente.',
+    missingSleep: 'Nessuna ora di sonno registrata negli ultimi giorni (card Recupero).',
+    missingRpe: 'Nessuno sforzo percepito valutato in un allenamento recente.',
+    missingRest: 'Non hai ancora usato la card Recupero.',
   },
 
   // Etichette dei "capitoli" che raggruppano la Home in una storia leggibile
@@ -157,6 +167,16 @@ const en: Widen<typeof it> = {
     factorSleep: 'Sleep',
     factorRpe: 'Recent effort',
     factorRest: 'Rest',
+    detailToggle: 'Why this score?',
+    detailHide: 'Hide the breakdown',
+    tierGood: 'Good',
+    tierOk: 'Normal',
+    tierLow: 'Low',
+    tierMissing: 'Not available',
+    missingLoad: 'A few weeks of activity are needed to compare against your previous load.',
+    missingSleep: 'No sleep hours logged in the last few days (Recovery card).',
+    missingRpe: 'No perceived effort rated on a recent workout.',
+    missingRest: 'You haven\'t used the Recovery card yet.',
   },
 
   sections: {
