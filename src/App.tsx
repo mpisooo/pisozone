@@ -17,6 +17,7 @@ import Navbar from './components/Navbar'
 import SplashScreen from './components/SplashScreen'
 import PageLoader from './components/PageLoader'
 import ErrorBoundary from './components/ErrorBoundary'
+import UpdateAvailableToast from './components/UpdateAvailableToast'
 import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
 
@@ -83,6 +84,8 @@ function AppLayout() {
         <OnboardingTour />
         {/* Annuncio one-shot delle novità per chi usa già l'app (v35) */}
         <WhatsNewOverlay />
+        {/* Avviso di nuova build già attiva (P0-08, roadmap "PisoZone Next") */}
+        <UpdateAvailableToast />
       </div>
     </NotificationsProvider>
     </ChallengesBadgeProvider>

@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {error && (
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
-          <p className="text-white text-sm">{error}</p>
+          <p className="text-[var(--color-text)] text-sm">{error}</p>
         </div>
       )}
     </ToastContext.Provider>

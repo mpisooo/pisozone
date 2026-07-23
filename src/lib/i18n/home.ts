@@ -17,7 +17,7 @@ const it = {
     dayUnit: (n: number) => (n === 1 ? 'giorno' : 'giorni'),
     suffix: 'spendendo 300 crediti.',
     freezing: 'Congelamento...',
-    freezeButton: '🧊 Congela streak (−300 💰)',
+    freezeButton: '🧊 Congela streak (−300 💎)',
     insufficientCredits: (credits: number) => `Crediti insufficienti (${credits}/300)`,
   },
 
@@ -96,8 +96,8 @@ const it = {
   challengesWidget: {
     title: 'Sfide di oggi',
     progress: (completed: number, total: number) => `${completed}/${total} completate`,
-    claimLabel: (credits: number) => `Riscatta +${credits} 💰`,
-    pendingLabel: (credits: number) => `+${credits} 💰`,
+    claimLabel: (credits: number) => `Riscatta +${credits} 💎`,
+    pendingLabel: (credits: number) => `+${credits} 💎`,
   },
 
   // Incentivi al ritorno (v2, pilastro 04): rientro morbido dopo un'assenza
@@ -125,7 +125,7 @@ const en: Widen<typeof it> = {
     dayUnit: (n: number) => (n === 1 ? 'day' : 'days'),
     suffix: 'by spending 300 credits.',
     freezing: 'Freezing...',
-    freezeButton: '🧊 Freeze streak (−300 💰)',
+    freezeButton: '🧊 Freeze streak (−300 💎)',
     insufficientCredits: (credits: number) => `Not enough credits (${credits}/300)`,
   },
 
@@ -196,8 +196,8 @@ const en: Widen<typeof it> = {
   challengesWidget: {
     title: 'Today\'s challenges',
     progress: (completed: number, total: number) => `${completed}/${total} completed`,
-    claimLabel: (credits: number) => `Claim +${credits} 💰`,
-    pendingLabel: (credits: number) => `+${credits} 💰`,
+    claimLabel: (credits: number) => `Claim +${credits} 💎`,
+    pendingLabel: (credits: number) => `+${credits} 💎`,
   },
 
   comeback: {

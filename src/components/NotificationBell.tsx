@@ -116,14 +116,18 @@ export default function NotificationBell() {
         type="button"
         onClick={handleOpen}
         aria-label={notifText.bellAriaLabel}
-        className="relative p-1.5 -mr-1 text-gray-400 hover:text-white transition-colors"
+        className="relative p-3 -mr-[10px] text-gray-400 hover:text-white transition-colors"
       >
-        <Bell size={20} />
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 min-w-[15px] h-[15px] rounded-full bg-[var(--red)] text-[white] text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
+        {/* Wrapper separato dal padding del bottone: l'area di tocco cresce
+            a 44px senza allontanare il badge dalla campanella (P0-05). */}
+        <span className="relative block">
+          <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1.5 min-w-[15px] h-[15px] rounded-full bg-[var(--red)] text-[white] text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </span>
       </button>
 
       {open && createPortal(

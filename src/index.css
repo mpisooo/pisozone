@@ -574,10 +574,11 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .toast-saved {
   position: fixed;
   z-index: 50;
-  bottom: 76px;
+  /* Sopra la Navbar (64px + safe area, vedi .app-main), non a metà sotto di essa. */
+  bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
   left: 50%;
   white-space: nowrap;
-  background: linear-gradient(135deg, #0f2010 0%, #0d1f0e 100%);
+  background: var(--grey-dark);
   border: 1px solid #22c55e;
   border-radius: 1rem;
   padding: 1rem 1.25rem;
@@ -586,10 +587,28 @@ html.light .hover\:text-gray-300:hover { color: #444444; }
 .toast-error {
   position: fixed;
   z-index: 50;
-  bottom: 76px;
+  bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
   left: 50%;
   white-space: nowrap;
-  background: linear-gradient(135deg, #200f10 0%, #1f0d0e 100%);
+  background: var(--grey-dark);
+  border: 1px solid var(--red);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+.toast-update {
+  /* Niente white-space:nowrap (a differenza di .toast-saved/.toast-error):
+     porta un bottone interattivo, deve poter andare a capo su schermi stretti.
+     width:max-content forza le dimensioni sul contenuto reale (altrimenti un
+     fixed+flex senza width esplicita si restringe in modo imprevedibile,
+     avvolgendo il testo anche quando ci sarebbe spazio) fino al tetto di max-width. */
+  position: fixed;
+  z-index: 50;
+  bottom: calc(64px + env(safe-area-inset-bottom) + 12px);
+  left: 50%;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  background: var(--grey-dark);
   border: 1px solid var(--red);
   border-radius: 1rem;
   padding: 1rem 1.25rem;

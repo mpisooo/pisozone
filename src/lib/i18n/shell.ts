@@ -10,6 +10,10 @@ const it = {
     body: 'Si è verificato un errore imprevisto. Ricarica la pagina per riprovare.',
     reload: 'Ricarica pagina',
   },
+  updatePrompt: {
+    title: 'Nuova versione disponibile',
+    action: 'Aggiorna',
+  },
   navbar: {
     home: 'Home',
     log: 'Registra',
@@ -70,7 +74,7 @@ const it = {
       {
         icon: '🔥',
         title: 'STREAK E RECUPERO',
-        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 22 medaglie e 10 livelli.',
+        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 23 medaglie e 10 livelli.',
       },
       {
         icon: '🎨',
@@ -141,6 +145,10 @@ const en: Widen<typeof it> = {
     body: 'An unexpected error occurred. Reload the page to try again.',
     reload: 'Reload page',
   },
+  updatePrompt: {
+    title: 'New version available',
+    action: 'Update',
+  },
   navbar: {
     home: 'Home',
     log: 'Log',
@@ -199,7 +207,7 @@ const en: Widen<typeof it> = {
       {
         icon: '🔥',
         title: 'STREAK AND RECOVERY',
-        text: 'Train consistently to grow your streak. Need a break? Mark a rest day from Home and your streak won\'t break. 22 medals and 10 levels are waiting for you.',
+        text: 'Train consistently to grow your streak. Need a break? Mark a rest day from Home and your streak won\'t break. 23 medals and 10 levels are waiting for you.',
       },
       {
         icon: '🎨',

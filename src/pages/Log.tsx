@@ -801,7 +801,7 @@ export default function LogPage() {
       {gpxImported && (
         <div className="toast-enter toast-saved flex items-center gap-3">
           <CheckCircle2 size={22} className="text-green-400 shrink-0" />
-          <p className="text-white font-semibold text-sm">{log.gpxImport.doneToast}</p>
+          <p className="text-[var(--color-text)] font-semibold text-sm">{log.gpxImport.doneToast}</p>
         </div>
       )}
 
@@ -834,7 +834,7 @@ export default function LogPage() {
         <div className="toast-enter toast-saved flex items-center gap-3">
           <CheckCircle2 size={22} className="text-green-400 shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{log.new.savedToast.title}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{log.new.savedToast.title}</p>
             <p className="text-green-400 text-xs">
               {creditsEarned > 0 ? log.new.savedToast.credits(creditsEarned) : log.new.savedToast.noCredits}
             </p>
@@ -852,7 +852,7 @@ export default function LogPage() {
         <div className="toast-enter toast-saved flex items-center gap-3">
           <CloudOff size={22} className="text-green-400 shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{log.new.savedOfflineToast.title}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{log.new.savedOfflineToast.title}</p>
             <p className="text-green-400 text-xs">
               {savedOfflineExtras ? log.new.savedOfflineToast.bodyExtrasQueued : log.new.savedOfflineToast.body}
             </p>
@@ -864,7 +864,7 @@ export default function LogPage() {
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{log.new.errorToast.title}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{log.new.errorToast.title}</p>
             <p className="text-[var(--red)] text-xs">{log.new.errorToast.body}</p>
           </div>
         </div>
@@ -874,7 +874,7 @@ export default function LogPage() {
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{log.new.photoWarningToast.title}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{log.new.photoWarningToast.title}</p>
             <p className="text-[var(--red)] text-xs">{log.new.photoWarningToast.body}</p>
           </div>
         </div>
@@ -884,7 +884,7 @@ export default function LogPage() {
         <div className="toast-enter toast-error flex items-center gap-3">
           <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{log.new.setsWarningToast.title}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{log.new.setsWarningToast.title}</p>
             <p className="text-[var(--red)] text-xs">{log.new.setsWarningToast.body}</p>
           </div>
         </div>

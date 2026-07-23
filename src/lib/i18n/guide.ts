@@ -153,7 +153,7 @@ const it = {
       icon: '🏅',
       title: 'Medaglie',
       paragraphs: [
-        'Ci sono 22 medaglie in 4 livelli (bronzo, argento, oro, diamante), legate a traguardi reali: chilometri totali, sessioni in palestra, streak, costanza settimanale…',
+        'Ci sono 23 medaglie in 4 livelli (bronzo, argento, oro, diamante), legate a traguardi reali: chilometri totali, sessioni in palestra, streak, costanza settimanale…',
         'Quattro sono le medaglie della montagna: chilometri tracciati col GPS (Esploratore, Cartografo) e metri di dislivello in salita accumulati (Scalatore, e Ottomila — gli 8.848 m dell\'Everest, un po\' alla volta), dal GPS o inseriti a mano. Contano solo gli allenamenti registrati d\'ora in poi.',
         'Ogni medaglia sbloccata vale crediti una tantum. Il progresso verso la più vicina lo vedi in Home.',
       ],
@@ -374,7 +374,7 @@ const en: Widen<typeof it> = {
       icon: '🏅',
       title: 'Medals',
       paragraphs: [
-        'There are 22 medals across 4 tiers (bronze, silver, gold, diamond), tied to real milestones: total kilometers, gym sessions, streak, weekly consistency…',
+        'There are 23 medals across 4 tiers (bronze, silver, gold, diamond), tied to real milestones: total kilometers, gym sessions, streak, weekly consistency…',
         'Four are the mountain medals: kilometers tracked with GPS (Esploratore, Cartografo) and meters of elevation gain accumulated (Scalatore, and Ottomila — Everest\'s 8,848 m, a little at a time), from GPS or entered by hand. Only workouts logged from now on count.',
         'Every unlocked medal is worth a one-time credit reward. Your progress toward the nearest one is shown in Home.',
       ],

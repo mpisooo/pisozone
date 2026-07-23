@@ -48,7 +48,7 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   {
     id: 'dark',
     name: 'Scuro',
-    description: 'Tema predefinito',
+    description: 'Segue il tema del sistema, se non scegli tu',
     cost: 0,
     free: true,
     previewBg: '#0D0D0D',

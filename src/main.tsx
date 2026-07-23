@@ -4,12 +4,29 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
+import { markUpdateAvailable } from './lib/serviceWorkerUpdate'
 
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      // public/sw.js chiama self.skipWaiting() all'install: la nuova build
+      // prende il controllo subito, senza un vero stato "waiting" da
+      // gestire. I browser ricontrollano da soli su navigazione, ma un tab
+      // tenuto aperto (uso PWA previsto) non naviga mai — stesso principio
+      // della coda offline: ricontrolla quando l'app torna davvero in
+      // primo piano (P0-08, roadmap "PisoZone Next").
+      const checkForUpdate = () => registration.update().catch(() => {})
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForUpdate()
+      })
+      window.addEventListener('online', checkForUpdate)
+    }).catch(() => {
       // SW registration failed — app still works online
+    })
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      markUpdateAvailable()
     })
   })
 }

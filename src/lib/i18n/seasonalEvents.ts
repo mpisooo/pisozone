@@ -22,7 +22,7 @@ const it = {
 
   claim: {
     heading: (rank: number, eventTitle: string) => `${rank}° posto in "${eventTitle}"!`,
-    body: (credits: number) => `Evento chiuso, sei sul podio: riscatta +${credits} 💰`,
+    body: (credits: number) => `Evento chiuso, sei sul podio: riscatta +${credits} 💎`,
     button: 'Riscatta',
     claiming: 'Riscatto…',
     failed: 'Riscatto non riuscito. Riprova.',
@@ -54,7 +54,7 @@ const en: Widen<typeof it> = {
 
   claim: {
     heading: (rank: number, eventTitle: string) => `${ordinal(rank)} place in "${eventTitle}"!`,
-    body: (credits: number) => `Event closed, you made the podium: claim +${credits} 💰`,
+    body: (credits: number) => `Event closed, you made the podium: claim +${credits} 💎`,
     button: 'Claim',
     claiming: 'Claiming…',
     failed: 'Claim failed. Please try again.',

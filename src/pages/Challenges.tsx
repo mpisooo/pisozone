@@ -160,7 +160,7 @@ export default function ChallengesPage() {
                       {template.title}
                     </p>
                     <span className={`text-xs font-bold flex-shrink-0 ${creditsColor(template.credits)}`}>
-                      +{template.credits} 💰
+                      +{template.credits} 💎
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5 leading-snug">{template.description}</p>

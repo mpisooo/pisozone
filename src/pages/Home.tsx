@@ -99,7 +99,9 @@ export default function HomePage() {
   const yesterdayAlreadyProtected = frozenDates.includes(yesterday) || restDates.includes(yesterday)
   const streakSavedByFreeze = useMemo(
     () =>
-      !hasActivityYesterday && !yesterdayAlreadyProtected
+      // Guardia: senza almeno un'attività storica, "salvare" lo streak
+      // congelando ieri creerebbe uno streak fittizio da zero (account nuovi).
+      activities.length > 0 && !hasActivityYesterday && !yesterdayAlreadyProtected
         ? calcStreak(activities, [...frozenDates, ...restDates, yesterday])
         : 0,
     [activities, frozenDates, restDates, yesterday, hasActivityYesterday, yesterdayAlreadyProtected],

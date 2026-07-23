@@ -311,7 +311,7 @@ export default function PlansPage() {
         <div className="toast-enter toast-saved flex items-center gap-3">
           <CheckCircle2 size={22} className="text-green-400 shrink-0" />
           <div>
-            <p className="text-white font-semibold text-sm">{plansText.active.claimedToastTitle}</p>
+            <p className="text-[var(--color-text)] font-semibold text-sm">{plansText.active.claimedToastTitle}</p>
             <p className="text-green-400 text-xs">{plansText.active.claimedToastBody(claimedCredits)}</p>
           </div>
         </div>

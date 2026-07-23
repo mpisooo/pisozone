@@ -223,7 +223,7 @@ export default function ExerciseSetsFields({ drafts, onChange, suggestions, idPr
               type="button"
               onClick={() => restTimer.adjust(-REST_TIMER_STEP_SEC)}
               aria-label={log.restTimer.adjustLessAria}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-colors"
+              className="px-3 py-[14px] rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-colors"
               style={{ border: '1px solid var(--grey-light)' }}
             >
               −{REST_TIMER_STEP_SEC}
@@ -232,7 +232,7 @@ export default function ExerciseSetsFields({ drafts, onChange, suggestions, idPr
               type="button"
               onClick={() => restTimer.adjust(REST_TIMER_STEP_SEC)}
               aria-label={log.restTimer.adjustMoreAria}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-colors"
+              className="px-3 py-[14px] rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-colors"
               style={{ border: '1px solid var(--grey-light)' }}
             >
               +{REST_TIMER_STEP_SEC}

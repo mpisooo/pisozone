@@ -323,7 +323,7 @@ export default function SocialPage() {
       {friendActionError && (
         <div className="toast-enter toast-error flex items-center gap-3">
           <X size={20} className="text-[var(--red)] shrink-0" />
-          <p className="text-white text-sm">{friendActionError}</p>
+          <p className="text-[var(--color-text)] text-sm">{friendActionError}</p>
         </div>
       )}
 
