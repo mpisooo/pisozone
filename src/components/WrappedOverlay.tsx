@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Share2 } from 'lucide-react'
+import { X, Share2, Flame } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { useFocusTrap } from '../hooks/useFocusTrap'
@@ -155,7 +155,9 @@ export default function WrappedOverlay({ data, onClose }: Props) {
               {data.bestStreak >= 2 && (
                 <div>
                   <p className="text-xs uppercase tracking-widest" style={{ color: MUTED }}>{wrappedText.records.streakLabel}</p>
-                  <p className="font-bebas text-6xl leading-tight" style={{ color: WHITE }}>🔥 {data.bestStreak}</p>
+                  <p className="font-bebas text-6xl leading-tight flex items-center gap-2" style={{ color: WHITE }}>
+                    <Flame size={40} style={{ color: ZONE_HEX[3] }} /> {data.bestStreak}
+                  </p>
                 </div>
               )}
               {data.busiestDay && (

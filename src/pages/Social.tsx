@@ -15,6 +15,7 @@ import { useBlocks } from '../hooks/useBlocks'
 import { isRateLimitError } from '../lib/errors'
 import social from '../lib/i18n/social'
 import PhotoLightbox from '../components/PhotoLightbox'
+import ContextualTip from '../components/ContextualTip'
 import DmChatView from '../components/social/DmChatView'
 import GroupChatView from '../components/social/GroupChatView'
 import FriendProfileView from '../components/social/FriendProfileView'
@@ -214,6 +215,8 @@ export default function SocialPage() {
         <span className="font-bebas text-4xl text-white tracking-widest">{social.pageTitle}</span>
         <div className="header-accent" />
       </div>
+
+      <ContextualTip tipId="social" icon="👥" title={social.tip.title} text={social.tip.text} className="mx-4 mb-4" />
 
       {/* Tab bar */}
       <div className="flex border-b border-[var(--grey)] px-2 mb-4">

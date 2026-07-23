@@ -14,6 +14,7 @@ import SkeletonCard from '../components/SkeletonCard'
 import AnimatedNumber from '../components/AnimatedNumber'
 import DuelsSection from '../components/DuelsSection'
 import SeasonalEventSection from '../components/SeasonalEventSection'
+import ContextualTip from '../components/ContextualTip'
 import challenges from '../lib/i18n/challenges'
 
 const TIER_COLOR: Record<string, string> = {
@@ -99,6 +100,8 @@ export default function ChallengesPage() {
         </h1>
         <div className="header-accent" />
       </div>
+
+      <ContextualTip tipId="challenges" icon="💎" title={challenges.tip.title} text={challenges.tip.text} />
 
       {/* Credits balance */}
       <div className="card flex items-center justify-between">

@@ -13,6 +13,7 @@ import { REACTION_EMOJI, type ReactionKind } from '../lib/reactions'
 import { SEASONAL_EVENTS } from '../lib/seasonalCatalog'
 import { getLevelDef } from '../lib/levels'
 import { haptic } from '../lib/haptics'
+import EmptyState from './EmptyState'
 import common from '../lib/i18n/common'
 import notifText from '../lib/i18n/notifications'
 import type { AppNotification } from '../types'
@@ -165,9 +166,8 @@ export default function NotificationBell() {
 
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               {notifications.length === 0 ? (
-                <div className="px-4 py-10 text-center">
-                  <p className="text-sm text-gray-400">{notifText.emptyTitle}</p>
-                  <p className="text-xs text-gray-600 mt-1">{notifText.emptyHint}</p>
+                <div className="px-4 py-10">
+                  <EmptyState icon="bolt" compact title={notifText.emptyTitle} hint={notifText.emptyHint} />
                 </div>
               ) : (
                 notifications.map((n) => {

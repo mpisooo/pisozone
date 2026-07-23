@@ -17,6 +17,7 @@ import { ACTIVITY_OPTIONS, MEDALS } from '../lib/constants'
 import { ACTIVITY_ICON_COLORS } from '../lib/activityIconPaths'
 import { LEVEL_DEFINITIONS, getLevelDef, getNextLevelDef } from '../lib/levels'
 import SkeletonCard from '../components/SkeletonCard'
+import EmptyState from '../components/EmptyState'
 import ActivityIcon from '../components/ActivityIcon'
 import MedalIcon from '../components/MedalIcon'
 import CelebrationOverlay from '../components/CelebrationOverlay'
@@ -299,7 +300,7 @@ export default function ProfilePage() {
           <span className="text-xs text-gray-500">{claimedMedals.length}/{MEDALS.length}</span>
         </div>
         {claimedMedals.length === 0 ? (
-          <p className="text-xs text-gray-500 text-center py-2">{profileText.trophyCase.emptyHint}</p>
+          <EmptyState icon="trophy" compact title={profileText.trophyCase.emptyTitle} hint={profileText.trophyCase.emptyHint} />
         ) : (
           <div className="flex flex-wrap gap-3">
             {claimedMedals.map((m) => (

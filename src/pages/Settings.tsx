@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { differenceInYears, parseISO, format } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { Save, Scale, TrendingUp, Lock, Check, ShieldCheck, Download, Trash2, BookOpen, Target, X } from 'lucide-react'
+import { Save, Scale, TrendingUp, Lock, Check, ShieldCheck, Download, Trash2, BookOpen, Target, X, Bell, Palette, UserCircle, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProfile } from '../hooks/useProfile'
 import { useWeightLogs } from '../hooks/useWeightLogs'
@@ -43,6 +43,24 @@ type FormValues = {
 function calcBMI(weight: number, height: number) {
   const h = height / 100
   return weight / (h * h)
+}
+
+// Impostazioni raggruppate in 5 sezioni richiudibili (roadmap "PisoZone Next"
+// P1-03): stesso pattern <details>/<summary> nativo già usato in Guide.tsx,
+// ma qui il wrapper NON è a sua volta un .card — i figli sono già card
+// autonome (RecoveryEmailCard, NotificationSettingsCard, ...), un altro .card
+// attorno le impilerebbe in un doppio bordo.
+function SettingsSection({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
+  return (
+    <details className="group">
+      <summary className="flex items-center gap-2.5 py-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden select-none">
+        {icon}
+        <span className="font-bebas text-2xl text-white tracking-wider flex-1">{title}</span>
+        <ChevronDown size={18} className="text-gray-500 flex-shrink-0 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <div className="space-y-4 mt-3">{children}</div>
+    </details>
+  )
 }
 
 function bmiCategory(bmi: number): { label: string; color: string } {
@@ -266,15 +284,99 @@ export default function SettingsPage() {
         <div className="header-accent" />
       </div>
 
-      {/* Email di recupero (necessaria per il reset password) */}
-      <RecoveryEmailCard />
+      <div className="space-y-3">
 
-      {/* Notifiche push */}
-      <NotificationSettingsCard />
+      <SettingsSection icon={<Lock size={18} className="text-[var(--red)] flex-shrink-0" />} title={profileText.settingsSections.account}>
+        {/* Email di recupero (necessaria per il reset password) */}
+        <RecoveryEmailCard />
+      </SettingsSection>
 
-      {/* Lingua (roadmap v3, pilastro 04): puramente client, nessuna colonna DB */}
-      <LanguageSettingsCard />
+      <SettingsSection icon={<Bell size={18} className="text-[var(--red)] flex-shrink-0" />} title={profileText.settingsSections.notifications}>
+        <NotificationSettingsCard />
+      </SettingsSection>
 
+      <SettingsSection icon={<Palette size={18} className="text-[var(--red)] flex-shrink-0" />} title={profileText.settingsSections.appearance}>
+        {/* Lingua (roadmap v3, pilastro 04): puramente client, nessuna colonna DB */}
+        <LanguageSettingsCard />
+
+        {/* ── TEMI ─────────────────────────────────────────────────────────── */}
+        <div className="card space-y-4">
+          <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>{profileText.theme.title}</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {THEME_DEFINITIONS.map((td) => {
+              const isUnlocked = td.free || unlockedThemes.includes(td.id)
+              const isActive = activeTheme === td.id
+              const canAfford = credits >= td.cost
+              return (
+                <div
+                  key={td.id}
+                  className="rounded-xl p-3 space-y-2 border transition-all duration-200"
+                  style={{
+                    background: 'var(--grey)',
+                    borderColor: isActive ? 'var(--red)' : 'var(--grey-light)',
+                  }}
+                >
+                  {/* Preview */}
+                  <div
+                    className="w-full h-10 rounded-lg flex items-center gap-2 px-3"
+                    style={{ background: td.previewBg, border: `2px solid ${td.previewAccent}` }}
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ background: td.previewAccent }}
+                    />
+                    <div className="h-2 rounded flex-1" style={{ background: td.previewAccent + '55' }} />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold text-white">{td.name}</p>
+                    <p className="text-[11px] text-gray-500 leading-tight">{td.description}</p>
+                  </div>
+
+                  {isActive ? (
+                    <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'var(--red)' }}>
+                      <Check size={13} />
+                      {profileText.theme.active}
+                    </div>
+                  ) : isUnlocked ? (
+                    <button
+                      type="button"
+                      onClick={() => handleActivateTheme(td.id)}
+                      disabled={shopWorking}
+                      className="w-full text-xs py-1.5 rounded-lg font-medium transition-all"
+                      style={{ background: 'var(--grey-light)', color: 'var(--color-text)' }}
+                    >
+                      {profileText.theme.activate}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handlePurchaseTheme(td.id, td.cost)}
+                      disabled={!canAfford || shopWorking}
+                      className="w-full text-xs py-1.5 rounded-lg font-medium transition-all flex items-center justify-center gap-1"
+                      style={
+                        canAfford
+                          ? { background: 'var(--red)', color: '#fff' }
+                          : { background: 'var(--grey-light)', color: '#6b7280', cursor: 'not-allowed' }
+                      }
+                    >
+                      {canAfford ? <></> : <Lock size={11} />}
+                      {canAfford ? profileText.theme.unlock(td.cost) : profileText.creditsAmount(td.cost)}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {shopMsg && (
+            <p className="text-sm text-center font-medium rounded-lg py-2 px-3" style={{ background: 'var(--grey)', color: 'var(--red)' }}>
+              {shopMsg}
+            </p>
+          )}
+        </div>
+      </SettingsSection>
+
+      <SettingsSection icon={<UserCircle size={18} className="text-[var(--red)] flex-shrink-0" />} title={profileText.settingsSections.profile}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Dati personali */}
         <div className="card space-y-4">
@@ -449,82 +551,6 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      {/* ── TEMI ─────────────────────────────────────────────────────────── */}
-      <div className="card space-y-4">
-        <h2 className="font-bebas text-xl tracking-wider" style={{ color: 'var(--red)' }}>{profileText.theme.title}</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {THEME_DEFINITIONS.map((td) => {
-            const isUnlocked = td.free || unlockedThemes.includes(td.id)
-            const isActive = activeTheme === td.id
-            const canAfford = credits >= td.cost
-            return (
-              <div
-                key={td.id}
-                className="rounded-xl p-3 space-y-2 border transition-all duration-200"
-                style={{
-                  background: 'var(--grey)',
-                  borderColor: isActive ? 'var(--red)' : 'var(--grey-light)',
-                }}
-              >
-                {/* Preview */}
-                <div
-                  className="w-full h-10 rounded-lg flex items-center gap-2 px-3"
-                  style={{ background: td.previewBg, border: `2px solid ${td.previewAccent}` }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ background: td.previewAccent }}
-                  />
-                  <div className="h-2 rounded flex-1" style={{ background: td.previewAccent + '55' }} />
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-white">{td.name}</p>
-                  <p className="text-[11px] text-gray-500 leading-tight">{td.description}</p>
-                </div>
-
-                {isActive ? (
-                  <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'var(--red)' }}>
-                    <Check size={13} />
-                    {profileText.theme.active}
-                  </div>
-                ) : isUnlocked ? (
-                  <button
-                    type="button"
-                    onClick={() => handleActivateTheme(td.id)}
-                    disabled={shopWorking}
-                    className="w-full text-xs py-1.5 rounded-lg font-medium transition-all"
-                    style={{ background: 'var(--grey-light)', color: 'var(--color-text)' }}
-                  >
-                    {profileText.theme.activate}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handlePurchaseTheme(td.id, td.cost)}
-                    disabled={!canAfford || shopWorking}
-                    className="w-full text-xs py-1.5 rounded-lg font-medium transition-all flex items-center justify-center gap-1"
-                    style={
-                      canAfford
-                        ? { background: 'var(--red)', color: '#fff' }
-                        : { background: 'var(--grey-light)', color: '#6b7280', cursor: 'not-allowed' }
-                    }
-                  >
-                    {canAfford ? <></> : <Lock size={11} />}
-                    {canAfford ? profileText.theme.unlock(td.cost) : profileText.creditsAmount(td.cost)}
-                  </button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        {shopMsg && (
-          <p className="text-sm text-center font-medium rounded-lg py-2 px-3" style={{ background: 'var(--grey)', color: 'var(--red)' }}>
-            {shopMsg}
-          </p>
-        )}
-      </div>
-
       {/* Storico peso */}
       <div className="card space-y-3">
         <div className="flex items-center justify-between">
@@ -632,61 +658,66 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      </SettingsSection>
 
-      {/* Guida: la wiki di tutte le funzionalità */}
-      <div className="card space-y-3">
-        <div className="flex items-center gap-2">
-          <BookOpen size={16} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.guide.title}</h2>
+      <SettingsSection icon={<ShieldCheck size={18} className="text-[var(--red)] flex-shrink-0" />} title={profileText.settingsSections.dataHelp}>
+        {/* Guida: la wiki di tutte le funzionalità */}
+        <div className="card space-y-3">
+          <div className="flex items-center gap-2">
+            <BookOpen size={16} className="text-[var(--red)]" />
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.guide.title}</h2>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">{profileText.guide.body}</p>
+          <Link
+            to="/guide"
+            className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
+            style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+          >
+            <BookOpen size={15} />
+            {profileText.guide.button}
+          </Link>
         </div>
-        <p className="text-xs text-gray-500 leading-relaxed">{profileText.guide.body}</p>
-        <Link
-          to="/guide"
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
-          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
-        >
-          <BookOpen size={15} />
-          {profileText.guide.button}
-        </Link>
-      </div>
 
-      {/* Privacy e dati (GDPR: portabilità + cancellazione) */}
-      <div className="card space-y-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck size={16} className="text-[var(--red)]" />
-          <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.privacy.title}</h2>
-        </div>
-        <p className="text-xs text-gray-500 leading-relaxed">
-          {profileText.privacy.body}
-        </p>
-        <div className="flex gap-4 text-xs">
-          <Link to="/privacy" className="text-[var(--red)] underline">{profileText.privacy.privacyPolicyLink}</Link>
-          <Link to="/termini" className="text-[var(--red)] underline">{profileText.privacy.termsLink}</Link>
-        </div>
-        {exportError && (
-          <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
-            {exportError}
+        {/* Privacy e dati (GDPR: portabilità + cancellazione) */}
+        <div className="card space-y-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={16} className="text-[var(--red)]" />
+            <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{profileText.privacy.title}</h2>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            {profileText.privacy.body}
           </p>
-        )}
-        <button
-          type="button"
-          onClick={handleExportData}
-          disabled={exporting}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap disabled:opacity-50"
-          style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
-        >
-          <Download size={15} />
-          {exporting ? profileText.privacy.exportingButton : profileText.privacy.exportButton}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowDeleteModal(true)}
-          className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
-          style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
-        >
-          <Trash2 size={15} />
-          {profileText.privacy.deleteAccountButton}
-        </button>
+          <div className="flex gap-4 text-xs">
+            <Link to="/privacy" className="text-[var(--red)] underline">{profileText.privacy.privacyPolicyLink}</Link>
+            <Link to="/termini" className="text-[var(--red)] underline">{profileText.privacy.termsLink}</Link>
+          </div>
+          {exportError && (
+            <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
+              {exportError}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleExportData}
+            disabled={exporting}
+            className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap disabled:opacity-50"
+            style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
+          >
+            <Download size={15} />
+            {exporting ? profileText.privacy.exportingButton : profileText.privacy.exportButton}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-lg font-medium tap"
+            style={{ border: '1px solid rgba(var(--accent-rgb),0.5)', color: 'var(--red)', background: 'rgba(var(--accent-rgb),0.08)' }}
+          >
+            <Trash2 size={15} />
+            {profileText.privacy.deleteAccountButton}
+          </button>
+        </div>
+      </SettingsSection>
+
       </div>
 
       {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}

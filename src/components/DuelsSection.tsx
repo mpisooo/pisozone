@@ -8,6 +8,7 @@ import { useGroups } from '../hooks/useGroups'
 import { useProfile } from '../hooks/useProfile'
 import { duelState, duelDaysLeft, duelWinnerId, canClaimDuel, formatDuelValue, duelBarPct, DUEL_WIN_CREDITS, type DuelProgressRow } from '../lib/duels'
 import { haptic } from '../lib/haptics'
+import EmptyState from './EmptyState'
 import DuelCreateModal from './DuelCreateModal'
 import duelsText from '../lib/i18n/duels'
 import type { Duel } from '../types'
@@ -80,8 +81,8 @@ export default function DuelsSection() {
       </div>
 
       {!loading && visible.length === 0 && (
-        <div className="card text-center py-6">
-          <p className="text-sm text-gray-500">{duelsText.emptyHint}</p>
+        <div className="card py-6">
+          <EmptyState icon="bolt" compact title={duelsText.emptyTitle} hint={duelsText.emptyHint} />
         </div>
       )}
 

@@ -6,7 +6,8 @@ const it = {
   heading: 'SFIDE CON GLI AMICI',
   subtitle: 'Duelli a tempo: chi fa di più vince i crediti.',
   newButton: '+ Nuova sfida',
-  emptyHint: 'Nessuna sfida in corso. Lancia un duello a un amico o al tuo gruppo!',
+  emptyTitle: 'Nessuna sfida in corso',
+  emptyHint: 'Lancia un duello a un amico o al tuo gruppo con "Nuova sfida".',
 
   metricLabels: {
     sessions: 'Sessioni',
@@ -65,7 +66,8 @@ const en: Widen<typeof it> = {
   heading: 'CHALLENGES WITH FRIENDS',
   subtitle: 'Timed duels: whoever does more wins the credits.',
   newButton: '+ New challenge',
-  emptyHint: 'No challenges in progress. Challenge a friend or your group to a duel!',
+  emptyTitle: 'No challenges in progress',
+  emptyHint: 'Challenge a friend or your group with "New challenge".',
 
   metricLabels: {
     sessions: 'Sessions',

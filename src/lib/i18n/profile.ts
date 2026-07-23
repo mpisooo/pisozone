@@ -16,6 +16,17 @@ const it = {
   settingsPageTitle: 'IMPOSTAZIONI',
   creditsAmount: (n: number) => `${n} 💎`,
 
+  // Impostazioni riorganizzate in 5 sezioni richiudibili (roadmap "PisoZone
+  // Next" P1-03, 23/07/2026): stessi contenuti e stesso comportamento di
+  // prima, solo raggruppati — vedi CLAUDE.md per il dettaglio della scelta.
+  settingsSections: {
+    account: 'Account e sicurezza',
+    notifications: 'Notifiche',
+    appearance: 'Aspetto e lingua',
+    profile: 'Dati personali e obiettivi',
+    dataHelp: 'Guida e dati account',
+  },
+
   // La stessa card "In numeri" dei profili pubblici (RPC get_public_profile_stats),
   // vista su se stessi: quello che gli altri vedono aprendo il tuo profilo.
   // Roadmap v7: active_days (già restituito dalla RPC v37) entra come 5ª cifra.
@@ -34,7 +45,8 @@ const it = {
   // le stesse fonti di Medals.tsx.
   trophyCase: {
     title: 'BACHECA MEDAGLIE',
-    emptyHint: 'Nessuna medaglia sbloccata ancora: scoprile nella pagina Medaglie.',
+    emptyTitle: 'Nessuna medaglia sbloccata ancora',
+    emptyHint: 'Registra qualche allenamento per guadagnare la prima.',
     seeAllButton: 'Vedi tutte le medaglie',
   },
 
@@ -254,6 +266,14 @@ const en: Widen<typeof it> = {
   settingsPageTitle: 'SETTINGS',
   creditsAmount: (n: number) => `${n} 💎`,
 
+  settingsSections: {
+    account: 'Account and security',
+    notifications: 'Notifications',
+    appearance: 'Appearance and language',
+    profile: 'Personal data and goals',
+    dataHelp: 'Guide and account data',
+  },
+
   publicStats: {
     title: 'IN NUMBERS',
     hint: 'This is the calling card others see when they open your profile.',
@@ -266,7 +286,8 @@ const en: Widen<typeof it> = {
 
   trophyCase: {
     title: 'TROPHY CASE',
-    emptyHint: 'No medals unlocked yet: discover them on the Medals page.',
+    emptyTitle: 'No medals unlocked yet',
+    emptyHint: 'Log a few workouts to earn your first one.',
     seeAllButton: 'See all medals',
   },
 

@@ -50,41 +50,23 @@ const it = {
     next: 'Avanti',
     finish: 'Registra il primo allenamento!',
     skip: 'Salta il tour',
+    // Tour ridotto da 7 a 2 slide (roadmap "PisoZone Next" P1-02, 23/07/2026):
+    // il resto (programmi, crediti/sfide, streak/recupero, temi/livelli,
+    // social) non si spiega più a memoria prima di qualunque azione reale —
+    // compare come ContextualTip la prima volta che l'utente apre davvero
+    // quella sezione (Sfide, Social; Programmi si spiega già da sé col
+    // sottotitolo di pagina). Obiettivo: arrivare alla prima attività
+    // registrata più in fretta.
     steps: [
       {
         icon: '🏃',
         title: 'BENVENUTO SU PISOZONE!',
-        text: 'Registra ogni allenamento: 15 sport tra cui scegliere, con le calorie calcolate automaticamente in base al tuo profilo.',
+        text: 'Registra ogni allenamento: 50 sport tra cui scegliere — corsa, bici e camminata col GPS, in palestra esercizi e carichi — con le calorie calcolate in automatico.',
       },
       {
-        icon: '🏋️',
-        title: 'REGISTRA COME VUOI',
-        text: 'Corsa, bici e camminata si tracciano col GPS. In palestra segni esercizi, serie e carichi: l\'app riconosce da sola i tuoi record personali.',
-      },
-      {
-        icon: '🎯',
-        title: 'PROGRAMMI DI ALLENAMENTO',
-        text: 'Scegli un obiettivo a più settimane — 5K, 10K, palestra, yoga — e allenati: le sessioni del piano si spuntano da sole.',
-      },
-      {
-        icon: '💎',
-        title: 'GUADAGNA CREDITI',
-        text: 'Ogni attività ti fa guadagnare crediti, e ogni giorno hai 3 sfide personalizzate che ne valgono altri. Completale prima di mezzanotte!',
-      },
-      {
-        icon: '🔥',
-        title: 'STREAK E RECUPERO',
-        text: 'Allenati con costanza per far crescere il tuo streak. Ti serve una pausa? Segna un giorno di riposo dalla Home e lo streak non si spezza. Ti aspettano 23 medaglie e 10 livelli.',
-      },
-      {
-        icon: '🎨',
-        title: 'FAI TUO IL TUO SPAZIO',
-        text: 'Sali di livello nel Profilo spendendo i crediti che guadagni, e sblocca 6 temi colore per tutta l\'app dalle Impostazioni.',
-      },
-      {
-        icon: '👥',
-        title: 'MEGLIO IN COMPAGNIA',
-        text: 'Nella sezione Amici trovi feed con reazioni e commenti, classifica settimanale, messaggi e gruppi: aggiungi i tuoi amici e sfidatevi.',
+        icon: '🚀',
+        title: 'IL RESTO LO SCOPRI STRADA FACENDO',
+        text: 'Crediti, sfide, streak, programmi e amici si sbloccano man mano che li incontri nell\'app. Registra il tuo primo allenamento per iniziare!',
       },
     ],
     guideHint: 'Tutte le funzioni sono spiegate nella Guida: la trovi nelle Impostazioni.',
@@ -187,37 +169,12 @@ const en: Widen<typeof it> = {
       {
         icon: '🏃',
         title: 'WELCOME TO PISOZONE!',
-        text: 'Log every workout: 15 sports to choose from, with calories calculated automatically based on your profile.',
+        text: 'Log every workout: 50 sports to choose from — running, cycling and walking with GPS, gym sets and loads — with calories calculated automatically.',
       },
       {
-        icon: '🏋️',
-        title: 'LOG IT YOUR WAY',
-        text: 'Running, cycling and walking track with GPS. At the gym you log exercises, sets and loads: the app spots your personal records on its own.',
-      },
-      {
-        icon: '🎯',
-        title: 'TRAINING PLANS',
-        text: 'Pick a multi-week goal — 5K, 10K, gym, yoga — and train: the plan\'s sessions tick themselves off.',
-      },
-      {
-        icon: '💎',
-        title: 'EARN CREDITS',
-        text: 'Every activity earns you credits, and every day you get 3 personalized challenges worth even more. Complete them before midnight!',
-      },
-      {
-        icon: '🔥',
-        title: 'STREAK AND RECOVERY',
-        text: 'Train consistently to grow your streak. Need a break? Mark a rest day from Home and your streak won\'t break. 23 medals and 10 levels are waiting for you.',
-      },
-      {
-        icon: '🎨',
-        title: 'MAKE IT YOURS',
-        text: 'Level up in Profile by spending the credits you earn, and unlock 6 color themes for the whole app from Settings.',
-      },
-      {
-        icon: '👥',
-        title: 'BETTER TOGETHER',
-        text: 'In the Friends section you\'ll find a feed with reactions and comments, a weekly leaderboard, messages and groups: add your friends and challenge them.',
+        icon: '🚀',
+        title: "YOU'LL DISCOVER THE REST ALONG THE WAY",
+        text: 'Credits, challenges, streaks, plans and friends unlock as you come across them in the app. Log your first workout to get started!',
       },
     ],
     guideHint: 'Every feature is explained in the Guide: find it in Settings.',

@@ -10,6 +10,13 @@ import { createNamespaceProxy, type Widen } from './proxy'
 const it = {
   pageTitle: 'SOCIAL',
 
+  // Tip contestuale one-shot (roadmap "PisoZone Next" P1-02): al primo
+  // ingresso in questa pagina, non più in una slide del tour di benvenuto.
+  tip: {
+    title: 'Meglio in compagnia',
+    text: 'Aggiungi amici per vedere le loro attività nel feed, sfidarli e scrivergli — o crea un gruppo per allenarvi insieme.',
+  },
+
   shared: {
     unknownUser: 'Utente',
     selfFallbackName: 'Tu',
@@ -265,6 +272,11 @@ const it = {
 
 const en: Widen<typeof it> = {
   pageTitle: 'SOCIAL',
+
+  tip: {
+    title: 'Better with friends',
+    text: 'Add friends to see their activities in the feed, challenge them and chat — or create a group to train together.',
+  },
 
   shared: {
     unknownUser: 'User',
