@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { calcStreak, generateDailyChallenges, CHALLENGE_POOL } from './challenges'
+import { calcStreak, calcStreakSavedByFreeze, generateDailyChallenges, CHALLENGE_POOL } from './challenges'
 import type { Activity, ActivityType } from '../types'
 
 // Oggi fittizio e stabile per tutti i test: martedì 7 luglio 2026, ore 12:00
@@ -79,6 +79,46 @@ describe('calcStreak', () => {
     ]
     expect(calcStreak(acts, ['2026-07-06'])).toBe(3)
     expect(calcStreak(acts, [])).toBe(1)
+  })
+})
+
+describe('calcStreakSavedByFreeze', () => {
+  it('non offre nulla con UNA sola attività oggi e nessuno streak reale prima (bug P0-3 dell\'audit)', () => {
+    const acts = [mkAct({ date: '2026-07-07T08:00:00' })] // solo oggi
+    expect(calcStreakSavedByFreeze(acts, [], [])).toBe(0)
+  })
+
+  it('offre il freeze quando esiste un vero streak di almeno 1 giorno prima del gap', () => {
+    const acts = [
+      mkAct({ date: '2026-07-07T08:00:00' }), // oggi
+      // 6 luglio (ieri) mancante: il gap da coprire
+      mkAct({ date: '2026-07-05T08:00:00' }), // il giorno prima di ieri: streak reale
+    ]
+    expect(calcStreakSavedByFreeze(acts, [], [])).toBe(3)
+  })
+
+  it('un giorno di riposo prima del gap conta come streak reale, come un\'attività', () => {
+    const acts = [mkAct({ date: '2026-07-07T08:00:00' })]
+    expect(calcStreakSavedByFreeze(acts, [], ['2026-07-05'])).toBe(3)
+  })
+
+  it('non offre nulla se ieri ha già un\'attività (niente gap da coprire)', () => {
+    const acts = [
+      mkAct({ date: '2026-07-07T08:00:00' }),
+      mkAct({ date: '2026-07-06T08:00:00' }),
+      mkAct({ date: '2026-07-05T08:00:00' }),
+    ]
+    expect(calcStreakSavedByFreeze(acts, [], [])).toBe(0)
+  })
+
+  it('non offre nulla se ieri è già protetto (freeze o riposo già usati)', () => {
+    const acts = [mkAct({ date: '2026-07-07T08:00:00' }), mkAct({ date: '2026-07-05T08:00:00' })]
+    expect(calcStreakSavedByFreeze(acts, ['2026-07-06'], [])).toBe(0)
+    expect(calcStreakSavedByFreeze(acts, [], ['2026-07-06'])).toBe(0)
+  })
+
+  it('senza nessuna attività né giorno protetto, non offre mai nulla', () => {
+    expect(calcStreakSavedByFreeze([], [], [])).toBe(0)
   })
 })
 

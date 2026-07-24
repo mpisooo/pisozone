@@ -1,5 +1,5 @@
 import type { Activity, ChallengeTemplate } from '../types'
-import { format, startOfDay, parseISO, differenceInCalendarDays } from 'date-fns'
+import { format, startOfDay, parseISO, differenceInCalendarDays, subDays } from 'date-fns'
 
 export const CHALLENGE_POOL: ChallengeTemplate[] = [
   // — Facili (15 crediti) —
@@ -198,4 +198,30 @@ export function calcStreak(activities: Activity[], frozenDates: string[] = []): 
     else break
   }
   return streak
+}
+
+// Streak freeze offer (fix P0-3 dell'audit tecnico del 24/07/2026): offrire
+// di congelare ieri SOLO se esiste già un vero streak di almeno 1 giorno
+// consolidato PRIMA del gap — il giorno prima di ieri dev'essere davvero
+// attivo o protetto (attività, freeze o riposo). "Esiste almeno un'attività
+// in assoluto da qualche parte nella cronologia" non basta: con UNA sola
+// attività registrata oggi e nulla prima, calcStreak conta comunque "oggi +
+// ieri-congelato" = 2, offrendo di "salvare" uno streak mai esistito.
+// Restituisce 0 se non c'è nulla da offrire, altrimenti lo streak risultante
+// (mostrato all'utente nell'offerta).
+export function calcStreakSavedByFreeze(
+  activities: Activity[],
+  frozenDates: string[],
+  restDates: string[],
+): number {
+  const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+  const dayBeforeYesterday = format(subDays(new Date(), 2), 'yyyy-MM-dd')
+  const hasActivityYesterday = activities.some((a) => a.date.startsWith(yesterday))
+  const yesterdayAlreadyProtected = frozenDates.includes(yesterday) || restDates.includes(yesterday)
+  const hasRealStreakBeforeGap =
+    activities.some((a) => a.date.startsWith(dayBeforeYesterday)) ||
+    frozenDates.includes(dayBeforeYesterday) ||
+    restDates.includes(dayBeforeYesterday)
+  if (hasActivityYesterday || yesterdayAlreadyProtected || !hasRealStreakBeforeGap) return 0
+  return calcStreak(activities, [...frozenDates, ...restDates, yesterday])
 }

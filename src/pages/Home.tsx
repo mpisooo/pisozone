@@ -16,7 +16,7 @@ import { useDailyChallenges } from '../hooks/useDailyChallenges'
 import { ACTIVITY_OPTIONS, MEDALS, activityLabel } from '../lib/constants'
 import { computeStats } from '../lib/achievementStats'
 import { getPlanTemplate, computePlanProgress, suggestPlan, isPlanSuggestionDismissed, dismissPlanSuggestion } from '../lib/plans'
-import { calcStreak } from '../lib/challenges'
+import { calcStreak, calcStreakSavedByFreeze } from '../lib/challenges'
 import { daysSinceLastActivity, isComeback } from '../lib/comeback'
 import { secondWorkoutNudge } from '../lib/secondWorkoutNudge'
 import { getZoneByPercent } from '../lib/zones'
@@ -98,18 +98,12 @@ export default function HomePage() {
   )
 
   // Streak freeze offer: yesterday had no activity, not already frozen or
-  // rest day, and freeze would save a streak
+  // rest day, and freeze would save a REAL streak (guardia P0-3 dell'audit
+  // tecnico del 24/07/2026, vedi calcStreakSavedByFreeze in lib/challenges.ts).
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
-  const hasActivityYesterday = activities.some((a) => a.date.startsWith(yesterday))
-  const yesterdayAlreadyProtected = frozenDates.includes(yesterday) || restDates.includes(yesterday)
   const streakSavedByFreeze = useMemo(
-    () =>
-      // Guardia: senza almeno un'attività storica, "salvare" lo streak
-      // congelando ieri creerebbe uno streak fittizio da zero (account nuovi).
-      activities.length > 0 && !hasActivityYesterday && !yesterdayAlreadyProtected
-        ? calcStreak(activities, [...frozenDates, ...restDates, yesterday])
-        : 0,
-    [activities, frozenDates, restDates, yesterday, hasActivityYesterday, yesterdayAlreadyProtected],
+    () => calcStreakSavedByFreeze(activities, frozenDates, restDates),
+    [activities, frozenDates, restDates],
   )
   const showFreezeOffer = streakSavedByFreeze > 0
   const canAffordFreeze = (profile?.credits ?? 0) >= 300
