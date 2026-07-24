@@ -24,6 +24,9 @@ const it = {
     durationTitle: 'DURATA',
     hoursLabel: 'Ore',
     minutesLabel: 'Minuti',
+    // Secondi (solo corsa): serve il passo esatto per i record personali su
+    // distanze standard (1K, 5K, 10K...), non solo per chi traccia col GPS.
+    secondsLabel: 'Secondi',
     detailsTitle: 'DETTAGLI',
     distanceLabel: 'Distanza (km)',
     // Dislivello manuale: per chi non traccia con il GPS ma vuole comunque
@@ -73,6 +76,8 @@ const it = {
       minutesNotNegative: 'Non possono essere negativi',
       minutesMax: 'Massimo 59 minuti',
       minutesDurationZero: 'Inserisci una durata maggiore di zero',
+      secondsNotNegative: 'Non possono essere negativi',
+      secondsMax: 'Massimo 59 secondi',
       caloriesNotNegative: 'Non possono essere negative',
       distanceNotNegative: 'Non può essere negativa',
       unrealisticValue: 'Valore non realistico',
@@ -378,6 +383,7 @@ const en: Widen<typeof it> = {
     durationTitle: 'DURATION',
     hoursLabel: 'Hours',
     minutesLabel: 'Minutes',
+    secondsLabel: 'Seconds',
     detailsTitle: 'DETAILS',
     distanceLabel: 'Distance (km)',
     // Dislivello manuale: per chi non traccia con il GPS ma vuole comunque
@@ -425,6 +431,8 @@ const en: Widen<typeof it> = {
       minutesNotNegative: 'Cannot be negative',
       minutesMax: 'Maximum 59 minutes',
       minutesDurationZero: 'Enter a duration greater than zero',
+      secondsNotNegative: 'Cannot be negative',
+      secondsMax: 'Maximum 59 seconds',
       caloriesNotNegative: 'Cannot be negative',
       distanceNotNegative: 'Cannot be negative',
       unrealisticValue: 'Unrealistic value',

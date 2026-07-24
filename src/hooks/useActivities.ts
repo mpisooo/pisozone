@@ -72,10 +72,10 @@ export function useActivities() {
 
   useEffect(() => { fetchActivities() }, [fetchActivities])
 
-  // La colonna elevation_gain_m esiste solo dalla v44: PostgREST rifiuta
-  // l'insert di una colonna sconosciuta (PGRST204, il messaggio la nomina).
-  // Come per altitude_m nei percorsi si riprova senza — meglio perdere il
-  // dislivello che l'attività.
+  // Le colonne elevation_gain_m (v44) e duration_seconds (v52) esistono solo
+  // dalla loro migrazione: PostgREST rifiuta l'insert di una colonna
+  // sconosciuta (PGRST204, il messaggio la nomina). Come per altitude_m nei
+  // percorsi si riprova senza — meglio perdere il dettaglio che l'attività.
   const insertActivity = useCallback(async (payload: QueuedActivityPayload, userId: string) => {
     let result = await supabase
       .from('activities')
@@ -84,6 +84,14 @@ export function useActivities() {
       .single()
     if (result.error?.message?.includes('elevation_gain_m') && payload.elevation_gain_m !== undefined) {
       const { elevation_gain_m: _dropped, ...rest } = payload
+      result = await supabase
+        .from('activities')
+        .insert({ ...rest, user_id: userId })
+        .select()
+        .single()
+    }
+    if (result.error?.message?.includes('duration_seconds') && payload.duration_seconds !== undefined) {
+      const { duration_seconds: _dropped, ...rest } = payload
       result = await supabase
         .from('activities')
         .insert({ ...rest, user_id: userId })

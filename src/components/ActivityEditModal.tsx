@@ -30,6 +30,9 @@ import segmentsText from '../lib/i18n/segments'
 import { computeSplits, type TrackedPoint } from '../lib/gps'
 import { buildGpxDocument } from '../lib/gpxExport'
 import { downloadAsGpx } from '../lib/dataExport'
+import {
+  decomposeDurationMin, composeDurationMin, decomposeDurationSeconds, composeDurationSeconds, durationMinFromSeconds,
+} from '../lib/duration'
 
 // Mappa reale caricata pigra: Leaflet pesa ~150 kB e serve solo quando si
 // apre un'attività GPS — senza key (o senza rete: le tile non arriverebbero
@@ -44,6 +47,7 @@ type FormValues = {
   time: string
   hours: number
   minutes: number
+  seconds: number
   calories: number | ''
   distance_km: number | ''
   elevation_gain_m: number | ''
@@ -138,13 +142,22 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   }, [])
 
   const parsed = parseISO(activity.date)
+  // Se l'attività ha i secondi precisi (v52, solo corsa) si decompone da lì,
+  // altrimenti da duration_min (arrotondato al minuto: i secondi sarebbero
+  // sempre 0) — stesso principio di Log.tsx per il log lampo.
+  const initialDurationParts = activity.duration_seconds != null
+    ? decomposeDurationSeconds(activity.duration_seconds)
+    : decomposeDurationMin(activity.duration_min)
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       type: activity.type,
       date: format(parsed, 'yyyy-MM-dd'),
       time: format(parsed, 'HH:mm'),
-      hours: Math.floor(activity.duration_min / 60),
-      minutes: activity.duration_min % 60,
+      hours: initialDurationParts.hours,
+      minutes: initialDurationParts.minutes,
+      // Secondi a mano SOLO per la corsa (roadmap "PisoZone Next"): serve il
+      // passo esatto per i PR su distanze standard — vedi anche Log.tsx.
+      seconds: activity.type === 'corsa' ? initialDurationParts.seconds : 0,
       calories: activity.calories ?? '',
       distance_km: activity.distance_km ?? '',
       elevation_gain_m: activity.elevation_gain_m ?? '',
@@ -154,6 +167,10 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
   const selectedType = watch('type')
   const showDist = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)?.hasDist ?? false
+  const showSeconds = selectedType === 'corsa'
+  useEffect(() => {
+    if (selectedType !== 'corsa') setValue('seconds', 0)
+  }, [selectedType, setValue])
   // Sola lettura per le attività tracciate col GPS: lì il D+ arriva
   // dall'altimetria del percorso (RouteInsights), non va sovrascritto a mano.
   const showElevation = (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(selectedType) && !activity.gps_tracked
@@ -168,7 +185,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const onSubmit = async (v: FormValues) => {
     setSaving(true)
     setErrorMsg('')
-    const dur = Number(v.hours) * 60 + Number(v.minutes)
+    // duration_min è un integer nel DB (vincolo 1-1440): sempre arrotondato al
+    // minuto. I secondi precisi (solo corsa) viaggiano a parte in
+    // duration_seconds (v52) — vedi lib/duration.ts.
+    const totalSeconds = composeDurationSeconds(Number(v.hours), Number(v.minutes), Number(v.seconds) || 0)
+    const dur = durationMinFromSeconds(totalSeconds)
     const cal =
       v.calories !== '' ? Number(v.calories) :
       profile?.weight_kg && dur > 0 ? calcCalories(v.type, dur, profile.weight_kg) : null
@@ -210,6 +231,11 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
       // cioè quello già salvato — niente sovrascritture indesiderate.
       ...(activity.elevation_gain_m !== undefined
         ? { elevation_gain_m: v.elevation_gain_m !== '' ? Math.round(Number(v.elevation_gain_m)) : null }
+        : {}),
+      // Secondi precisi (v52): solo a colonna presente, null se non più corsa
+      // (l'attività non li mostra/raccoglie più — niente valore residuo stantio).
+      ...(activity.duration_seconds !== undefined
+        ? { duration_seconds: v.type === 'corsa' ? totalSeconds : null }
         : {}),
       // Solo a colonna presente (v45): se l'attività l'ha riportata dal
       // select *, esiste; pre-migrazione la chiave non viaggia.
@@ -377,7 +403,7 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
 
         <div className="card space-y-3">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.durationTitle}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${showSeconds ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div>
               <label htmlFor="edit-hours" className="block text-xs text-gray-400 mb-1">{log.form.hoursLabel}</label>
               <input
@@ -400,16 +426,32 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
                 {...register('minutes', {
                   min: { value: 0, message: log.form.validation.minutesNotNegative },
                   max: { value: 59, message: log.form.validation.minutesMax },
-                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || log.form.validation.minutesDurationZero,
+                  validate: (v) => composeDurationMin(Number(watch('hours')), Number(v), Number(watch('seconds')) || 0) > 0 || log.form.validation.minutesDurationZero,
                 })}
                 className="input-dark"
                 min={0}
                 max={59}
               />
             </div>
+            {showSeconds && (
+              <div>
+                <label htmlFor="edit-seconds" className="block text-xs text-gray-400 mb-1">{log.form.secondsLabel}</label>
+                <input
+                  id="edit-seconds"
+                  type="number"
+                  {...register('seconds', {
+                    min: { value: 0, message: log.form.validation.secondsNotNegative },
+                    max: { value: 59, message: log.form.validation.secondsMax },
+                  })}
+                  className="input-dark"
+                  min={0}
+                  max={59}
+                />
+              </div>
+            )}
           </div>
-          {(errors.hours || errors.minutes) && (
-            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
+          {(errors.hours || errors.minutes || errors.seconds) && (
+            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message || errors.seconds?.message}</p>
           )}
         </div>
 

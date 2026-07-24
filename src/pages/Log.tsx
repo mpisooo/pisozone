@@ -17,6 +17,9 @@ import { useRoutines } from '../hooks/useRoutines'
 import { isPendingActivityId, pendingLocalId } from '../lib/offlineQueue'
 import { savePendingAttachments } from '../lib/offlineAttachments'
 import { lastActivityOfType, prefillFromActivity, type QuickLogPrefill } from '../lib/quickLog'
+import {
+  decomposeDurationMin, composeDurationMin, decomposeDurationSeconds, composeDurationSeconds, durationMinFromSeconds,
+} from '../lib/duration'
 import { detectGpsRecords, type WorkoutRecapData } from '../lib/workoutRecap'
 import {
   isValidIntervalPlan, INTERVAL_MIN_REPEATS, INTERVAL_MAX_REPEATS,
@@ -45,6 +48,7 @@ type FormValues = {
   time: string
   hours: number
   minutes: number
+  seconds: number
   calories: number | ''
   distance_km: number | ''
   elevation_gain_m: number | ''
@@ -133,6 +137,7 @@ export default function LogPage() {
       time: format(new Date(), 'HH:mm'),
       hours: 0,
       minutes: 30,
+      seconds: 0,
       calories: '',
       distance_km: '',
       elevation_gain_m: '',
@@ -143,11 +148,16 @@ export default function LogPage() {
   const selectedType = watch('type')
   const hours = Number(watch('hours')) || 0
   const minutes = Number(watch('minutes')) || 0
+  const seconds = Number(watch('seconds')) || 0
   const caloriesInput = watch('calories')
 
   const selectedActivity = ACTIVITY_OPTIONS.find((a) => a.value === selectedType)
   const showDist = selectedActivity?.hasDist ?? false
-  const durationMin = hours * 60 + minutes
+  // Secondi a mano SOLO per la corsa (roadmap "PisoZone Next"): serve il
+  // passo esatto per i PR su distanze standard (1K/5K/10K...), non richiesto
+  // per gli altri sport — si azzerano lasciando quella sezione (vedi effetto sotto).
+  const showSeconds = selectedType === 'corsa'
+  const durationMin = composeDurationMin(hours, minutes, seconds)
   const showElevation = (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(selectedType) && indoor !== true
 
   const indoorVariant = INDOOR_VARIANTS[selectedType]
@@ -164,6 +174,12 @@ export default function LogPage() {
     }
   }, [selectedType])
 
+  // I secondi si azzerano lasciando la corsa: non hanno un campo visibile
+  // fuori da lì e non devono sopravvivere silenziosamente al cambio sport.
+  useEffect(() => {
+    if (selectedType !== 'corsa') setValue('seconds', 0)
+  }, [selectedType, setValue])
+
   // Log lampo (roadmap v3, pilastro 02) — arrivo da Home con "Ripeti questo
   // allenamento": il form si apre già compilato. Lo state viene consumato
   // (replace) così chiudere/riaprire la pagina non riapplica il prefill.
@@ -175,12 +191,16 @@ export default function LogPage() {
     navigate(location.pathname, { replace: true, state: null })
     if (prefill.type !== watch('type')) pendingIndoorRef.current = prefill.indoor
     else setIndoor(prefill.indoor)
+    const parts = prefill.type === 'corsa' && prefill.durationSeconds != null
+      ? decomposeDurationSeconds(prefill.durationSeconds)
+      : decomposeDurationMin(prefill.durationMin)
     reset({
       type: prefill.type,
       date: format(new Date(), 'yyyy-MM-dd'),
       time: format(new Date(), 'HH:mm'),
-      hours: Math.floor(prefill.durationMin / 60),
-      minutes: prefill.durationMin % 60,
+      hours: parts.hours,
+      minutes: parts.minutes,
+      seconds: parts.seconds,
       calories: '',
       distance_km: prefill.distanceKm ?? '',
       elevation_gain_m: (ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(prefill.type) ? prefill.elevationGainM ?? '' : '',
@@ -197,8 +217,12 @@ export default function LogPage() {
   const applyQuickChip = () => {
     if (!lastOfSport) return
     const p = prefillFromActivity(lastOfSport)
-    setValue('hours', Math.floor(p.durationMin / 60))
-    setValue('minutes', p.durationMin % 60)
+    const parts = p.type === 'corsa' && p.durationSeconds != null
+      ? decomposeDurationSeconds(p.durationSeconds)
+      : decomposeDurationMin(p.durationMin)
+    setValue('hours', parts.hours)
+    setValue('minutes', parts.minutes)
+    setValue('seconds', parts.seconds)
     if (showDist) setValue('distance_km', p.distanceKm ?? '')
     if ((ELEVATION_CAPABLE_TYPES as ActivityType[]).includes(p.type)) setValue('elevation_gain_m', p.elevationGainM ?? '')
     setIndoor(p.indoor)
@@ -223,7 +247,11 @@ export default function LogPage() {
 
   const onSubmit = async (values: FormValues) => {
     setSaving(true)
-    const dur = Number(values.hours) * 60 + Number(values.minutes)
+    // duration_min nel DB è un integer (vincolo 1-1440): non può ricevere una
+    // frazione, va sempre arrotondato al minuto. I secondi precisi (solo
+    // corsa) viaggiano a parte in duration_seconds (v52) — vedi lib/duration.ts.
+    const totalSeconds = composeDurationSeconds(Number(values.hours), Number(values.minutes), Number(values.seconds) || 0)
+    const dur = durationMinFromSeconds(totalSeconds)
     const cal =
       values.calories !== '' && Number(values.calories) > 0
         ? Number(values.calories)
@@ -237,6 +265,10 @@ export default function LogPage() {
       type: values.type,
       date: dateTime,
       duration_min: dur,
+      // Solo per la corsa: negli altri sport i secondi non si inseriscono a
+      // mano (campo nascosto, sempre 0) e la colonna resterebbe un dato
+      // ridondante rispetto a duration_min.
+      ...(values.type === 'corsa' ? { duration_seconds: totalSeconds } : {}),
       calories: cal,
       distance_km: values.distance_km !== '' ? Number(values.distance_km) : null,
       elevation_gain_m: values.elevation_gain_m !== '' ? Math.round(Number(values.elevation_gain_m)) : null,
@@ -559,7 +591,7 @@ export default function LogPage() {
         {/* Duration */}
         <div className="card space-y-3">
           <h2 className="font-bebas text-xl text-[var(--red)] tracking-wider">{log.form.durationTitle}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${showSeconds ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div>
               <label htmlFor="log-hours" className="block text-xs text-gray-400 mb-1">{log.form.hoursLabel}</label>
               <input
@@ -582,21 +614,41 @@ export default function LogPage() {
                 {...register('minutes', {
                   min: { value: 0, message: log.form.validation.minutesNotNegative },
                   max: { value: 59, message: log.form.validation.minutesMax },
-                  validate: (v) => (Number(watch('hours')) * 60 + Number(v)) > 0 || log.form.validation.minutesDurationZero,
+                  validate: (v) => composeDurationMin(Number(watch('hours')), Number(v), Number(watch('seconds')) || 0) > 0 || log.form.validation.minutesDurationZero,
                 })}
                 className="input-dark"
                 min={0}
                 max={59}
               />
             </div>
+            {showSeconds && (
+              <div>
+                <label htmlFor="log-seconds" className="block text-xs text-gray-400 mb-1">{log.form.secondsLabel}</label>
+                <input
+                  id="log-seconds"
+                  type="number"
+                  {...register('seconds', {
+                    min: { value: 0, message: log.form.validation.secondsNotNegative },
+                    max: { value: 59, message: log.form.validation.secondsMax },
+                  })}
+                  className="input-dark"
+                  min={0}
+                  max={59}
+                />
+              </div>
+            )}
           </div>
           {durationMin > 0 && (
             <p className="text-xs text-gray-400">
-              {log.new.durationTotalPrefix} <span className="text-white font-medium">{hours}h {minutes < 10 ? '0' + minutes : minutes}min</span>
+              {log.new.durationTotalPrefix}{' '}
+              <span className="text-white font-medium">
+                {hours}h {minutes < 10 ? '0' + minutes : minutes}min
+                {showSeconds ? ` ${seconds < 10 ? '0' + seconds : seconds}s` : ''}
+              </span>
             </p>
           )}
-          {(errors.hours || errors.minutes) && (
-            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message}</p>
+          {(errors.hours || errors.minutes || errors.seconds) && (
+            <p className="text-xs text-red-400">{errors.hours?.message || errors.minutes?.message || errors.seconds?.message}</p>
           )}
         </div>
 

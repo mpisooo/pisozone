@@ -97,6 +97,12 @@ export interface Activity {
   // marcato a mano dall'utente (mai in fase di creazione, solo modificando
   // l'attività). undefined = colonna assente.
   is_favorite?: boolean
+  // Opzionale: esiste solo dopo la migrazione v52. Secondi totali precisi,
+  // inseriti a mano SOLO per la corsa (serve il passo esatto per i futuri
+  // record personali su distanze standard) — duration_min resta l'intero
+  // arrotondato al minuto usato ovunque altrove (calorie, crediti, vincolo
+  // DB). null/undefined = precisione non disponibile per questa attività.
+  duration_seconds?: number | null
 }
 
 export interface RoutePoint {

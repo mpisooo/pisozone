@@ -23,17 +23,23 @@ describe('prefillFromActivity', () => {
     expect(prefillFromActivity(act({ indoor: true, elevation_gain_m: 320 }))).toEqual({
       type: 'corsa',
       durationMin: 45,
+      durationSeconds: null,
       distanceKm: 7.5,
       indoor: true,
       elevationGainM: 320,
     })
   })
 
+  it('ricopia i secondi precisi (v52) quando presenti', () => {
+    expect(prefillFromActivity(act({ duration_seconds: 2718 })).durationSeconds).toBe(2718)
+  })
+
   it('normalizza a null i campi assenti (pre-migrazione o mai compilati)', () => {
-    const p = prefillFromActivity(act({ distance_km: null, indoor: undefined, elevation_gain_m: undefined }))
+    const p = prefillFromActivity(act({ distance_km: null, indoor: undefined, elevation_gain_m: undefined, duration_seconds: undefined }))
     expect(p.distanceKm).toBeNull()
     expect(p.indoor).toBeNull()
     expect(p.elevationGainM).toBeNull()
+    expect(p.durationSeconds).toBeNull()
   })
 })
 

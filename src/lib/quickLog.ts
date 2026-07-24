@@ -8,6 +8,9 @@ import type { Activity, ActivityType } from '../types'
 export interface QuickLogPrefill {
   type: ActivityType
   durationMin: number
+  // Secondi precisi (v52), solo corsa: se l'attività di partenza li aveva,
+  // il log lampo li ricopia invece di perdere la precisione arrotondando.
+  durationSeconds: number | null
   distanceKm: number | null
   indoor: boolean | null
   elevationGainM: number | null
@@ -17,6 +20,7 @@ export function prefillFromActivity(a: Activity): QuickLogPrefill {
   return {
     type: a.type,
     durationMin: a.duration_min,
+    durationSeconds: a.duration_seconds ?? null,
     distanceKm: a.distance_km ?? null,
     indoor: a.indoor ?? null,
     elevationGainM: a.elevation_gain_m ?? null,
