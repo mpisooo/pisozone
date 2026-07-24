@@ -15,7 +15,7 @@ export default function TopBar() {
   const { profile } = useProfile()
   const { syncProfileTheme } = useTheme()
   const navigate = useNavigate()
-  const username: string = (user?.user_metadata?.username as string) || 'Atleta'
+  const username: string = (user?.user_metadata?.username as string) || shell.topBar.athleteFallback
   const [open, setOpen] = useState(false)
   const [showCreditsInfo, setShowCreditsInfo] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)

@@ -13,6 +13,7 @@ import { buildUserDataExport, downloadAsJson } from '../lib/dataExport'
 import { computeWeightTrend, goalOutlook } from '../lib/weightTrend'
 import { ACTIVITY_OPTIONS } from '../lib/constants'
 import { THEME_DEFINITIONS, type ThemeId } from '../lib/levels'
+import themesText from '../lib/i18n/themes'
 import type { Profile, ActivityType } from '../types'
 import SkeletonCard from '../components/SkeletonCard'
 import ActivityIcon from '../components/ActivityIcon'
@@ -334,8 +335,8 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-white">{td.name}</p>
-                    <p className="text-[11px] text-gray-500 leading-tight">{td.description}</p>
+                    <p className="text-sm font-semibold text-white">{themesText[td.id].name}</p>
+                    <p className="text-[11px] text-gray-500 leading-tight">{themesText[td.id].description}</p>
                   </div>
 
                   {isActive ? (

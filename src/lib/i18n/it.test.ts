@@ -57,7 +57,7 @@ const NAMESPACES = [
   'challenges', 'medals', 'profile', 'social', 'legal',
   'recovery', 'plans', 'guide', 'goals', 'insights', 'wrapped', 'share', 'duels',
   'seasonalEvents', 'notifications', 'recap', 'heatmap', 'segments', 'routines',
-  'sportPicker', 'landing',
+  'sportPicker', 'landing', 'themes',
 ]
 
 describe('dizionario i18n', () => {

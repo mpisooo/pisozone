@@ -27,12 +27,17 @@ interface Props {
 export default function GroupChatView({ groupId, groupName, groupPhoto, friends, myId, myUsername, myPhoto, onBack }: Props) {
   const { fetchGroupMessages, sendGroupMessage, leaveGroup, fetchGroupMembers, renameGroup, updateGroupPhoto, addMembers, removeMember } = useGroups()
   const [messages, setMessages] = useState<(GroupMessage & { failed?: boolean })[]>([])
-  const [members, setMembers] = useState<GroupMember[]>([])
+  // null = ancora in caricamento (fix P1-5 dell'audit tecnico del 24/07/2026):
+  // partire da [] mostrava "0 membri" per lo scampolo di tempo prima che il
+  // fetch asincrono risolvesse, indistinguibile da un gruppo vuoto — i dati in
+  // DB sono corretti fin da subito (createGroup li inserisce già), è solo
+  // uno stato di caricamento non distinto da quello vuoto.
+  const [members, setMembers] = useState<GroupMember[] | null>(null)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const membersRef = useRef<GroupMember[]>([])
+  const membersRef = useRef<GroupMember[] | null>(null)
 
   // Gruppi vivi (roadmap v6): nome e foto restano locali a questa vista —
   // niente header duplicato altrove da tenere sincronizzato, si aggiornano
@@ -57,7 +62,7 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages', filter: `group_id=eq.${groupId}` }, (p: any) => {
         const m = p.new
         if (m.sender_id === myId) return
-        const sender = membersRef.current.find(mem => mem.id === m.sender_id)
+        const sender = membersRef.current?.find(mem => mem.id === m.sender_id)
         setMessages(prev => [...prev, { ...m, sender_username: sender?.username ?? social.shared.unknownUser, sender_photo: sender?.photo_url ?? null }])
       })
       .subscribe()
@@ -92,7 +97,7 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
     ))
   }
 
-  const myRole = members.find(m => m.id === myId)?.role
+  const myRole = members?.find(m => m.id === myId)?.role
   const isAdmin = myRole === 'admin'
 
   const handleSaveName = async () => {
@@ -127,7 +132,7 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
     const { error } = await removeMember(groupId, kickTarget.id)
     setKicking(false)
     setKickTarget(null)
-    if (!error) setMembers(prev => prev.filter(m => m.id !== kickTarget.id))
+    if (!error) setMembers(prev => prev && prev.filter(m => m.id !== kickTarget.id))
   }
 
   return (
@@ -177,7 +182,11 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
               )}
             </div>
           )}
-          {!renaming && <p className="text-xs text-gray-500">{members.length} {social.groups.memberPlural}</p>}
+          {!renaming && (
+            members === null
+              ? <span className="skeleton h-3 w-16 rounded inline-block" />
+              : <p className="text-xs text-gray-500">{members.length} {social.groups.memberPlural}</p>
+          )}
         </div>
         <button type="button" onClick={() => setShowMembers(v => !v)} aria-label={social.chat.group.showMembersAria} className={`tap p-1 transition-colors ${showMembers ? 'text-[var(--red)]' : 'text-gray-400 hover:text-white'}`}>
           <Users size={18} />
@@ -187,7 +196,7 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
       {showMembers && (
         <div className="px-4 py-3 border-b border-[var(--grey)] space-y-2">
           <div className="flex flex-wrap gap-3">
-            {members.map(m => {
+            {(members ?? []).map(m => {
               const canKick = isAdmin && m.id !== myId
               const avatar = (
                 <div className="relative">
@@ -283,7 +292,7 @@ export default function GroupChatView({ groupId, groupName, groupPhoto, friends,
       {showAddMembers && (
         <AddMembersSheet
           friends={friends}
-          existingMemberIds={members.map(m => m.id)}
+          existingMemberIds={(members ?? []).map(m => m.id)}
           onClose={() => setShowAddMembers(false)}
           onSubmit={handleAddMembers}
         />

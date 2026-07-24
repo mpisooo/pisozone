@@ -34,6 +34,9 @@ const it = {
   },
   topBar: {
     profileMenuLabel: 'Menu profilo',
+    // Fix P1-4 dell'audit tecnico del 24/07/2026: era hardcoded 'Atleta',
+    // mai tradotto con l'app in inglese (stesso fallback di home.athleteFallback).
+    athleteFallback: 'Atleta',
     levelPrefix: 'Lv.',
     creditsSuffix: 'crediti',
     creditsInfoLabel: 'Come guadagnare crediti',
@@ -159,6 +162,7 @@ const en: Widen<typeof it> = {
   },
   topBar: {
     profileMenuLabel: 'Profile menu',
+    athleteFallback: 'Athlete',
     levelPrefix: 'Lv.',
     creditsSuffix: 'credits',
     creditsInfoLabel: 'How to earn credits',

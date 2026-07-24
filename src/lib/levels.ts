@@ -33,10 +33,13 @@ export function getNextLevelDef(currentLevel: number): LevelDefinition | null {
 
 export type ThemeId = 'dark' | 'light' | 'night-blue' | 'white' | 'emerald' | 'purple'
 
+// name/description vivono in lib/i18n/themes.ts (fix P1-4 dell'audit tecnico
+// del 24/07/2026): questa struttura resta puramente strutturale/language-
+// agnostic, come LEVEL_DEFINITIONS (i cui titoli restano invece hardcoded in
+// italiano per scelta, stessa eccezione di CHALLENGE_POOL/MEDALS/PLAN_CATALOG
+// — nomi di livello di gamification, non testo UI).
 export interface ThemeDefinition {
   id: ThemeId
-  name: string
-  description: string
   cost: number
   free: boolean
   previewBg: string
@@ -47,8 +50,6 @@ export interface ThemeDefinition {
 export const THEME_DEFINITIONS: ThemeDefinition[] = [
   {
     id: 'dark',
-    name: 'Scuro',
-    description: 'Segue il tema del sistema, se non scegli tu',
     cost: 0,
     free: true,
     previewBg: '#0D0D0D',
@@ -56,8 +57,6 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   },
   {
     id: 'light',
-    name: 'Chiaro',
-    description: 'Tema chiaro classico',
     cost: 0,
     free: true,
     previewBg: '#F0F2F5',
@@ -66,8 +65,6 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   },
   {
     id: 'night-blue',
-    name: 'Blu Notte',
-    description: 'Sfondo blu profondo + accenti azzurri',
     cost: 400,
     free: false,
     previewBg: '#080c14',
@@ -75,8 +72,6 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   },
   {
     id: 'white',
-    name: 'Bianco Puro',
-    description: 'Sfondo bianco minimalista',
     cost: 300,
     free: false,
     previewBg: '#ffffff',
@@ -85,8 +80,6 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   },
   {
     id: 'emerald',
-    name: 'Smeraldo',
-    description: 'Accenti verde smeraldo',
     cost: 500,
     free: false,
     previewBg: '#0a110e',
@@ -94,8 +87,6 @@ export const THEME_DEFINITIONS: ThemeDefinition[] = [
   },
   {
     id: 'purple',
-    name: 'Viola',
-    description: 'Accenti viola neon',
     cost: 600,
     free: false,
     previewBg: '#0d0917',
