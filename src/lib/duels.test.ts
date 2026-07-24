@@ -17,8 +17,15 @@ describe('duelState', () => {
 })
 
 describe('duelDaysLeft', () => {
-  it('conta i giorni rimanenti, mai negativi', () => {
-    expect(duelDaysLeft({ ends_on: '2026-07-20' }, '2026-07-18')).toBe(2)
+  it('il giorno della creazione mostra tutti i giorni della sfida (oggi conta)', () => {
+    // Sfida di 7 giorni creata oggi: ends_on = oggi + 6 (useDuels.ts).
+    expect(duelDaysLeft({ ends_on: '2026-07-20' }, '2026-07-14')).toBe(7)
+  })
+  it("l'ultimo giorno utile mostra 1, mai 0 (la sfida è ancora in corso)", () => {
+    expect(duelDaysLeft({ ends_on: '2026-07-20' }, '2026-07-20')).toBe(1)
+  })
+  it('dopo la scadenza resta a 0, mai negativo', () => {
+    expect(duelDaysLeft({ ends_on: '2026-07-20' }, '2026-07-21')).toBe(0)
     expect(duelDaysLeft({ ends_on: '2026-07-20' }, '2026-07-25')).toBe(0)
   })
 })

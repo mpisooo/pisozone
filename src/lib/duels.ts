@@ -36,8 +36,11 @@ export function duelState(duel: Pick<Duel, 'status' | 'ends_on'>, todayIso: stri
   return todayIso > duel.ends_on ? 'ended' : 'running'
 }
 
+// +1 perché oggi stesso è un giorno valido per giocare la sfida: una sfida
+// di N giorni deve mostrare "N giorni rimanenti" il giorno della creazione,
+// non N-1 (differenceInCalendarDays da solo non conta oggi come giorno).
 export function duelDaysLeft(duel: Pick<Duel, 'ends_on'>, todayIso: string): number {
-  return Math.max(0, differenceInCalendarDays(parseISO(duel.ends_on), parseISO(todayIso)))
+  return Math.max(0, differenceInCalendarDays(parseISO(duel.ends_on), parseISO(todayIso)) + 1)
 }
 
 // Vincitore dai valori aggregati: il migliore, purché unico. Per i 4 metric
