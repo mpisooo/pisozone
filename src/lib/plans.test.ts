@@ -3,6 +3,7 @@ import {
   PLAN_CATALOG,
   getPlanTemplate,
   weekOfPlan,
+  dayOfPlanWeek,
   computePlanProgress,
   suggestPlan,
   type PlanTemplate,
@@ -92,6 +93,18 @@ describe('weekOfPlan', () => {
   })
 })
 
+describe('dayOfPlanWeek', () => {
+  it('1..7 entro il blocco corrente, riparte da 1 a ogni nuova settimana', () => {
+    expect(dayOfPlanWeek(START, new Date('2026-07-06T00:30:00'))).toBe(1)
+    expect(dayOfPlanWeek(START, new Date('2026-07-12T23:00:00'))).toBe(7)
+    expect(dayOfPlanWeek(START, new Date('2026-07-13T08:00:00'))).toBe(1)
+    expect(dayOfPlanWeek(START, new Date('2026-07-20T08:00:00'))).toBe(1)
+  })
+  it('prima dell\'inizio si clampa a 1: niente è ancora atteso', () => {
+    expect(dayOfPlanWeek(START, new Date('2026-07-05T08:00:00'))).toBe(1)
+  })
+})
+
 describe('computePlanProgress', () => {
   const now = new Date('2026-07-08T12:00:00')
 
@@ -169,6 +182,12 @@ describe('computePlanProgress', () => {
     expect(computePlanProgress(plan, START, [], new Date('2026-07-08T12:00:00')).currentWeek).toBe(1)
     expect(computePlanProgress(plan, START, [], new Date('2026-07-14T12:00:00')).currentWeek).toBe(2)
     expect(computePlanProgress(plan, START, [], new Date('2026-08-01T12:00:00')).currentWeek).toBe(2)
+  })
+
+  it('dayOfCurrentWeek segue i giorni trascorsi nella settimana in corso', () => {
+    expect(computePlanProgress(plan, START, [], new Date('2026-07-06T12:00:00')).dayOfCurrentWeek).toBe(1)
+    expect(computePlanProgress(plan, START, [], new Date('2026-07-12T12:00:00')).dayOfCurrentWeek).toBe(7)
+    expect(computePlanProgress(plan, START, [], new Date('2026-07-13T12:00:00')).dayOfCurrentWeek).toBe(1)
   })
 
   it('endsOn è l\'ultimo giorno dell\'ultima settimana', () => {

@@ -25,7 +25,15 @@ export function computePlanCoachAdvice(
 ): PlanCoachAdvice | null {
   if (progress.completed || progress.expired) return null
 
-  const expectedByNow = progress.sessions.filter((s) => s.template.week <= progress.currentWeek).length
+  // Le settimane già trascorse contano per intero; quella in corso solo in
+  // proporzione ai giorni già passati (dayOfCurrentWeek) — mai l'intera
+  // settimana fin dal suo primo giorno, o il coach griderebbe "indietro" a
+  // ogni cambio di settimana anche a chi è perfettamente in pari.
+  const priorWeeksCount = progress.sessions.filter((s) => s.template.week < progress.currentWeek).length
+  const currentWeekSessions = progress.sessions.filter((s) => s.template.week === progress.currentWeek)
+  const expectedThisWeek = Math.floor((progress.dayOfCurrentWeek / 7) * currentWeekSessions.length)
+  const expectedByNow = priorWeeksCount + expectedThisWeek
+
   const missedSessions = expectedByNow - progress.doneCount
   if (missedSessions < PLAN_COACH_MISSED_THRESHOLD) return null
 

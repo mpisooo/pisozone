@@ -214,6 +214,16 @@ export function weekOfPlan(startedOn: string, date: Date): number {
   return Math.floor(diff / 7) + 1
 }
 
+// Giorno (1-based, 1..7) entro il blocco di 7 giorni corrente: serve al coach
+// automatico (planCoach.ts) per contare le sessioni attese in proporzione ai
+// giorni già trascorsi nella settimana, non l'intera settimana fin dal suo
+// primo giorno. Diff negativo (prima dell'inizio) si clampa a 1: niente è
+// ancora atteso.
+export function dayOfPlanWeek(startedOn: string, date: Date): number {
+  const diff = Math.max(differenceInCalendarDays(startOfDay(date), startOfDay(parseISO(startedOn))), 0)
+  return (diff % 7) + 1
+}
+
 export interface PlanSessionProgress {
   template: PlanSessionTemplate
   done: boolean
@@ -226,6 +236,8 @@ export interface PlanProgress {
   totalCount: number
   // 1..weeks anche prima/dopo la finestra: è la settimana da mostrare
   currentWeek: number
+  // 1..7: giorno entro currentWeek, per il coach automatico (planCoach.ts)
+  dayOfCurrentWeek: number
   completed: boolean
   // Finestra terminata senza completare tutte le sessioni
   expired: boolean
@@ -268,8 +280,9 @@ export function computePlanProgress(
   const completed = doneCount === sessions.length
   const nowWeek = weekOfPlan(startedOn, now)
   const currentWeek = Math.min(Math.max(nowWeek, 1), template.weeks)
+  const dayOfCurrentWeek = dayOfPlanWeek(startedOn, now)
   const expired = !completed && nowWeek > template.weeks
   const endsOn = format(addDays(startOfDay(parseISO(startedOn)), template.weeks * 7 - 1), 'yyyy-MM-dd')
 
-  return { sessions, doneCount, totalCount: sessions.length, currentWeek, completed, expired, endsOn }
+  return { sessions, doneCount, totalCount: sessions.length, currentWeek, dayOfCurrentWeek, completed, expired, endsOn }
 }
