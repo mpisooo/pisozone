@@ -15,7 +15,7 @@ const it = {
 
   privacy: {
     title: 'PRIVACY POLICY',
-    updated: '7 luglio 2026',
+    updated: '24 luglio 2026',
 
     controller: {
       heading: '1. TITOLARE DEL TRATTAMENTO',
@@ -38,6 +38,10 @@ const it = {
         label: 'Attività sportive',
         text: ' — tipo di sport, data, durata, calorie, distanza ed eventuali note e foto che decidi di allegare.',
       },
+      gps: {
+        label: 'Percorsi GPS',
+        text: ' — se tracci un allenamento con il GPS (corsa, bici, camminata, trekking), il tracciato punto per punto (posizione e, se disponibile, quota) associato a quell\'attività.',
+      },
       social: {
         label: 'Funzioni social',
         text: ' — amicizie, richieste di amicizia, messaggi privati e di gruppo, "mi piace" alle attività degli amici.',
@@ -54,7 +58,7 @@ const it = {
         label: 'Dati tecnici',
         text: ' — in caso di errori dell\'app, informazioni diagnostiche (tipo di errore, pagina, browser) tramite il servizio Sentry, associate al tuo id utente e username ma a nessun altro dato personale.',
       },
-      outro: 'Non raccogliamo dati di localizzazione, non usiamo tracciamento pubblicitario e non vendiamo dati a terzi.',
+      outro: 'Non usiamo tracciamento pubblicitario e non vendiamo dati a terzi. I dati di localizzazione (percorsi GPS) restano privati per te di default: li vedi solo tu, a meno che tu non scelga di condividere il percorso di una specifica attività con i tuoi amici (vedi sezione 5).',
     },
 
     purpose: {
@@ -86,7 +90,7 @@ const it = {
 
     whoSeesWhat: {
       heading: '5. CHI VEDE COSA',
-      text: 'Alcuni dati sono visibili agli altri utenti solo nell\'ambito delle funzioni social: il tuo username, la foto profilo, il livello e la cornice sono visibili a chi ti cerca; le tue attività (incluse le foto che vi alleghi), i traguardi e i relativi commenti compaiono nel feed dei tuoi amici; i messaggi sono visibili solo a chi li riceve. Se compari nella classifica globale settimanale, gli altri utenti vedono username, foto e i tuoi totali aggregati della settimana (sessioni, minuti, calorie) — mai le singole attività. Peso, data di nascita, genere, altezza e storico pesate non sono mai visibili ad altri utenti. Puoi bloccare un utente in qualsiasi momento dal suo profilo: non potrà più scriverti, inviarti richieste né vedere le tue attività.',
+      text: 'Alcuni dati sono visibili agli altri utenti solo nell\'ambito delle funzioni social: il tuo username, la foto profilo, il livello e la cornice sono visibili a chi ti cerca; le tue attività (incluse le foto che vi alleghi), i traguardi e i relativi commenti compaiono nel feed dei tuoi amici; i messaggi sono visibili solo a chi li riceve. Se compari nella classifica globale settimanale, gli altri utenti vedono username, foto e i tuoi totali aggregati della settimana (sessioni, minuti, calorie) — mai le singole attività. I percorsi GPS restano visibili solo a te di default: puoi scegliere, attività per attività, di mostrarne la forma agli amici nel feed (mai la mappa reale né le coordinate esatte); la tua mappa di calore personale non è mai condivisa. Se crei una sfida di percorso, le coordinate di inizio e fine del segmento scelto vengono condivise solo con l\'amico che sfidi, perché possa percorrerlo. Peso, data di nascita, genere, altezza e storico pesate non sono mai visibili ad altri utenti. Puoi bloccare un utente in qualsiasi momento dal suo profilo: non potrà più scriverti, inviarti richieste né vedere le tue attività.',
     },
 
     retention: {
@@ -192,7 +196,7 @@ const en: Widen<typeof it> = {
 
   privacy: {
     title: 'PRIVACY POLICY',
-    updated: 'July 7, 2026',
+    updated: 'July 24, 2026',
 
     controller: {
       heading: '1. DATA CONTROLLER',
@@ -215,6 +219,10 @@ const en: Widen<typeof it> = {
         label: 'Sports activities',
         text: ' — sport type, date, duration, calories, distance, and any notes and photos you choose to attach.',
       },
+      gps: {
+        label: 'GPS routes',
+        text: ' — if you track a workout with GPS (running, cycling, walking, hiking), the point-by-point route (location and, if available, elevation) linked to that activity.',
+      },
       social: {
         label: 'Social features',
         text: ' — friendships, friend requests, private and group messages, "likes" on friends\' activities.',
@@ -231,7 +239,7 @@ const en: Widen<typeof it> = {
         label: 'Technical data',
         text: ' — in the event of app errors, diagnostic information (error type, page, browser) via the Sentry service, linked to your user id and username but to no other personal data.',
       },
-      outro: 'We do not collect location data, we do not use advertising tracking, and we do not sell data to third parties.',
+      outro: 'We do not use advertising tracking and we do not sell data to third parties. Location data (GPS routes) stays private to you by default: only you can see it, unless you choose to share a specific activity\'s route with your friends (see section 5).',
     },
 
     purpose: {
@@ -263,7 +271,7 @@ const en: Widen<typeof it> = {
 
     whoSeesWhat: {
       heading: '5. WHO SEES WHAT',
-      text: 'Some data is visible to other users only within the social features: your username, profile photo, level and frame are visible to anyone who looks you up; your activities (including any photos you attach to them), milestones and their comments appear in your friends\' feed; messages are visible only to their recipient. If you appear on the global weekly leaderboard, other users see your username, photo and your aggregated totals for the week (sessions, minutes, calories) — never individual activities. Weight, date of birth, gender, height and weigh-in history are never visible to other users. You can block a user at any time from their profile: they will no longer be able to message you, send you requests, or see your activities.',
+      text: 'Some data is visible to other users only within the social features: your username, profile photo, level and frame are visible to anyone who looks you up; your activities (including any photos you attach to them), milestones and their comments appear in your friends\' feed; messages are visible only to their recipient. If you appear on the global weekly leaderboard, other users see your username, photo and your aggregated totals for the week (sessions, minutes, calories) — never individual activities. GPS routes stay visible only to you by default: you can choose, activity by activity, to show their shape to friends in the feed (never the real map or exact coordinates); your personal heatmap is never shared. If you create a route challenge (segment duel), the start and end coordinates of the chosen segment are shared only with the friend you challenge, so they can run it too. Weight, date of birth, gender, height and weigh-in history are never visible to other users. You can block a user at any time from their profile: they will no longer be able to message you, send you requests, or see your activities.',
     },
 
     retention: {

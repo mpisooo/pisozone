@@ -20,6 +20,7 @@ export default function PrivacyPage() {
           <li><strong>{p.dataCollected.account.label}</strong>{p.dataCollected.account.text}</li>
           <li><strong>{p.dataCollected.profile.label}</strong>{p.dataCollected.profile.text}</li>
           <li><strong>{p.dataCollected.activities.label}</strong>{p.dataCollected.activities.text}</li>
+          <li><strong>{p.dataCollected.gps.label}</strong>{p.dataCollected.gps.text}</li>
           <li><strong>{p.dataCollected.social.label}</strong>{p.dataCollected.social.text}</li>
           <li><strong>{p.dataCollected.gamification.label}</strong>{p.dataCollected.gamification.text}</li>
           <li><strong>{p.dataCollected.push.label}</strong>{p.dataCollected.push.text}</li>
