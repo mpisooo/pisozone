@@ -29,7 +29,7 @@ interface Props {
 // live — il tipo di sport, che il GPX non registra, lo sceglie l'utente qui.
 export default function GpxImportModal({ onClose, onImported }: Props) {
   const { user } = useAuth()
-  const { profile } = useProfile()
+  const { profile, refetch: refetchProfile } = useProfile()
   const { addActivity } = useActivities()
   const [parsed, setParsed] = useState<ReturnType<typeof parseGpx> | null>(null)
   const [fileName, setFileName] = useState('')
@@ -101,6 +101,9 @@ export default function GpxImportModal({ onClose, onImported }: Props) {
     if (!pending) {
       await saveActivityRoute(data.user_id, data.id, points)
       matchAndRecordSegments(data.user_id, data.id, activityType, points).catch(() => {})
+      // Il saldo crediti (P0-2 dell'audit tecnico del 24/07/2026): un import
+      // in coda offline non ha ancora guadagnato crediti reali.
+      refetchProfile()
     }
     setSaving(false)
     haptic('success')

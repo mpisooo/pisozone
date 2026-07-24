@@ -57,7 +57,7 @@ type FormValues = {
 
 export default function LogPage() {
   const { activities, addActivity, updateActivity } = useActivities()
-  const { profile } = useProfile()
+  const { profile, refetch: refetchProfile } = useProfile()
   const [saved, setSaved] = useState(false)
   const [savedOffline, setSavedOffline] = useState(false)
   const [savedOfflineExtras, setSavedOfflineExtras] = useState(false)
@@ -292,6 +292,12 @@ export default function LogPage() {
     // essere salvati subito — vengono accodati anche loro (v3, pilastro 04,
     // vedi sotto) invece di essere scartati.
     const pending = data ? isPendingActivityId(data.id) : false
+
+    // Il saldo crediti (P0-2 dell'audit tecnico del 24/07/2026): senza questo
+    // refetch il resto dell'app (TopBar, Profilo, Impostazioni) continuava a
+    // mostrare il saldo caricato al login, anche sulla primissima attività.
+    // Un'attività in coda offline non ha ancora guadagnato crediti reali.
+    if (!pending) refetchProfile()
 
     // La foto viaggia dopo l'insert (serve l'id per il path stabile). Se
     // fallisce, l'attività resta salvata: si avvisa e si può riprovare dalla

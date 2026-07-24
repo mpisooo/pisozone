@@ -66,7 +66,7 @@ function formatSpeed(speedKmh: number): string {
 // senza useFocusTrap: il suo Esc-per-chiudere immediato contraddice il
 // concetto di schermata bloccata, e non c'è nulla "dietro" da raggiungere.
 export default function WorkoutTrackingOverlay({ activityType, intervalPlan, addActivity, onClose, onSaved }: Props) {
-  const { profile } = useProfile()
+  const { profile, refetch: refetchProfile } = useProfile()
   const { status, error, weakSignal, elapsedMs, stats, points, start, pause, resume, finish, cancel } =
     useGpsTracking(activityType)
 
@@ -240,6 +240,10 @@ export default function WorkoutTrackingOverlay({ activityType, intervalPlan, add
     // l'attività è in coda offline, quindi si salta del tutto (il recupero
     // alla sincronizzazione non è coperto, stessa scelta di altre v1).
     if (!pending) matchAndRecordSegments(data.user_id, data.id, activityType, s.points).catch(() => {})
+    // Il saldo crediti (P0-2 dell'audit tecnico del 24/07/2026): un'attività
+    // in coda offline non ha ancora guadagnato crediti reali, il refetch
+    // sarebbe un no-op — si aggiorna solo dopo un insert vero.
+    if (!pending) refetchProfile()
     setSaving(false)
     haptic('success')
     onSaved({ activity: data, points: s.points, pending, routeSaved: !routeError })
