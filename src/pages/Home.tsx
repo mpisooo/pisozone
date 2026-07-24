@@ -360,6 +360,7 @@ export default function HomePage() {
           todayLog={recoveryLogs.get(todayPrefix)}
           restDates={restDates}
           today={todayPrefix}
+          hasActivityToday={todayActivities.length > 0}
           onPatch={(patch) => patchDay(todayPrefix, patch)}
         />
       </div>

@@ -17,3 +17,11 @@ export function isSegmentHasActiveDuelError(error: { message?: string } | null |
 export function isGroupLastAdminError(error: { message?: string } | null | undefined): boolean {
   return !!error?.message?.includes('GROUP_LAST_ADMIN')
 }
+
+// Sollevato da guard_rest_activity_conflict (v53, audit tecnico del
+// 24/07/2026 P0-4) quando si prova a segnare riposo in un giorno con
+// attività già registrate — il client (canMarkRest) già lo impedisce dalla
+// UI, questa è la seconda linea di difesa lato DB.
+export function isRestHasActivityError(error: { message?: string } | null | undefined): boolean {
+  return !!error?.message?.includes('REST_HAS_ACTIVITY')
+}

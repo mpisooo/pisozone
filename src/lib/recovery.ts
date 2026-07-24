@@ -40,7 +40,12 @@ export function restCountInWeek(restDates: string[], day: string): number {
 
 // Si può segnare riposo per `day`? Il giorno stesso non conta nel limite
 // (altrimenti togliere e rimettere la spunta si bloccherebbe da solo).
-export function canMarkRest(restDates: string[], day: string): boolean {
+// Decisione prodotto (audit tecnico del 24/07/2026, P0-4): un giorno con
+// attività già registrate NON è un giorno di riposo — bloccato a monte,
+// mai un "riposo consapevole" con conferma. Stesso vincolo replicato lato DB
+// (guard_rest_activity_conflict, v53) per chi bypassa il client.
+export function canMarkRest(restDates: string[], day: string, hasActivityThatDay: boolean): boolean {
+  if (hasActivityThatDay) return false
   return restCountInWeek(restDates.filter((d) => d !== day), day) < REST_DAYS_PER_WEEK
 }
 

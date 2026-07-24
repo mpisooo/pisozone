@@ -36,17 +36,23 @@ describe('restCountInWeek', () => {
 
 describe('canMarkRest', () => {
   it('permette il riposo finché la settimana ha slot liberi', () => {
-    expect(canMarkRest([], '2026-07-08')).toBe(true)
-    expect(canMarkRest(['2026-07-06'], '2026-07-08')).toBe(true)
-    expect(canMarkRest(['2026-07-06', '2026-07-07'], '2026-07-08')).toBe(false)
+    expect(canMarkRest([], '2026-07-08', false)).toBe(true)
+    expect(canMarkRest(['2026-07-06'], '2026-07-08', false)).toBe(true)
+    expect(canMarkRest(['2026-07-06', '2026-07-07'], '2026-07-08', false)).toBe(false)
   })
 
   it('il giorno stesso non conta nel limite (toggle ripetibile)', () => {
-    expect(canMarkRest(['2026-07-06', '2026-07-08'], '2026-07-08')).toBe(true)
+    expect(canMarkRest(['2026-07-06', '2026-07-08'], '2026-07-08', false)).toBe(true)
   })
 
   it('i riposi di altre settimane non incidono', () => {
-    expect(canMarkRest(['2026-06-29', '2026-06-30', '2026-07-05'], '2026-07-08')).toBe(true)
+    expect(canMarkRest(['2026-06-29', '2026-06-30', '2026-07-05'], '2026-07-08', false)).toBe(true)
+  })
+
+  it('un giorno con attività già registrate non è mai un giorno di riposo (P0-4 dell\'audit)', () => {
+    // Slot settimanale libero, ma c'è già un allenamento quel giorno: bloccato.
+    expect(canMarkRest([], '2026-07-08', true)).toBe(false)
+    expect(canMarkRest(['2026-07-06'], '2026-07-08', true)).toBe(false)
   })
 })
 

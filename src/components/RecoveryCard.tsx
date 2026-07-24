@@ -16,6 +16,9 @@ interface Props {
   todayLog: RecoveryLog | undefined
   restDates: string[]
   today: string // yyyy-MM-dd
+  // Decisione prodotto (audit tecnico del 24/07/2026, P0-4): un giorno con
+  // attività già registrate non è selezionabile come riposo.
+  hasActivityToday: boolean
   onPatch: (patch: Partial<Pick<RecoveryLog, 'rest' | 'water_ml' | 'sleep_hours'>>) => void
 }
 
@@ -43,12 +46,12 @@ function StepButton({ onClick, disabled, ariaLabel, children }: {
 // giorno di riposo (protegge la streak, max 2 a settimana), idratazione a
 // bicchieri da 250 ml, ore di sonno. Controllata dall'esterno come
 // PerceivedMetricsFields: lo stato vive in useRecovery, qui solo i tocchi.
-export default function RecoveryCard({ todayLog, restDates, today, onPatch }: Props) {
+export default function RecoveryCard({ todayLog, restDates, today, hasActivityToday, onPatch }: Props) {
   const rest = todayLog?.rest ?? false
   const waterMl = todayLog?.water_ml ?? 0
   const sleep = todayLog?.sleep_hours ?? null
 
-  const restAllowed = canMarkRest(restDates, today)
+  const restAllowed = canMarkRest(restDates, today, hasActivityToday)
   const remaining = restRemainingInWeek(restDates, today)
   const waterDone = waterMl >= WATER_GOAL_ML
 
@@ -84,6 +87,8 @@ export default function RecoveryCard({ todayLog, restDates, today, onPatch }: Pr
             <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
               {rest
                 ? recovery.rest.hintActive
+                : hasActivityToday
+                ? recovery.rest.hintHasActivity
                 : restAllowed
                 ? recovery.rest.hintAvailable(remaining)
                 : recovery.rest.hintExhausted}

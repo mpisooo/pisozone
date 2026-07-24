@@ -15,6 +15,7 @@ const it = {
         : `La streak non si spezza · ne restano ${remaining} questa settimana`,
     hintActive: 'Riposo segnato: la streak è al sicuro anche senza allenarti',
     hintExhausted: 'Hai usato i riposi di questa settimana',
+    hintHasActivity: 'Hai già registrato un allenamento oggi: non è un giorno di riposo',
     ariaLabel: 'Segna oggi come giorno di riposo',
   },
 
@@ -39,6 +40,7 @@ const it = {
 
   errors: {
     saveFailed: 'Salvataggio del recupero non riuscito. Riprova.',
+    restHasActivity: 'Hai già registrato un allenamento oggi: non puoi segnarlo come riposo.',
   },
 } as const
 
@@ -53,6 +55,7 @@ const en: Widen<typeof it> = {
         : `Your streak stays safe · ${remaining} left this week`,
     hintActive: 'Rest day logged: your streak is safe even without training',
     hintExhausted: "You've used up this week's rest days",
+    hintHasActivity: "You've already logged a workout today: that's not a rest day",
     ariaLabel: 'Mark today as a rest day',
   },
 
@@ -79,6 +82,7 @@ const en: Widen<typeof it> = {
 
   errors: {
     saveFailed: 'Failed to save recovery data. Please try again.',
+    restHasActivity: "You've already logged a workout today, so you can't mark it as a rest day.",
   },
 }
 

@@ -3,6 +3,7 @@ import { format, subDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { isRestHasActivityError } from '../lib/errors'
 import recovery from '../lib/i18n/recovery'
 import type { RecoveryLog } from '../types'
 
@@ -86,7 +87,10 @@ export function useRecovery() {
         else rolled.delete(day)
         return rolled
       })
-      showError(recovery.errors.saveFailed)
+      // La UI già impedisce il tocco (canMarkRest): questo ramo copre solo
+      // un bypass diretto o una corsa tra dispositivi (guard_rest_activity_
+      // conflict, v53) — messaggio specifico invece del generico "riprova".
+      showError(isRestHasActivityError(error) ? recovery.errors.restHasActivity : recovery.errors.saveFailed)
       return
     }
     if (data) setLogs((prev) => new Map(prev).set(day, data as RecoveryLog))
