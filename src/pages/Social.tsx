@@ -55,8 +55,7 @@ export default function SocialPage() {
   const { groups, loading: groupsLoading, refetch: refetchGroups } = useGroups()
   const { feed, loading: feedLoading, refetch: refetchFeed, react, fetchReactors } = useFeed()
   const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(refetchFeed)
-  const [lbScope, setLbScope] = useState<'friends' | 'global'>('friends')
-  const { entries: lbEntries, loading: lbLoading } = useLeaderboard(lbScope)
+  const { entries: lbEntries, loading: lbLoading } = useLeaderboard()
 
   // Scoperta (v37): suggerimenti di utenti attivi non ancora amici. La RPC
   // esclude già amici, richieste pendenti e utenti bloccati; errore
@@ -269,8 +268,6 @@ export default function SocialPage() {
         {/* ── CLASSIFICA ── */}
         {tab === 'classifica' && (
           <LeaderboardTab
-            lbScope={lbScope}
-            setLbScope={setLbScope}
             loading={lbLoading}
             entries={lbEntries}
             openProfile={openProfile}

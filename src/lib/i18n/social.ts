@@ -114,18 +114,13 @@ const it = {
 
   leaderboard: {
     tabLabel: 'Classifica',
-    scopeFriendsLabel: 'Amici',
-    scopeGlobalLabel: 'Globale',
     weekHeading: 'Questa settimana',
     meSuffix: ' (tu)',
     sessionSingular: 'sessione',
     sessionPlural: 'sessioni',
     emptyFriendsTitle: 'NESSUN AMICO',
-    emptyGlobalTitle: 'ANCORA NESSUNO',
     emptyFriendsHint: 'Aggiungi amici per vedere la classifica settimanale',
-    emptyGlobalHint: 'Nessuna attività registrata questa settimana',
     errors: {
-      globalUnavailable: 'Classifica globale non disponibile. Riprova.',
       loadFailed: 'Errore nel caricamento della classifica. Riprova.',
     },
   },
@@ -374,18 +369,13 @@ const en: Widen<typeof it> = {
 
   leaderboard: {
     tabLabel: 'Leaderboard',
-    scopeFriendsLabel: 'Friends',
-    scopeGlobalLabel: 'Global',
     weekHeading: 'This week',
     meSuffix: ' (you)',
     sessionSingular: 'session',
     sessionPlural: 'sessions',
     emptyFriendsTitle: 'NO FRIENDS',
-    emptyGlobalTitle: 'NOBODY YET',
     emptyFriendsHint: 'Add friends to see the weekly leaderboard',
-    emptyGlobalHint: 'No activities logged this week',
     errors: {
-      globalUnavailable: 'Global leaderboard unavailable. Try again.',
       loadFailed: 'Error loading the leaderboard. Try again.',
     },
   },

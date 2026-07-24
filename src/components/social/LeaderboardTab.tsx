@@ -1,46 +1,32 @@
-import type { Dispatch, SetStateAction } from 'react'
 import { SkeletonRow } from '../SkeletonCard'
 import EmptyState from '../EmptyState'
 import social from '../../lib/i18n/social'
 import type { LeaderboardEntry } from '../../hooks/useLeaderboard'
 import Av from './Av'
 
-// ── Tab CLASSIFICA ────────────────────────────────────────────────────────────
-type LbScope = 'friends' | 'global'
+// ── Tab CLASSIFICA (solo amici) ─────────────────────────────────────────────
+// Il toggle Amici/Globale è stato rimosso (P0-7 dell'audit tecnico del
+// 24/07/2026 — decisione prodotto): la landing promette "classifiche solo con
+// chi conosci davvero", la classifica globale mostrava aggregati settimanali
+// a qualunque utente autenticato, non solo agli amici.
 
 interface Props {
-  lbScope: LbScope
-  setLbScope: Dispatch<SetStateAction<LbScope>>
   loading: boolean
   entries: LeaderboardEntry[]
   openProfile: (userId: string, username: string, photo: string | null) => void
 }
 
-export default function LeaderboardTab({ lbScope, setLbScope, loading, entries, openProfile }: Props) {
+export default function LeaderboardTab({ loading, entries, openProfile }: Props) {
   return (
     <>
-      {/* Toggle Amici / Globale */}
-      <div className="flex rounded-xl overflow-hidden border border-[var(--grey)]">
-        {([['friends', social.leaderboard.scopeFriendsLabel], ['global', social.leaderboard.scopeGlobalLabel]] as const).map(([scope, label]) => (
-          <button
-            key={scope}
-            type="button"
-            onClick={() => setLbScope(scope)}
-            className={`tap flex-1 py-2 text-xs font-semibold transition-all ${lbScope === scope ? 'text-[white]' : 'text-gray-500'}`}
-            style={{ background: lbScope === scope ? 'var(--red)' : 'var(--grey-dark)' }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
       {loading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <SkeletonRow key={i} />)}</div>
-      ) : (lbScope === 'friends' ? entries.length <= 1 : entries.length === 0) ? (
+      ) : entries.length <= 1 ? (
         <div className="card py-14">
           <EmptyState
             icon="trophy"
-            title={lbScope === 'friends' ? social.leaderboard.emptyFriendsTitle : social.leaderboard.emptyGlobalTitle}
-            hint={lbScope === 'friends' ? social.leaderboard.emptyFriendsHint : social.leaderboard.emptyGlobalHint}
+            title={social.leaderboard.emptyFriendsTitle}
+            hint={social.leaderboard.emptyFriendsHint}
           />
         </div>
       ) : (
