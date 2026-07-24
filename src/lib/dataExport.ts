@@ -93,27 +93,37 @@ export async function buildUserDataExport(user: User): Promise<Record<string, un
   }
 }
 
-function downloadBlob(blob: Blob, filename: string) {
+// Helper unico riusato da CSV/JSON/GPX (fix P1-1 dell'audit tecnico del
+// 24/07/2026): l'ancora va appesa al DOM PRIMA del click e rimossa/revocata
+// con un setTimeout, mai nello stesso tick sincrono \u2014 quel pattern (l'anchor
+// mai nel DOM, revoke immediato) funziona per caso su Chromium ma \u00E8 l'esatto
+// anti-pattern noto per fallire silenziosamente su Safari/iOS, che ha bisogno
+// di pi\u00F9 tempo per aprire l'URL blob prima che venga revocato.
+function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => {
+    a.remove()
+    URL.revokeObjectURL(url)
+  }, 0)
 }
 
 export function downloadAsJson(data: unknown, filename: string) {
-  downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), filename)
+  triggerDownload(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), filename)
 }
 
 export function downloadAsCsv(csv: string, filename: string) {
   // BOM UTF-8: senza, Excel su Windows legge male le lettere accentate
-  downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }), filename)
+  triggerDownload(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }), filename)
 }
 
 // Export GPX di un singolo percorso (roadmap v4, pilastro 04): il documento
 // lo costruisce lib/gpxExport.ts, qui solo il download \u2014 stesso pattern di
 // downloadAsCsv/downloadAsJson.
 export function downloadAsGpx(xml: string, filename: string) {
-  downloadBlob(new Blob([xml], { type: 'application/gpx+xml' }), filename)
+  triggerDownload(new Blob([xml], { type: 'application/gpx+xml' }), filename)
 }

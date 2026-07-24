@@ -93,6 +93,9 @@ export default function SettingsPage() {
   const [shopWorking, setShopWorking] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
+  // Fix P1-1 dell'audit tecnico del 24/07/2026: mancava un feedback di
+  // successo, indistinguibile da un fallimento silenzioso su mobile.
+  const [exportSuccess, setExportSuccess] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<FormValues>()
@@ -208,6 +211,8 @@ export default function SettingsPage() {
     try {
       const data = await buildUserDataExport(user)
       downloadAsJson(data, `pisozone-dati-${format(new Date(), 'yyyy-MM-dd')}.json`)
+      setExportSuccess(true)
+      setTimeout(() => setExportSuccess(false), 3500)
     } catch {
       setExportError(profileText.privacy.exportFailed)
       setTimeout(() => setExportError(''), 3500)
@@ -691,6 +696,11 @@ export default function SettingsPage() {
             <Link to="/privacy" className="text-[var(--red)] underline">{profileText.privacy.privacyPolicyLink}</Link>
             <Link to="/termini" className="text-[var(--red)] underline">{profileText.privacy.termsLink}</Link>
           </div>
+          {exportSuccess && (
+            <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(34,197,94,0.12)', color: '#4ADE80' }}>
+              {profileText.privacy.exportSuccess}
+            </p>
+          )}
           {exportError && (
             <p className="text-xs text-center rounded-lg py-2 px-3" style={{ background: 'rgba(var(--accent-rgb),0.12)', color: 'var(--red)' }}>
               {exportError}

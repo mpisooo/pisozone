@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { startOfDay, startOfWeek, startOfMonth, startOfYear, parseISO, format, isAfter, isEqual } from 'date-fns'
 import { it } from 'date-fns/locale'
-import { AlertTriangle, Share2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Share2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useActivities } from '../hooks/useActivities'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
@@ -97,6 +97,10 @@ export default function StatsPage() {
   const [openWrapped, setOpenWrapped] = useState<WrappedData | null>(null)
   const { indicator: pullIndicator, handlers: pullHandlers } = usePullToRefresh(refetchActivities)
   const [sharingRace, setSharingRace] = useState(false)
+  // Feedback export CSV (fix P1-1 dell'audit tecnico del 24/07/2026): il
+  // download prima non dava mai alcun riscontro, indistinguibile da un
+  // fallimento silenzioso su mobile.
+  const [csvExportState, setCsvExportState] = useState<'idle' | 'success' | 'error'>('idle')
 
   const filtered = useMemo(() => filterByPeriod(activities, period), [activities, period])
 
@@ -240,8 +244,14 @@ export default function StatsPage() {
   }, [filtered])
 
   function handleExportCsv() {
-    const filename = `pisozone-attivita-${period}-${format(new Date(), 'yyyy-MM-dd')}.csv`
-    downloadAsCsv(activitiesToCsv(filtered), filename)
+    try {
+      const filename = `pisozone-attivita-${period}-${format(new Date(), 'yyyy-MM-dd')}.csv`
+      downloadAsCsv(activitiesToCsv(filtered), filename)
+      setCsvExportState('success')
+    } catch {
+      setCsvExportState('error')
+    }
+    setTimeout(() => setCsvExportState('idle'), 3000)
   }
 
   if (loading) return (
@@ -745,6 +755,19 @@ export default function StatsPage() {
       )}
 
       {openWrapped && <WrappedOverlay data={openWrapped} onClose={() => setOpenWrapped(null)} />}
+
+      {csvExportState === 'success' && (
+        <div className="toast-enter toast-saved flex items-center gap-3">
+          <CheckCircle2 size={22} className="text-green-400 shrink-0" />
+          <p className="text-[var(--color-text)] font-semibold text-sm">{stats.export.successToast}</p>
+        </div>
+      )}
+      {csvExportState === 'error' && (
+        <div className="toast-enter toast-error flex items-center gap-3">
+          <AlertTriangle size={22} className="text-[var(--red)] shrink-0" />
+          <p className="text-[var(--color-text)] font-semibold text-sm">{stats.export.errorToast}</p>
+        </div>
+      )}
     </div>
   )
 }

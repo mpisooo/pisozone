@@ -125,6 +125,8 @@ const it = {
     heading: 'ESPORTA I DATI',
     description: 'Scarica le attività del periodo selezionato in formato CSV, pronto per Excel o Google Sheets.',
     button: (count: number) => `📄 Scarica CSV (${count} attività)`,
+    successToast: 'CSV scaricato con successo',
+    errorToast: 'Esportazione CSV non riuscita. Riprova.',
   },
 
   emptyState: {
@@ -268,6 +270,8 @@ const en: Widen<typeof it> = {
     heading: 'EXPORT YOUR DATA',
     description: 'Download the activities from the selected period as a CSV, ready for Excel or Google Sheets.',
     button: (count: number) => `📄 Download CSV (${count} ${count === 1 ? 'activity' : 'activities'})`,
+    successToast: 'CSV downloaded successfully',
+    errorToast: 'CSV export failed. Please try again.',
   },
 
   emptyState: {

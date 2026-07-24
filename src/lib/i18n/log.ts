@@ -329,6 +329,8 @@ const it = {
   // ActivityEditModal, sotto la mappa/sagoma. lib/gpxExport.ts.
   gpxExport: {
     button: 'Esporta GPX',
+    successToast: 'File GPX scaricato',
+    failedToast: 'Esportazione GPX non riuscita. Riprova.',
   },
 
   // Import GPX (roadmap v4, pilastro 04): entry point in Log.tsx accanto al
@@ -665,6 +667,8 @@ const en: Widen<typeof it> = {
 
   gpxExport: {
     button: 'Export GPX',
+    successToast: 'GPX file downloaded',
+    failedToast: 'GPX export failed. Please try again.',
   },
 
   gpxImport: {

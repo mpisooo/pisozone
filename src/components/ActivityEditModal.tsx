@@ -72,6 +72,9 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [sharingCard, setSharingCard] = useState(false)
+  // Fix P1-1 dell'audit tecnico del 24/07/2026: l'export GPX dava solo un
+  // haptic, nessun riscontro visibile — indistinguibile da un tocco a vuoto.
+  const [gpxExportDone, setGpxExportDone] = useState(false)
   // Foto: nuovo file selezionato e/o rimozione di quella esistente.
   // La X toglie sempre la foto mostrata: per ripristinare basta chiudere senza salvare.
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -285,11 +288,17 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
   // Export GPX (roadmap v4, pilastro 04): il nome dell'attività nel file e
   // nel <name> del GPX segue lo stesso schema label+data dell'export card.
   const handleExportGpx = () => {
-    const typeLabel = ACTIVITY_OPTIONS.find((o) => o.value === activity.type)?.label ?? activity.type
-    const dateStr = format(parseISO(activity.date), 'yyyy-MM-dd')
-    const xml = buildGpxDocument(routePoints, `${typeLabel} - ${dateStr}`)
-    downloadAsGpx(xml, `pisozone-${activity.type}-${dateStr}.gpx`)
-    haptic('success')
+    try {
+      const typeLabel = ACTIVITY_OPTIONS.find((o) => o.value === activity.type)?.label ?? activity.type
+      const dateStr = format(parseISO(activity.date), 'yyyy-MM-dd')
+      const xml = buildGpxDocument(routePoints, `${typeLabel} - ${dateStr}`)
+      downloadAsGpx(xml, `pisozone-${activity.type}-${dateStr}.gpx`)
+      haptic('success')
+      setGpxExportDone(true)
+      setTimeout(() => setGpxExportDone(false), 3000)
+    } catch {
+      setErrorMsg(log.gpxExport.failedToast)
+    }
   }
 
   const handleDelete = async () => {
@@ -515,14 +524,17 @@ export default function ActivityEditModal({ activity, onClose, updateActivity, d
               {segmentCreated ? segmentsText.create.doneHint : segmentsText.create.entryButton}
             </button>
             {/* Export GPX (roadmap v4, pilastro 04): il percorso è portabile
-                fuori da PisoZone, non solo esportabile in CSV/JSON. */}
+                fuori da PisoZone, non solo esportabile in CSV/JSON. Il
+                riscontro di successo (fix P1-1) segue lo stesso pattern del
+                bottone segmenti sopra: l'etichetta stessa conferma l'esito,
+                niente toast in più per un'azione secondaria. */}
             <button
               type="button"
               onClick={handleExportGpx}
               className="w-full text-xs text-center py-1.5 rounded-lg"
               style={{ background: 'var(--grey)', color: 'var(--color-text)' }}
             >
-              {log.gpxExport.button}
+              {gpxExportDone ? log.gpxExport.successToast : log.gpxExport.button}
             </button>
           </div>
         )}
